@@ -1,0 +1,1604 @@
+1000 EXTERNAL     !LIB5FFT.TRU
+1010
+1020
+1030 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+1040 SUB CREATEORCHANGE( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, FORM$, TYPE$, T, MODE$, NOCONV, MMENU, HJWFLAG, A$, CALL$, FIRSTTIME, FREEMEM, ONLYONCE, ORG$, ORG2$, KLEEN$, CLEARTEMPS )
+1050
+1060   DECLARE DEF EVAL
+1070
+1080       !DISPLAY1
+1090   CALL ENTERNANDT( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, FORM$, TYPE$, T, MODE$, NOCONV, MMENU, HJWFLAG, A$, CALL$, FIRSTTIME, FREEMEM, ONLYONCE, CLEARTEMPS )
+1100
+1110   IF MMENU = 0 THEN
+1120
+1130     IF LOOPUP3 = 0 THEN
+1140
+1150           !DISPLAY2
+1160       CALL BOX30( Z2$, A$ )  !CRX=A, CHX=B, CRF=C, CHF=D
+1170
+1180       IF Z2$ = "A" OR Z2$ = "B" THEN
+1190         LET VAR$ = "X"
+1200       ELSE IF Z2$ = "C" OR Z2$ = "D" THEN
+1210         LET VAR$ = "FFT"
+1220       END IF
+1230
+1240     ELSE IF LOOPUP3 = 1 THEN
+1250       LET Z2$ = "D"
+1260       LET VAR$ = "FFT"
+1270     END IF
+1280
+1290     IF Z2$ = "Q" THEN
+1300       GOTO 1090
+1310     ELSE IF Z2$ = "A" OR Z2$ = "C" THEN
+1320       CALL CREATEDATA   !( N, NU, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, MODE$, TYPE$, NOCONV, VAR$, T, MMENU, HJWFLAG, A$ )
+1330     ELSE IF Z2$ = "B" OR Z2$ = "D" THEN
+1340       CALL CHANGEDATA   !( N, NU, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, MODE$, TYPE$, NOCONV, VAR$, T, MMENU, HJWFLAG, A$ )
+1350     END IF
+1360
+1370     IF LOOPING = 1 THEN
+1380       LET LOOPING = 0
+1390       IF LOOPUP2 = 1 OR CYCLE = 1 OR LOOPUP3 = 1 THEN
+1400         IF LOOPUP2 = 1 OR CYCLE = 1 THEN
+1410           LET LOOPUP2 = 0
+1420           LET CYCLE = 0
+1430         END IF
+1440         LET MMENU = 0
+1450         GOTO 1130
+1460       END IF
+1470     END IF
+1480   END IF
+1490
+1500 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+1510 SUB CHANGEDATA
+1520
+1530   LET SUB = 2
+1540
+1550   IF (VAR$ = "X" AND XFLAG = 0 AND X2FLAG = 0) OR (VAR$ = "FFT" AND FFTFLAG = 0 AND FFT2FLAG = 0) THEN
+1560     CALL BOX33( VAR$, A$ )  !ALL VALUES ARE ZERO... CANNOT MAKE CHANGES
+1570     LET MMENU = 1
+1580     LET LOOPING = 1
+1590     LET LOOPUP2 = 1
+1600   END IF
+1610
+1620   IF MMENU = 0 THEN
+1630     LET LOOPUP3 = 1
+1640     LET MULTT = 1
+1650     IF VAR$ = "FFT" THEN
+1660       IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN
+1670         LET MULTT = N
+1680       ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+1690         LET MULTT = N/T
+1700       END IF
+1710     END IF
+1720
+1730     IF HJWFLAGCLEARED = 1 THEN
+1740       LET HJWFLAGCLEARED = 0
+1750       LET HJWFLAG = 1
+1760     END IF
+1770
+1780     !DISPLAY3
+1790     CALL BOX32( N, VAR$, Z1$, A$, NOCONV )  !CHANGE X, X2 OR BOTH,  (F, F2 OR BOTH)
+1800
+1810     IF Z1$ = "Q" THEN
+1820       LET LOOPING = 1
+1830       LET LOOPUP2 = 1
+1840       LET LOOPUP3 = 0
+1850       GOTO 4950
+1860
+1870     ELSE IF Z1$ = "X" OR Z1$ = "F" OR Z1$ = "B" THEN
+1880       IF VAR$ = "X" THEN
+1890         MAT TEMPRE = XRE
+1900         MAT TEMPIM = XIM
+1910       ELSE IF VAR$ = "FFT" THEN
+1920         MAT TEMPRE = FFTRE
+1930         MAT TEMPIM = FFTIM
+1940       END IF
+1950       LET TOT1 = 0
+1960       LET VEX = 1    !PRIMARY VECTOR
+1970
+1980           !DISPLAY4
+1990       CALL BOX34( N, VAR$, Z2$, A$, VEX ) !CHANGE REAL, IMAG OR BOTH
+2000
+2010       IF Z2$ = "Q" THEN
+2020         GOTO 1790
+2030       ELSE IF Z2$ = "R" OR Z2$ = "I" OR Z2$ = "B" THEN
+2040         LET K = 0
+2050         LET NEWK = 0
+2060
+2070         DO
+2080               !DISPLAY5
+2090           CALL BOX35( N, NEWK, VEX, Z3$, Z2$, VAR$, A$ )  !USE OR SPECIFY K
+2100
+2110           IF Z3$ = "Q" THEN
+2120             GOTO 1990
+2130           ELSE IF Z3$ = "U" OR Z3$ = "S" THEN
+2140             IF Z3$ = "S" THEN
+2150
+2160               CALL BOX117( NEWK, FLAG, A$ ) !SPECIFY K
+2170
+2180               IF FLAG = 1 THEN
+2190                 GOTO 2070
+2200               ELSE
+2210                 LET K = MOD(NEWK,N)
+2220               END IF
+2230             END IF
+2240
+2250             CLEAR
+2260             PRINT TAB(2,1);"k = " ; NEWK
+2270
+2280             IF Z2$ = "R" OR Z2$ = "I" OR Z2$ = "B" THEN
+2290               IF Z2$ = "R" OR Z2$ = "B" THEN
+2300                 PRINT
+2310                 IF VAR$ = "X" THEN
+2320                   PRINT TAB(4,1);"THE CURRENT VALUE OF  XRE(" & STR$(NEWK) & ") = " ; TEMPRE(K)
+2330                   LET MESSAGE$ = "WHAT IS THE NEW VALUE FOR  XRE(" & STR$(NEWK) & ")  ?  "
+2340                 ELSE IF VAR$ = "FFT" THEN
+2350                   PRINT TAB(4,1);"THE CURRENT VALUE OF  FRE("& STR$(NEWK) & ") = " ; TEMPRE(K)/MULTT
+2360                   LET MESSAGE$ = "WHAT IS THE NEW VALUE FOR  FRE(" & STR$(NEWK) & ")  ?  "
+2370                 END IF
+2380
+2390                 CALL TEXTVALUEQ( MESSAGE$, FDG, FLAG, 6, 1, A$ )
+2400
+2410                 IF FLAG = 1 THEN
+2420                   GOTO 2070
+2430                 ELSE
+2440                   LET REAL = FDG*MULTT
+2450                 END IF
+2460
+2470                 IF REAL <> TEMPRE(K) THEN
+2480                   LET TOT1 = TOT1 + 1
+2490                   LET TEMPRE(K) = REAL
+2500                 END IF
+2510               END IF
+2520
+2530               IF Z2$ = "I" OR Z2$ = "B" THEN
+2540                 IF VAR$ = "X" THEN
+2550                   PRINT TAB(8,1);"THE CURRENT VALUE OF  XIM(" & STR$(NEWK) & ") = " ; TEMPIM(K)
+2560                   LET MESSAGE$ = "WHAT IS THE NEW VALUE FOR  XIM(" & STR$(NEWK) & ")  ?  "
+2570                 ELSE IF VAR$ = "FFT" THEN
+2580                   PRINT TAB(8,1);"THE CURRENT VALUE OF  FIM(" & STR$(NEWK) & ") = " ; TEMPIM(K)/MULTT
+2590                   LET MESSAGE$ = "WHAT IS THE NEW VALUE FOR  FIM(" & STR$(NEWK) & ")  ?  "
+2600                 END IF
+2610
+2620                 CALL TEXTVALUEQ( MESSAGE$, FDG, FLAG, 10, 1, A$ )
+2630
+2640                 IF FLAG = 1 THEN
+2650                   GOTO 2070
+2660                 ELSE
+2670                   LET IMAG = FDG*MULTT
+2680                 END IF
+2690
+2700                 IF IMAG <> TEMPIM(K) THEN
+2710                   LET TOT1 = TOT1 + 1
+2720                   LET TEMPIM(K) = IMAG
+2730                 END IF
+2740               END IF
+2750             END IF
+2760           END IF
+2770
+2780           LET NEWK = NEWK+1
+2790           LET K = MOD(NEWK,N)
+2800
+2810         LOOP UNTIL Z3$ = "C"
+2820       END IF
+2830
+2840       LET NUMBERR = 1
+2850
+2860           !DISPLAY6
+2870       CALL BOX29(TOT1, TOT2, N, Z1$, Z3$, A$, Z4$, NUMBERR, SUB) !YOU HAVE CREATED
+2880
+2890       IF Z3$ = "Q" THEN
+2900         LET LOOPING = 1
+2910         LET LOOPUP2 = 1
+2920         GOTO 4950
+2930       END IF
+2940     END IF
+2950   END IF
+2960
+2970   IF MMENU = 0 THEN
+2980
+2990     IF Z1$ = "X2" OR Z1$ = "F2" OR Z1$ = "B" THEN
+3000       IF VAR$ = "FFT" AND HJWFLAG = 1 THEN
+3010
+3020         CALL BOX59( CRT$, A$ ) !fft2 is locked
+3030
+3040         IF CRT$ = "P" THEN
+3050           LET HJWFLAG = 0
+3060           LET HJWFLAGCLEARED = 1
+3070           CLEAR
+3080         ELSE IF CRT$ = "Q" THEN
+3090           LET LOOPING = 1
+3100           LET LOOPUP3 = 1
+3110           GOTO 4950
+3120         END IF
+3130         CLEAR
+3140       END IF
+3150
+3160       LET TOT2 = 0
+3170
+3180       IF VAR$ = "X" THEN
+3190         MAT TEMP2RE = X2RE
+3200         MAT TEMP2IM = X2IM
+3210       ELSE IF VAR$ = "FFT" THEN
+3220         MAT TEMP2RE = FFT2RE
+3230         MAT TEMP2IM = FFT2IM
+3240       END IF
+3250
+3260       LET VEX = 2    !A SECONDARY VECTOR
+3270
+3280           !DISPLAY7
+3290       CALL BOX34( N, VAR$, Z2$, A$, VEX )  !CHANGE REAL OR IMAG OR BOTH
+3300
+3310       IF Z2$ = "Q" THEN
+3320         LET LOOPING = 1
+3330         LET LOOPUP2 = 1
+3340         GOTO 4950
+3350       ELSE IF Z2$ = "R" OR Z2$ = "I" OR Z2$ = "B" THEN
+3360         LET K = 0
+3370         LET NEWK = 0
+3380         DO
+3390               !DISPLAY8
+3400           CALL BOX35( N, NEWK, VEX, ZQ3$, Z2$, VAR$, A$ )  !USE OR SPECIFY K
+3410
+3420           IF ZQ3$ = "Q" THEN
+3430             GOTO 3260
+3440           ELSE IF ZQ3$ = "U" OR ZQ3$ = "S" THEN
+3450             IF ZQ3$ = "S" THEN
+3460
+3470                   !DISPLAY9
+3480               CALL BOX117( NEWK, GOBACK, A$ )   !SPECIFY K
+3490
+3500               IF GOBACK = 1 THEN
+3510                 GOTO 3370
+3520               ELSE
+3530                 LET K = MOD(NEWK,N)
+3540               END IF
+3550
+3560             END IF
+3570
+3580             CLEAR
+3590             PRINT TAB(2,1);"k = " ; NEWK
+3600             IF Z2$ = "R" OR Z2$ = "B" THEN
+3610               IF VAR$ = "X" THEN
+3620                 PRINT TAB(4,1);"THE CURRENT VALUE OF  X2RE(" & STR$(NEWK) & ") = " ; TEMP2RE(K)
+3630                 LET MESSAGE$ = "WHAT IS THE NEW VALUE FOR  X2RE(" & STR$(NEWK) & ")  ?  "
+3640               ELSE IF VAR$ = "FFT" THEN
+3650                 PRINT TAB(4,1);"THE CURRENT VALUE OF  F2RE(" & STR$(NEWK) & ") = " ; TEMP2RE(K)/MULTT
+3660                 LET MESSAGE$ = "WHAT IS THE NEW VALUE FOR  F2RE(" & STR$(NEWK) & ")  ?  "
+3670               END IF
+3680
+3690               CALL TEXTVALUEQ( MESSAGE$, FDG, FLAG, 6, 1, A$ )
+3700
+3710               IF FLAG = 1 THEN
+3720                 GOTO 3370
+3730               ELSE
+3740                 LET REAL = FDG*MULTT
+3750               END IF
+3760
+3770               IF REAL <> TEMP2RE(K) THEN
+3780                 LET TOT2 = TOT2 + 1
+3790                 LET TEMP2RE(K) = REAL
+3800               END IF
+3810
+3820             END IF
+3830
+3840             IF Z2$ = "I" OR Z2$ = "B" THEN
+3850               IF VAR$ = "X" THEN
+3860                 PRINT TAB(8,1);"THE CURRENT VALUE OF  X2IM(" & STR$(NEWK) & ") = " ; TEMP2IM(K)
+3870                 LET MESSAGE$ = "WHAT IS THE NEW VALUE FOR  X2IM(" & STR$(NEWK) & ")  ?  "
+3880               ELSE IF VAR$ = "FFT" THEN
+3890                 PRINT TAB(8,1);"THE CURRENT VALUE OF  F2IM(" & STR$(NEWK) & ") = " ; TEMP2IM(K)/MULTT
+3900                 LET MESSAGE$ = "WHAT IS THE NEW VALUE FOR  F2IM(" & STR$(NEWK) & ")  ?  "
+3910               END IF
+3920
+3930               CALL TEXTVALUEQ( MESSAGE$, FDG, FLAG, 10, 1, A$ )
+3940
+3950               IF FLAG = 1 THEN
+3960                 GOTO 3370
+3970               ELSE
+3980                 LET IMAG = FDG*MULTT
+3990               END IF
+4000
+4010               IF IMAG <> TEMP2IM(K) THEN
+4020                 LET TOT2 = TOT2 + 1
+4030                 LET TEMP2IM(K) = IMAG
+4040               END IF
+4050
+4060             END IF
+4070           END IF
+4080
+4090           LET NEWK = NEWK+1
+4100           LET K = MOD(NEWK,N)
+4110
+4120         LOOP UNTIL ZQ3$ = "C"
+4130       END IF
+4140       LET NUMBERR = 2
+4150
+4160       CALL BOX29(TOT1, TOT2, N, Z1$, Z3$, A$, Z4$, NUMBERR, SUB) !YOU HAVE CREATED
+4170
+4180       IF Z3$ = "Q" THEN
+4190         LET LOOPING = 1
+4200         LET LOOPUP2 = 1
+4210         GOTO 4950
+4220       END IF
+4230     END IF
+4240   END IF
+4250
+4260   IF MMENU = 0 THEN
+4270     IF TOT1 + TOT2 > 0 THEN
+4280       CLEAR
+4290       IF VAR$ = "X" THEN
+4300         IF Z1$ = "X" OR Z1$ = "B" THEN
+4310           FOR K = 0 TO N - 1
+4320             LET XRE(K) = TEMPRE(K)
+4330             LET XIM(K) = TEMPIM(K)
+4340             IF MOD(K,128) = 0 THEN PRINT ".";
+4350           NEXT K
+4360         END IF
+4370         IF Z1$ = "X2" OR Z1$ = "B" THEN
+4380           FOR K = 0 TO N - 1
+4390             LET X2RE(K) = TEMP2RE(K)
+4400             LET X2IM(K) = TEMP2IM(K)
+4410           NEXT K
+4420           IF MOD(K,128) = 0 THEN PRINT ".";
+4430         END IF
+4440
+4450         CALL TESTXDATA( N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, KLEEN$ )
+4460
+4470         MAT FFTRE = 0
+4480         MAT FFTIM = 0
+4490
+4500         IF HJWFLAG = 0 THEN
+4510           MAT FFT2RE = 0
+4520           MAT FFT2IM = 0
+4530         END IF
+4540
+4550         MAT IFFTRE = 0
+4560         MAT IFFTIM = 0
+4570
+4580         CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, NOCONV, HJWFLAG, KLEEN$ )
+4590
+4600         CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )
+4610         PRINT !TO RELEASE THE ";"
+4620
+4630         CALL BOX60( HJWFLAG, A$, SUB, VAR$, Z3$ )    !ALL VALUES HAVE BEEN ACCEPTED
+4640
+4650       ELSE IF VAR$ = "FFT" THEN
+4660         IF Z1$ = "F" OR Z1$ = "B" THEN
+4670           FOR K = 0 TO N - 1
+4680             LET FFTRE(K)  = TEMPRE(K)
+4690             LET FFTIM(K)  = TEMPIM(K)
+4700             IF MOD(K,128) = 0 THEN PRINT ".";
+4710           NEXT K
+4720         END IF
+4730         IF Z1$ = "F2" OR Z1$ = "B" THEN
+4740           FOR K = 0 TO N - 1
+4750             LET FFT2RE(K) = TEMP2RE(K)
+4760             LET FFT2IM(K) = TEMP2IM(K)
+4770             IF MOD(K,128) = 0 THEN PRINT ".";
+4780           NEXT K
+4790         END IF
+4800
+4810         CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, NOCONV, HJWFLAG, KLEEN$ )
+4820
+4830         MAT IFFTRE = 0
+4840         MAT IFFTIM = 0
+4850
+4860         CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )
+4870         PRINT !TO RELEASE THE ";"
+4880
+4890         CALL BOX60( HJWFLAG, A$, SUB, VAR$, Z3$ )    !ALL VALUES HAVE BEEN ACCEPTED
+4900
+4910       END IF
+4920     END IF
+4930   END IF
+4940
+4950 END SUB !CHANGEDATA
+4960 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+4970
+4980
+4990
+5000 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+5010 SUB CREATEDATA
+5020
+5030   DO
+5040     LET CYCLEUP = 0
+5050     LET SUB = 1
+5060     DO
+5070       LET TOT1 = 0
+5080       LET GOROUND = 0
+5090
+5100       MAT TEMPRE = 0
+5110       MAT TEMPIM = 0
+5120
+5130       DO
+5140         LET GOBACK2 = 0
+5150         LET CYCLE = 0
+5160
+5170         CALL BOX31( N, VAR$, Z1$, A$, NOCONV )   !ONLY X, BOTH X & X2, ONLY F, ...
+5180
+5190         IF Z1$ = "Q" THEN
+5200           LET LOOPING = 1
+5210           LET CYCLE = 1
+5220           EXIT DO
+5230         END IF
+5240
+5250         CALL CLEARALL( N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, NOCONV, HJWFLAG, 1 ) !CLEARTEMPS = 1
+5260
+5270         LET NUMBERR = 1  !PRIMARY  X  OR  F
+5280
+5290         CALL BOX28( VAR$, N, Z4$, A$, NUMBERR )   !REAL, COMPLEX, QUIT
+5300
+5310         IF Z4$ = "Q" THEN LET GOBACK2 = 1
+5320
+5330       LOOP WHILE GOBACK2 = 1
+5340
+5350       IF CYCLE = 0 THEN
+5360
+5370         CALL MAKEVALUES
+5380
+5390         CALL BOX29(TOT1, TOT2, N, Z1$, Z3$, A$, Z4$, NUMBERR, SUB) !YOU HAVE CREATED
+5400
+5410         IF Z3$ = "Q"  THEN
+5420           LET GOROUND = 1
+5430         END IF
+5440       END IF
+5450     LOOP WHILE GOROUND = 1
+5460
+5470     IF MMENU = 0 AND CYCLE = 0 THEN
+5480       IF Z1$ = "B" THEN
+5490         DO
+5500           LET TOT2 = 0
+5510           LET GOROUND = 0
+5520
+5530           MAT TEMP2RE = 0
+5540           MAT TEMP2IM = 0
+5550
+5560           CLEAR
+5570           PRINT
+5580           IF VAR$ = "FFT" AND HJWFLAG = 1 THEN
+5590
+5600             CALL BOX59( CRT$, A$ ) !fft2 is locked
+5610
+5620             IF CRT$ = "P" THEN
+5630               LET HJWFLAG = 0
+5640               CALL CLEARFFT2( FFT2RE(), FFT2IM(), FFT2FLAG )
+5650               CLEAR
+5660             ELSE IF CRT$ = "Q" THEN
+5670               LET CYCLEUP = 1
+5680             END IF
+5690             CLEAR
+5700           END IF
+5710
+5720           IF CYCLEUP = 0 THEN
+5730
+5740             LET NUMBERR = 2
+5750
+5760             CALL BOX28( VAR$, N, Z4$, A$, NUMBERR )   !REAL COMPLEX, QUIT
+5770
+5780             IF Z4$ = "Q" THEN
+5790               LET CYCLEUP = 1
+5800             END IF
+5810
+5820             IF CYCLEUP = 0 THEN
+5830
+5840               CALL MAKEVALUES
+5850
+5860               CLEAR
+5870
+5880               CALL BOX29(TOT1, TOT2, N, Z1$, Z3$, A$, Z4$, NUMBERR, SUB) !YOU HAVE CREATED
+5890
+5900               IF Z3$ = "Q" THEN
+5910                 LET GOROUND = 1
+5920               END IF
+5930             END IF
+5940           END IF
+5950         LOOP WHILE GOROUND = 1
+5960       END IF
+5970     END IF
+5980   LOOP WHILE CYCLEUP = 1
+5990
+6000   IF MMENU = 0 AND CYCLE = 0 THEN
+6010     IF TOT1 + TOT2 > 0 THEN
+6020       CLEAR
+6030       IF VAR$ = "X" THEN
+6040         FOR K = 0 TO N - 1
+6050           LET XRE(K) = TEMPRE(K)
+6060           LET XIM(K) = TEMPIM(K)
+6070
+6080           IF Z1$ = "B" THEN
+6090             LET X2RE(K) = TEMP2RE(K)
+6100             LET X2IM(K) = TEMP2IM(K)
+6110           END IF
+6120
+6130           IF MOD(K,128) = 0 THEN PRINT ".";
+6140         NEXT K
+6150
+6160         CALL TESTXDATA( N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, KLEEN$ )
+6170
+6180         PRINT !TO RELEASE THE ";"
+6190
+6200         CALL BOX60( HJWFLAG, A$, SUB, VAR$, Z3$ )    !ALL VALUES HAVE BEEN ACCEPTED
+6210       ELSE IF VAR$ = "FFT" THEN
+6220         IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN
+6230           LET MULTT = N
+6240         ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+6250           LET MULTT = N/T
+6260         ELSE
+6270           LET MULTT = 1
+6280         END IF
+6290         FOR K = 0 TO N - 1
+6300           LET FFTRE(K)  = MULTT*TEMPRE(K)
+6310           LET FFTIM(K)  = MULTT*TEMPIM(K)
+6320           IF MOD(K,128) = 0 THEN PRINT ".";
+6330         NEXT K
+6340         IF HJWFLAG = 0 THEN
+6350           FOR K = 0 TO N - 1
+6360             LET FFT2RE(K) = MULTT*TEMP2RE(K)
+6370             LET FFT2IM(K) = MULTT*TEMP2IM(K)
+6380             IF MOD(K,128) = 0 THEN PRINT ".";
+6390           NEXT K
+6400         END IF
+6410
+6420         CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, NOCONV, HJWFLAG, KLEEN$ )
+6430         PRINT !TO RELEASE THE ";"
+6440
+6450         CALL BOX60( HJWFLAG, A$, SUB, VAR$, Z3$ )    !ALL VALUES HAVE BEEN ACCEPTED
+6460
+6470       END IF
+6480     END IF
+6490   ELSE IF MMENU = 1 THEN
+6500     CALL CLEARALL( N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, NOCONV, HJWFLAG, 1 ) !CLEARTEMPS = 1
+6510   END IF
+6520
+6530   LET ORG$  = "C"
+6540   LET ORG2$ = "C"
+6550
+6560 END SUB !CREATEDATA
+6570 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+6580
+6590
+6600
+6610 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+6620 SUB MAKEVALUES
+6630
+6640   IF NUMBERR = 1 THEN        !PRIMARY
+6650     LET TEXT3$ = "XRE("
+6660     LET TEXT4$ = "XIM("
+6670     LET TEXT5$ = "FRE("
+6680     LET TEXT6$ = "FIM("
+6690   ELSE IF NUMBERR = 2 THEN   !SECONDARY
+6700     LET TEXT3$ = "X2RE("
+6710     LET TEXT4$ = "X2IM("
+6720     LET TEXT5$ = "F2RE("
+6730     LET TEXT6$ = "F2IM("
+6740   END IF
+6750
+6760   FOR K = 0 TO N - 1
+6770     IF VAR$ = "X" THEN
+6780       LET TEXT1$ = TEXT3$ & STR$(K) & ") = "   !REAL PART OF X OR X2
+6790       LET TEXT2$ = TEXT4$ & STR$(K) & ") = "   !IMAG PART OF X OR X2
+6800     ELSE IF VAR$ = "FFT" THEN
+6810       LET TEXT1$ = TEXT5$ & STR$(K) & ") = "   !REAL PART OF F OR F2
+6820       LET TEXT2$ = TEXT6$ & STR$(K) & ") = "   !IMAG PART OF F OR F2
+6830     END IF
+6840
+6850     CLEAR
+6860     PRINT TAB(2,1);"ENTER ""Q"" TO QUIT"
+6870
+6880     CALL TEXTVALUEQ( TEXT1$, FDG, FLAG, 4, 1, A$)
+6890
+6900     IF FLAG = 1 THEN
+6910       EXIT FOR
+6920     ELSE IF FLAG = 0 THEN
+6930       LET VALUE = FDG
+6940     END IF
+6950
+6960     IF NUMBERR = 1 THEN            !PRIMARY
+6970       LET TEMPRE(K) = VALUE
+6980       LET TOT1 = TOT1 + 1
+6990     ELSE IF NUMBERR = 2 THEN       !SECONDARY
+7000       LET TEMP2RE(K) = VALUE
+7010       LET TOT2 = TOT2 + 1
+7020     END IF
+7030
+7040     IF Z4$ = "C" THEN
+7050
+7060       CALL TEXTVALUEQ( TEXT2$, FDG, FLAG, 6, 1, A$)
+7070
+7080       IF FLAG = 1 THEN
+7090         EXIT FOR
+7100       ELSE IF FLAG = 0 THEN
+7110         LET VALUE = FDG
+7120       END IF
+7130
+7140       IF NUMBERR = 1 THEN
+7150         LET TEMPIM(K) = VALUE
+7160         LET TOT1 = TOT1 + 1
+7170       ELSE IF NUMBERR = 2 THEN
+7180         LET TEMP2IM(K) = VALUE
+7190         LET TOT2 = TOT2 + 1
+7200       END IF
+7210     END IF
+7220   NEXT K
+7230   CLEAR
+7240
+7250 END SUB !MAKEVALUES
+7260 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+7270
+7280
+7290
+7300
+7310 END SUB !CREATEORCHANGE
+7320 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+7330
+7340
+7350
+7360 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+7370 SUB HJW( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, FORM$, TYPE$, T, MODE$, NOCONV, MMENU, HJWFLAG, CTOP(), CBOT(), ROM(), COSMULT(), SINMULT(), A$, CALL$, FIRSTTIME, FREEMEM, ORG$, ORG2$, LOOPROUND, KLEEN$ )
+7380
+7390 LET FIRSTTIME = 1
+7400
+7410   DO
+7420     LET SKIP1 = 0
+7430     LET SKIP2 = 0
+7440
+7450     CALL BOX38( Z1$, A$ )   !CREATE, CHANGE, DISPLAY, LOAD, MAIN MENU
+7460
+7470     IF Z1$ = "Q" OR Z1$ = "M" THEN
+7480       IF Z1$ = "M" THEN
+7490         IF HJWFLAG = 0 AND CREATED = 1 THEN
+7500           SOUND 500,.1
+7510
+7520           CALL BOX112( RVO$, A$ )
+7530
+7540           IF RVO$ = "H" THEN
+7550             LET MMENU = 0
+7560             LET CHANGEPARAMS = 0
+7570           ELSE IF RVO$ = "M" THEN
+7580             LET MMENU = 1
+7590           END IF
+7600         ELSE
+7610           LET MMENU = 1
+7620         END IF
+7630       ELSE IF Z1$ = "Q" THEN
+7640         LET LOOPROUND = 1
+7650       END IF
+7660     ELSE
+7670       LET FIRSTTIME = 0
+7680       IF Z1$ = "CR" THEN
+7690
+7700         CALL CREATEHJW
+7710
+7720       ELSE IF Z1$ = "CH" THEN
+7730
+7740         CALL CHANGEHJW
+7750
+7760       ELSE IF Z1$ = "D" THEN    !DISPLAY COEFFICIENTS
+7770
+7780         CALL SHOWHJW
+7790
+7800       ELSE IF Z1$ = "L" THEN
+7810
+7820         CALL LOADHJW
+7830
+7840       END IF
+7850     END IF
+7860   LOOP UNTIL MMENU = 1 OR LOOPROUND = 1
+7870
+7880 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+7890 SUB CREATEHJW
+7900
+7910   LET BACKOUT = 0
+7920   LET SKIP2 = 0
+7930   LET HJWFLAG = 0
+7940   CALL CLEARFFT2( FFT2RE(), FFT2IM(), FFT2FLAG )
+7950
+7960   CLEAR
+7970   PRINT TAB(2,1);"THE FREQUENCY RESPONSE THAT YOU ARE ABOUT TO ENTER IS IN THE FORM OF A "
+7980   PRINT TAB(3,1);"QUOTIENT OF TWO POLYNOMIALS IN  jw"
+7990
+8000   PRINT TAB(5,1);"          A0 + A1(jw) + A2(jw)^2 + ... + Ar(jw)^R  <------ "
+8010   PRINT TAB(6,1);"  H(jw) = ---------------------------------------"
+8020   PRINT TAB(7,1);"          B0 + B1(jw) + B2(jw)^2 + ... + Bs(jw)^S  <------ "
+8030
+8040   PRINT TAB(9,1);"THE DEGREE OF THE NUMERATOR IS  R  AND OF THE DENOMINATOR  S"
+8050
+8060   PRINT TAB(12,1);"WHEN YOU EXECUTE  ""LOAD H(jw)""  VALUES WILL BE LOADED INTO  F2"
+8070
+8080   LET STRING1$ = "WHAT IS THE DEGREE OF THE NUMERATOR (0 <= R <= 16) ? "
+8090   DO
+8100     CALL TEXTVALUEQ( STRING1$, FDG, FLAG, 15, 1, A$ )
+8110     IF FLAG = 1 THEN
+8120       LET SKIP2 = 1
+8130       EXIT DO
+8140     ELSE IF FLAG = 0 THEN
+8150       LET DEGTOP = FDG
+8160       IF DEGTOP <> INT(DEGTOP) OR DEGTOP < 0 OR DEGTOP > 16 THEN SOUND 500,.1
+8170     END IF
+8180   LOOP UNTIL FLAG = 1 OR (DEGTOP = INT(DEGTOP) AND DEGTOP >= 0 AND DEGTOP <= 16)
+8190
+8200   IF SKIP2 = 0 THEN
+8210     LET CTOP(-1) = DEGTOP
+8220     LET STRING2$ = "WHAT IS THE DEGREE OF THE DENOMINATOR (" & STR$(DEGTOP) & " <= S <= 16) ? "
+8230     DO
+8240       CALL TEXTVALUEQ( STRING2$, FDG, FLAG, 17, 1, A$ )
+8250       IF FLAG = 1 THEN
+8260         LET SKIP2 = 1
+8270         LET CBOT(-1) = -1
+8280         EXIT DO
+8290       ELSE IF FLAG = 0 THEN
+8300         LET DEGBOT = FDG
+8310         IF (DEGBOT <> INT(DEGBOT) OR DEGBOT < DEGTOP OR DEGBOT > 16) THEN SOUND 500,.1
+8320       END IF
+8330     LOOP UNTIL FLAG = 1 OR (DEGBOT = INT(DEGBOT) AND DEGBOT >= DEGTOP AND DEGBOT <= 16)
+8340   END IF
+8350
+8360   IF SKIP2 = 0 THEN
+8370     LET CBOT(-1) = DEGBOT
+8380     CLEAR
+8390     PRINT TAB(2,1);"YOU ARE NOW CREATING THE NUMERATOR POLYNOMIAL (TOP) OF H(jw)."
+8400     FOR I = 0 TO CTOP(-1)
+8410       LET STR3$ = "COEFF OF (jw)^" & STR$(I) & " : " & "A(" & STR$(I) & ") = "
+8420
+8430       CALL TEXTVALUEQ( STR3$, FDG, FLAG, 4+I, 1, A$ )
+8440
+8450       IF FLAG = 1 THEN
+8460         MAT CTOP = 0
+8470         LET BACKOUT = 1
+8480         EXIT FOR
+8490       ELSE IF FLAG = 0 THEN
+8500         LET CTOP(I) = FDG
+8510       END IF
+8520     NEXT I
+8530
+8540     IF BACKOUT = 0 THEN
+8550       CLEAR
+8560       FOR I = 0 TO CBOT(-1)
+8570         DO
+8580           LET LOOPNOW = 0
+8590           DO
+8600             PRINT TAB(2,1);"YOU ARE NOW CREATING THE DENOMINATOR POLYNOMIAL (BOTTOM) OF H(jw)."
+8610             PRINT TAB(4,1);"(ONLY NON-NEGATIVE COEFFICIENTS ACCEPTED)"
+8620             IF PAINTBACK = 1 THEN
+8630               LET PAINTBACK = 0
+8640               PRINT
+8650               FOR K = 0 TO CBOT(-1) - 1
+8660                 PRINT "COEFF OF (jw)^" & STR$(K) & " : " & "B(" & STR$(K) & ") = " & STR$(CBOT(K))
+8670               NEXT K
+8680             END IF
+8690             LET STR4$ = "COEFF OF (jw)^" & STR$(I) & " : " & "B(" & STR$(I) & ") = "
+8700
+8710             CALL TEXTVALUEQ( STR4$, FDG, FLAG, 6+I, 1, A$ )
+8720
+8730             IF FLAG = 1 THEN
+8740               MAT CBOT = 0
+8750               LET CBOT(-1) = -1
+8760               LET BACKOUT = 1
+8770               EXIT DO
+8780             ELSE IF FLAG = 0 THEN
+8790               LET VALUE = FDG
+8800               IF I = 0 AND VALUE = 0 THEN
+8810
+8820                 CALL BOX114B( A$ )      !WON'T ACCEPT ZERO FOR  B(0)
+8830
+8840                 CLEAR
+8850                 LET LOOPNOW = 1
+8860               ELSE IF I = CBOT(-1)  AND VALUE = 0 THEN
+8870
+8880                 CALL BOX114C( CBOT(), A$ )      !WON'T ACCEPT ZERO FOR  B(S)
+8890
+8900                 CLEAR
+8910                 LET PAINTBACK = 1
+8920                 LET LOOPNOW = 1
+8930               ELSE IF VALUE < 0 THEN
+8940                 SOUND 500,.1
+8950               END IF
+8960             END IF
+8970             IF LOOPNOW = 1 THEN EXIT DO
+8980           LOOP UNTIL VALUE >= 0
+8990         LOOP WHILE LOOPNOW = 1
+9000
+9010         IF BACKOUT = 1 THEN EXIT FOR
+9020
+9030         LET CBOT(I) = VALUE
+9040       NEXT I
+9050
+9060       IF BACKOUT = 0 THEN
+9070         LET CREATED = 1
+9080         CALL SHOWHJW
+9090       END IF
+9100     END IF
+9110   END IF
+9120
+9130 END SUB !CREATEHJW
+9140 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+9150
+9160
+9170 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+9180 SUB SHOWHJW
+9190
+9200   IF CTOP(-1) = -1 OR CBOT(-1) = -1 THEN
+9210     SOUND 500,.1
+9220
+9230     CALL BOX111
+9240
+9250   ELSE
+9260     CLEAR
+9270     PRINT TAB(2,33);"NUMERATOR"
+9280     PRINT TAB(2,57);"DENOMINATOR"
+9290     IF CTOP(-1) <= 9 THEN
+9300       PRINT TAB(3,33);"DEGREE ";CTOP(-1)
+9310     ELSE
+9320       PRINT TAB(3,33);"DEGREE";CTOP(-1)
+9330     END IF
+9340     IF CBOT(-1) <= 9 THEN
+9350       PRINT TAB(3,58);"DEGREE ";CBOT(-1)
+9360     ELSE
+9370       PRINT TAB(3,58);"DEGREE";CBOT(-1)
+9380     END IF
+9390     PRINT TAB(3,9);"COEFF OF"
+9400     FOR I = 0 TO MAX(CTOP(-1),CBOT(-1))
+9410       LET I$ = STR$(I)
+9420       LET STR1$ = "(jw)^" & I$
+9430       PRINT TAB(5+I,10);STR1$
+9440     NEXT I
+9450     FOR I = 0 TO CTOP(-1)
+9460       LET I$ = STR$(I)
+9470       LET STR1$ = "A(" & I$ & ") ="
+9480       PRINT TAB(5+I,33) ; STR1$ ; CTOP(I)
+9490     NEXT I
+9500     FOR I = 0 TO CBOT(-1)
+9510       LET I$ = STR$(I)
+9520       LET STR1$ = "B(" & I$ & ") ="
+9530       PRINT TAB(5+I,58) ; STR1$ ; CBOT(I)
+9540     NEXT I
+9550
+9560     DO
+9570       LET FRAZ$ = "³ CHANGE VALUES ... C ³ LOAD H(jw) ... L ³  ?  "
+9580
+9590       CALL APROMPT( 23, 18, A$, FRAZ$, ASD$ )
+9600
+9610       IF ASD$ <> "C" AND ASD$ <> "L" AND ASD$ <> "Q" THEN SOUND 500,.1
+9620     LOOP UNTIL ASD$ = "C" OR ASD$ = "L" OR ASD$ = "Q"
+9630
+9640     IF ASD$ = "C" THEN
+9650
+9660       CALL CHANGEHJW
+9670
+9680     ELSE IF ASD$ = "L" THEN
+9690
+9700       CALL LOADHJW
+9710
+9720     END IF
+9730   END IF
+9740 END SUB !SHOWHJW
+9750 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+9760
+9770
+9780
+9790 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+9800  SUB CHANGEHJW
+9810
+9820    IF CBOT(-1) = -1 OR CTOP(-1) = -1 THEN
+9830      SOUND 500,.1
+9840
+9850      CALL BOX111
+9860
+9870    ELSE
+9880
+9890      CALL BOX113( DUMMY1$, A$ )
+9900
+9910      LET FLAG = 0
+9920      IF DUMMY1$ = "Q" THEN
+9930        LET SKIP1 = 1
+9940        LET MMENU = 0
+9950
+9960      ELSE IF DUMMY1$ = "N" OR DUMMY1$ = "D" THEN
+9970        LET HJWFLAG = 0
+9980
+9990        CALL CLEARFFT2( FFT2RE(), FFT2IM(), FFT2FLAG )
+10000
+10010       DO
+10020         IF DUMMY1$ = "N" THEN          !CHANGING NUMERATOR
+10030           FOR I = 0 TO CTOP(-1)
+10040             LET STRA$ = "A(" & STR$(I) & ")"
+10050             LET STRE$ = " = "
+10060             DO
+10070               LET LOOPA = 0
+10080               LET FLAG = 0
+10090               DO
+10100                 CLEAR
+10110                 PRINT TAB(2,1);"NUMERATOR COEFFICIENT:"
+10120                 PRINT TAB(2,24); STRA$ & STRE$ & STR$(CTOP(I))   !DISPLAYS CURRENT VALUE
+10130                 PRINT TAB(4,1);"³ CHANGE " & STRA$ & " ... C ³"
+10140                 PRINT TAB(6,1);"³ GO TO NEXT COEFF ... G ³"
+10150                 LET FRAZ$ = "³ SWITCH TO DENOMINATOR ... S ³  ?  "
+10160
+10170                 CALL APROMPT( 8, 1, A$, FRAZ$, DUMMY2$ )
+10180
+10190                 IF DUMMY2$ <> "C" AND DUMMY2$ <> "G" AND DUMMY2$ <> "S" AND DUMMY2$ <> "Q" THEN SOUND 500,.1
+10200               LOOP UNTIL DUMMY2$ = "C" OR DUMMY2$ = "G" OR DUMMY2$ = "S" OR DUMMY2$ = "Q"
+10210
+10220               IF DUMMY2$ = "C" THEN              !CHANGING NUMERATOR
+10230                 LET STRING$ = "NEW VALUE = ?  "
+10240
+10250                 CALL TEXTVALUEQ( STRING$, FDG, FLAG, 11, 1, A$)
+10260
+10270                 IF FLAG = 1 THEN
+10280                   LET LOOPA = 1
+10290                 ELSE IF FLAG = 0 THEN
+10300                   LET CTOP(I) = FDG
+10310                   PRINT TAB(13,1);"O.K. NEW VALUE IS " ; CTOP(I)
+10320                   CALL BOX48C( A$ )   !  ³ CONTINUE ³
+10330                 END IF
+10340               END IF
+10350             LOOP WHILE LOOPA = 1
+10360
+10370             IF DUMMY2$ = "G" THEN
+10380               PRINT
+10390
+10400             ELSE IF DUMMY2$ = "S" THEN
+10410               LET DUMMY1$ = "D"
+10420               EXIT FOR
+10430
+10440             ELSE IF DUMMY2$ = "Q" THEN
+10450               LET SKIP1 = 1
+10460               LET MMENU = 0
+10470               EXIT FOR
+10480
+10490             END IF
+10500           NEXT I
+10510
+10520         ELSE IF DUMMY1$ = "D" THEN       !CHANGING DENOMINATOR
+10530           FOR I = 0 TO CBOT(-1)
+10540             DO
+10550               LET FLAG = 0
+10560               LET STRB$ = "B(" & STR$(I) & ")"
+10570               LET STRE$ = " = "
+10580               DO
+10590                 CLEAR
+10600                 PRINT TAB(2,1);"DENOMINATOR COEFF:"
+10610                 PRINT TAB(2,20); STRB$ & STRE$ & STR$(CBOT(I))   !DISPLAYS CURRENT VALUE
+10620                 PRINT TAB(4,1);"³ CHANGE " & STRB$ & " ... C ³"
+10630                 PRINT TAB(6,1);"³ GO TO NEXT COEFF ... G ³"
+10640                 LET FRAZ$ = "³ SWITCH TO NUMERATOR ... S ³  ?  "
+10650
+10660                 CALL APROMPT( 8, 1, A$, FRAZ$, DUMMY2$ )
+10670
+10680                 IF DUMMY2$ <> "C" AND DUMMY2$ <> "G" AND DUMMY2$ <> "S" AND DUMMY2$ <> "Q" THEN SOUND 500,.1
+10690               LOOP UNTIL DUMMY2$ = "C" OR DUMMY2$ = "G" OR DUMMY2$ = "S" OR DUMMY2$ = "Q"
+10700
+10710               IF DUMMY2$ = "C" THEN         !CHANGING DENOMINATOR
+10720                 DO
+10730                   IF I <> 0 AND I <> CBOT(-1) THEN
+10740                     LET STRING$ = "NEW VALUE (A NON-NEGATIVE NUMBER) = ?  "
+10750                   ELSE IF I = 0 OR I = CBOT(-1) THEN
+10760                     LET STRING$ = "NEW VALUE (A POSITIVE NUMBER) = ?  "
+10770                   END IF
+10780
+10790                   CALL TEXTVALUEQ( STRING$, FDG, FLAG, 11, 1, A$ )
+10800
+10810                   IF FLAG = 1 THEN
+10820                     EXIT DO
+10830                   ELSE IF FLAG = 0 THEN
+10840                     LET VALUE = FDG
+10850                     LET TES = 0
+10860                     IF I <> 0 AND I <> CBOT(-1) THEN
+10870                       IF VALUE >= 0 THEN LET TES = 1
+10880                     ELSE IF I = 0 OR I = CBOT(-1) THEN
+10890                       IF VALUE > 0 THEN LET TES = 1
+10900                     END IF
+10910                     IF TES = 1 THEN
+10920                       LET CBOT(I) = VALUE
+10930                       PRINT
+10940                       PRINT TAB(13,1);"O.K. NEW VALUE IS " ; CBOT(I)
+10950                       CALL BOX48C( A$ )  ! ³ CONTINUE ³
+10960                     ELSE IF TES = 0 THEN
+10970                       SOUND 500,.1
+10980                     END IF
+10990                   END IF
+11000                 LOOP UNTIL TES = 1
+11010
+11020               ELSE IF DUMMY2$ = "G" THEN
+11030                 PRINT
+11040
+11050               ELSE IF DUMMY2$ = "S" THEN
+11060                 LET DUMMY1$ = "N"
+11070                 EXIT FOR
+11080
+11090               ELSE IF DUMMY2$ = "Q" THEN
+11100                 LET SKIP1 = 1
+11110                 LET MMENU = 0
+11120                 EXIT FOR
+11130               END IF
+11140
+11150             LOOP WHILE FLAG = 1
+11160           NEXT I
+11170         END IF
+11180       LOOP UNTIL SKIP1 = 1
+11190     END IF
+11200   END IF
+11210
+11220 END SUB !CHANGEHJW
+11230 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+11240
+11250
+11260
+11270 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+11280 SUB LOADHJW
+11290
+11300   LET BACKOUT = 0
+11310   LET SETZERO = 0
+11320
+11330   IF CTOP(-1) = -1 OR CBOT(-1) = -1 THEN
+11340     SOUND 500,.1
+11350
+11360     CALL BOX111
+11370
+11380   ELSE
+11390     CLEAR
+11400     PRINT
+11410     LET TESTFLAG = 0
+11420
+11430     FOR I = 0 TO CBOT(-1)
+11440       IF CBOT(I) <> 0 THEN
+11450         LET TESTFLAG = 1
+11460       END IF
+11470     NEXT I
+11480
+11490     IF 0 = 0 THEN   !ALL O.K.  NOW PROCEEDING TO LOAD  H(jw)
+11500
+11510       LET HJWFLAG = 0
+11520
+11530       CALL CLEARFFT2( FFT2RE(), FFT2IM(), FFT2FLAG )
+11540
+11550       IF CBOT(-1) = CTOP(-1) THEN    !EXTRACTING THE DIRAC DELTA
+11560         LET VAL = CTOP(-1)
+11570         LET DIRAC = CTOP(VAL)/CBOT(VAL)
+11580         FOR K = 0 TO VAL
+11590           LET CTOP(K) = CTOP(K) - DIRAC*CBOT(K)
+11600         NEXT K
+11610       END IF
+11620
+11630       LET OMEGAs = 2*PI/T
+11640       LET P2 = PI/2
+11650
+11660       DO
+11670         LET NEWALPHA = 0
+11680         LET SETZER0  = 0
+11690
+11700         CALL BOX115( BACKOUT, A, A$ )
+11710
+11720         IF BACKOUT = 1 THEN EXIT DO
+11730
+11740         IF A >= 64 THEN
+11750           LET CC = INT((8 - LOG2(A))/2)
+11760           LET DD = 2^CC
+11770           LET EE = INT(DD*A)
+11780         END IF
+11790
+11800         CLEAR
+11810         PRINT
+11820         PRINT "ALIASING LEVEL IS ---> ALPHA = ";A;":  PRESS SPACE BAR TO TAKE CONTROL"
+11830         PRINT
+11840         LET NUMB = INT(N/32)
+11850         IF NUMB = 0 THEN LET NUMB = 1
+11860         LET SETZERO = 0
+11870         LET J = 0
+11880         DO
+11890           LET FFT2RE(J) = 0
+11900           LET FFT2IM(J) = 0
+11910           LET V = J - A*N     !A IS ALIAS LEVEL
+11920           IF MOD(J,16) = 0 THEN
+11930             PRINT "³"; NUMB; "³";
+11940             LET NUMB = NUMB - 1
+11950           END IF
+11960           DO
+11970             IF A >= 64 THEN
+11980               LET COUNT1 = COUNT1 + 1
+11990               IF MOD(COUNT1,EE) = 0 THEN
+12000                 PRINT ".";
+12010                 LET COUNT2 = COUNT2 + 1
+12020                 IF MOD(COUNT2,1000) = 0 THEN
+12030                   PRINT
+12040                   PRINT
+12050                   PRINT "ALIASING LEVEL IS ---> ALPHA = ";A;":  PRESS SPACE BAR TO TAKE CONTROL"
+12060                   PRINT
+12070                 END IF
+12080               END IF
+12090             END IF
+12100
+12110             IF KEY INPUT THEN
+12120               GET KEY INKEY
+12130               IF INKEY = 32 THEN
+12140
+12150                 CALL BOX116( WCT$, A$ )
+12160
+12170                 CLEAR
+12180                 IF WCT$ = "R" THEN
+12190                   PRINT
+12200                   PRINT "ALIASING LEVEL IS ---> ALPHA = ";A;":  PRESS SPACE BAR TO TAKE CONTROL"
+12210                   PRINT
+12220                 ELSE IF WCT$ = "N" THEN
+12230                   LET SETZERO = 1
+12240                   LET NEWALPHA = 1
+12250                   MAT FFT2RE = 0
+12260                   MAT FFT2IM = 0
+12270                 ELSE IF WCT$ = "Q" THEN
+12280                   LET SETZERO = 1
+12290                 END IF
+12300               END IF
+12310             END IF
+12320
+12330             IF SETZERO = 0 THEN
+12340               LET RR = V*OMEGAs
+12350               FOR K = 0 TO MAX(CTOP(-1),CBOT(-1))
+12360                 LET ROM(K) = RR^K
+12370                 LET COSMULT(K) = COS(K*P2)    !P2 IS ã/2
+12380                 LET SINMULT(K) = SIN(K*P2)
+12390               NEXT K
+12400
+12410               LET TOPRE = 0
+12420               LET TOPIM = 0
+12430               LET BOTRE = 0
+12440               LET BOTIM = 0
+12450
+12460               FOR K = 0 TO CTOP(-1)
+12470                 LET AA = CTOP(K)*ROM(K)
+12480                 LET TOPRE = TOPRE + AA*COSMULT(K)
+12490                 LET TOPIM = TOPIM + AA*SINMULT(K)
+12500               NEXT K
+12510               FOR K = 0 TO CBOT(-1)
+12520                 LET AA = CBOT(K)*ROM(K)
+12530                 LET BOTRE = BOTRE + AA*COSMULT(K)
+12540                 LET BOTIM = BOTIM + AA*SINMULT(K)
+12550               NEXT K
+12560
+12570               LET DENOM = BOTRE^2 + BOTIM^2
+12580               LET FFT2RE(J) = FFT2RE(J) + (TOPRE*BOTRE + TOPIM*BOTIM)/DENOM
+12590               LET FFT2IM(J) = FFT2IM(J) + (TOPIM*BOTRE - TOPRE*BOTIM)/DENOM
+12600               LET V = V + N
+12610             END IF
+12620           LOOP UNTIL V > J + A*N OR SETZERO = 1
+12630
+12640           LET J = J + 1
+12650         LOOP UNTIL J > INT(N/2) OR SETZERO = 1
+12660         PRINT !TO RELEASE THE ";"
+12670       LOOP WHILE NEWALPHA = 1
+12680
+12690       IF BACKOUT = 0 THEN
+12700         IF SETZERO = 0 THEN
+12710           LET SCALE = 1
+12720           IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN
+12730             LET SCALE = N
+12740           ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+12750             LET SCALE = N/T
+12760           END IF
+12770           LET FFT2IM(0) = 0
+12780           IF N/2 = INT(N/2) THEN
+12790             LET FFT2IM(N/2) = 0
+12800           END IF
+12810           FOR K = 0 TO INT(N/2)
+12820             LET FFT2RE(K)     = SCALE*(FFT2RE(K) + DIRAC)
+12830             LET FFT2RE(N - K) = FFT2RE(K)
+12840             LET FFT2IM(K)     = SCALE*FFT2IM(K)
+12850             LET FFT2IM(N - K) = -FFT2IM(K)
+12860           NEXT K
+12870           LET HJWFLAG = 1
+12880           LET ORG2$ = "L"
+12890           LET MMENU = 1
+12900
+12910         ELSE IF SETZERO = 1 THEN
+12920           MAT FFT2RE = 0
+12930           MAT FFT2IM = 0
+12940         END IF
+12950
+12960         IF CBOT(-1) = CTOP(-1) THEN    !RESTORING THE TRANSFER FUNCTION
+12970           FOR K = 0 TO VAL
+12980             LET CTOP(K) = CTOP(K) + DIRAC*CBOT(K)
+12990           NEXT K
+13000         END IF
+13010
+13020         PRINT
+13030         CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, NOCONV, HJWFLAG, KLEEN$ )
+13040         PRINT !TO RELEASE THE ";"
+13050       END IF
+13060     END IF
+13070   END IF
+13080 END SUB !LOADHJW
+13090 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+13100
+13110 END SUB !Hjw
+13120 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+13130
+13140
+13150
+13160 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+13170 !SUB LOADHS( N, T, CTOP(), CBOT(), ROM(), COSMULT(), SINMULT(), FFT2RE(), FFT2IM(), MODE$, TYPE$, MMENU, HJWFLAG, A$, SIGMA )
+13180 !  CLEAR
+13190 !  PRINT
+13200 !
+13210 !  IF CBOT(-1) = CTOP(-1) THEN    !EXTRACTING THE DIRAC DELTA
+13220 !    LET VAL = CTOP(-1)
+13230 !    LET DIRAC = CTOP(VAL)/CBOT(VAL)
+13240 !    FOR K = 0 TO VAL
+13250 !      LET CTOP(K) = CTOP(K) - DIRAC*CBOT(K)
+13260 !    NEXT K
+13270 !  END IF
+13280 !
+13290 !  LET OMEGAs = 2*PI/T
+13300 !  LET P2 = PI/2
+13310 !
+13320 !  PRINT "WE ARE NOW LOADING  H(s)  INTO  F2"
+13330 !  DO
+13340 !    PRINT
+13350 !    PRINT "WHAT ALIAS LEVEL (ALPHA) DO YOU WANT"
+13360 !    PRINT
+13370 !    INPUT PROMPT "A NON-NEGATIVE INTEGER  ?  "  :  A
+13380 !    PRINT
+13390 !    IF A <> INT(A) OR A < 0 THEN SOUND 500,.1
+13400 !  LOOP UNTIL A = INT(A) AND A >= 0
+13410 !
+13420 !  IF A >= 64 THEN
+13430 !    LET CC = INT((8 - LOG2(A))/2)
+13440 !    LET DD = 2^CC
+13450 !    LET EE = INT(DD*A)
+13460 !  END IF
+13470 !
+13480 !  CLEAR
+13490 !  PRINT
+13500 !  PRINT "PRESS SPACE BAR TO TAKE CONTROL"
+13510 !  PRINT
+13520 !  LET NUMB = INT(N/32)
+13530 !  IF NUMB = 0 THEN LET NUMB = 1
+13540 !  LET SETZERO = 0
+13550 !  LET J = 0
+13560 !  DO
+13570 !    LET FFT2RE(J) = 0
+13580 !    LET FFT2IM(J) = 0
+13590 !    LET V = J - A*N     !A IS ALIAS LEVEL
+13600 !    IF MOD(J,16) = 0 THEN
+13610 !      PRINT "³"; NUMB; "³";
+13620 !      LET NUMB = NUMB - 1
+13630 !    END IF
+13640 !    DO
+13650 !      IF A >= 64 THEN
+13660 !        LET COUNT1 = COUNT1 + 1
+13670 !        IF MOD(COUNT1,EE) = 0 THEN
+13680 !          PRINT ".";
+13690 !          LET COUNT2 = COUNT2 + 1
+13700 !          IF MOD(COUNT2,1000) = 0 THEN
+13710 !            PRINT
+13720 !            PRINT
+13730 !            PRINT "PRESS SPACE BAR TO TAKE CONTROL"
+13740 !            PRINT
+13750 !          END IF
+13760 !        END IF
+13770 !      END IF
+13780 !      IF KEY INPUT THEN
+13790 !        GET KEY INKEY
+13800 !        IF INKEY = 32 THEN
+13810 !          PRINT
+13820 !          DO
+13830 !            PRINT
+13840 !            INPUT PROMPT "³ RESUME CALCULATION ... R ³ QUIT ... Q ³  ?  " : WCT$
+13850 !            LET WCT$ = UCASE$(WCT$)
+13860 !            IF WCT$ <> "R" AND WCT$ <> "Q" THEN SOUND 500,.1
+13870 !          LOOP UNTIL WCT$ = "R" OR WCT$ = "Q"
+13880 !          IF WCT$ = "R" THEN
+13890 !            PRINT
+13900 !            PRINT "PRESS SPACE BAR TO TAKE CONTROL"
+13910 !            PRINT
+13920 !          ELSE IF WCT$ = "Q" THEN
+13930 !            LET SETZERO = 1
+13940 !          END IF
+13950 !        END IF
+13960 !      END IF
+13970 !      LET R = V*OMEGAs     !(J - A*N)*OMEGAs
+13980 !      LET G = SQR(SIGMA^2 + R^2)
+13990 !      IF SIGMA <> 0 OR R <> 0 THEN
+14000 !        LET THETA = ANGLE(SIGMA,R)
+14010 !      ELSE
+14020 !        LET THETA = 0
+14030 !      END IF
+14040 !      FOR K = 0 TO MAX(CTOP(-1),CBOT(-1))
+14050 !        LET ROM(K) = G^K
+14060 !        LET COSMULT(K) = COS(K*THETA)
+14070 !        LET SINMULT(K) = SIN(K*THETA)
+14080 !      NEXT K
+14090 !
+14100 !      LET TOPRE = 0
+14110 !      LET TOPIM = 0
+14120 !      LET BOTRE = 0
+14130 !      LET BOTIM = 0
+14140 !
+14150 !      FOR K = 0 TO CTOP(-1)
+14160 !        LET AA = CTOP(K)*ROM(K)
+14170 !        LET TOPRE = TOPRE + AA*COSMULT(K)
+14180 !        LET TOPIM = TOPIM + AA*SINMULT(K)
+14190 !      NEXT K
+14200 !      FOR K = 0 TO CBOT(-1)
+14210 !        LET AA = CBOT(K)*ROM(K)
+14220 !        LET BOTRE = BOTRE + AA*COSMULT(K)
+14230 !        LET BOTIM = BOTIM + AA*SINMULT(K)
+14240 !      NEXT K
+14250 !
+14260 !      LET DENOM = BOTRE^2 + BOTIM^2
+14270 !
+14280 !      WHEN ERROR IN
+14290 !        LET FFT2RE(J) = FFT2RE(J) + (TOPRE*BOTRE + TOPIM*BOTIM)/DENOM
+14300 !        LET FFT2IM(J) = FFT2IM(J) + (TOPIM*BOTRE - TOPRE*BOTIM)/DENOM
+14310 !      USE
+14320 !        CLEAR
+14330 !        PRINT
+14340 !        SOUND 500,.1
+14350 !        PRINT "YOU ARE ATTEMPTING TO DIVIDE BY ZERO!"
+14360 !        PRINT
+14370 !        PRINT "YOU MUST GO BACK AND FIX THE PROBLEM."
+14380 !        DO
+14390 !          PRINT
+14400 !          INPUT PROMPT "³ CONTINUE ... C ³  ?  "  :  WCO$
+14410 !          LET WCO$ = UCASE$(WCO$)
+14420 !        LOOP UNTIL WCO$ = "C"
+14430 !        LET SETZERO = 1
+14440 !      END WHEN
+14450 !      LET V = V + N
+14460 !    LOOP UNTIL V > J + A*N OR SETZERO = 1
+14470 !
+14480 !    LET J = J + 1
+14490 !  LOOP UNTIL J > INT(N/2) OR SETZERO = 1
+14500 !  PRINT !TO RELEASE THE ";"
+14510 !
+14520 !  IF SETZERO = 0 THEN
+14530 !    LET SCALE = 1
+14540 !    IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN
+14550 !      LET SCALE = N
+14560 !    ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+14570 !      LET SCALE = N/T
+14580 !    END IF
+14590 !    LET FFT2IM(0) = 0
+14600 !    IF N/2 = INT(N/2) THEN
+14610 !      LET FFT2IM(N/2) = 0
+14620 !    END IF
+14630 !    FOR K = 0 TO INT(N/2)
+14640 !      LET FFT2RE(K)     = SCALE*(FFT2RE(K) + DIRAC)
+14650 !      LET FFT2RE(N - K) = FFT2RE(K)
+14660 !      LET FFT2IM(K)     = SCALE*FFT2IM(K)
+14670 !      LET FFT2IM(N - K) = -FFT2IM(K)
+14680 !    NEXT K
+14690 !    LET HJWFLAG = 1
+14700 !  ELSE IF SETZERO = 1 THEN
+14710 !    MAT FFT2RE = 0
+14720 !    MAT FFT2IM = 0
+14730 !  END IF
+14740 !
+14750 !  IF CBOT(-1) = CTOP(-1) THEN    !RESTORING THE TRANSFER FUNCTION
+14760 !    FOR K = 0 TO VAL
+14770 !      LET CTOP(K) = CTOP(K) + DIRAC*CBOT(K)
+14780 !    NEXT K
+14790 !  END IF
+14800 !
+14810 !END SUB !LOADHS
+14820 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+14830
+14840
+14850
+14860 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+14870 SUB CLEARFFT2( FFT2RE(), FFT2IM(), FFT2FLAG )
+14880
+14890   MAT FFT2RE = 0
+14900   MAT FFT2IM = 0
+14910   LET FFT2FLAG = 0
+14920
+14930 END SUB !CLEARFFT2
+14940 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+14950
+14960
+14970
+14980 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+14990 SUB CONVOLUTION( FORM$, N, NU, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), KOS(), ZIN(), IBR, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, T, MODE$, TYPE$, HJWFLAG, NOCONV, A$, KLEEN$, CONCORFLAG )
+15000
+15010 CALL BOX54( "C", Z0$, A$, CONCORFLAG )
+15020
+15030 IF Z0$ = "Q" THEN LET MMENU = 1
+15040
+15050 IF MMENU = 0 AND HJWFLAG = 1 THEN
+15060   CLEAR
+15070
+15080   CALL BOX59( CRT$, A$ )
+15090
+15100   IF CRT$ = "R" THEN
+15110     LET HJWFLAG = 0
+15120     CALL CLEARFFT2( FFT2RE(), FFT2IM(), FFT2FLAG )
+15130   ELSE IF CRT$ = "Q" THEN
+15140     LET MMENU = 1
+15150   END IF
+15160 END IF
+15170
+15180 IF MMENU = 0 AND (TYPE$ = "PUL" OR MODE$ = "DISC") THEN
+15190   CLEAR
+15200   PRINT
+15210   FOR K = 0 TO N - 1
+15220     LET TEMPRE(K) = ABS(XRE(K))
+15230     LET TEMPIM(K) = ABS(XIM(K))
+15240     LET A1 = MAX(A1, TEMPRE(K))
+15250     LET A2 = MAX(A2, TEMPIM(K))
+15260     IF MOD(K,128) = 0 THEN PRINT ".";
+15270   NEXT K
+15280   IF A1 <> 0 THEN
+15290     FOR K = 0 TO N - 1
+15300       IF TEMPRE(K) < .01*A1 THEN LET TEMPRE(K) = 0
+15310       IF MOD(K,128) = 0 THEN PRINT ".";
+15320     NEXT K
+15330   END IF
+15340   IF A2 <> 0 THEN
+15350     FOR K = 0 TO N - 1
+15360       IF TEMPIM(K) < .01*A2 THEN LET TEMPIM(K) = 0
+15370       IF MOD(K,128) = 0 THEN PRINT ".";
+15380     NEXT K
+15390   END IF
+15400   LET FLAG   = 0
+15410   LET COUNT1 = 0
+15420   LET COUNT2 = 0
+15430   LET COUNT3 = 0
+15440   FOR K = 0 TO N - 1
+15450     IF TEMPRE(K) = 0 AND TEMPIM(K) = 0 THEN
+15460       IF FLAG = 0 THEN
+15470         LET COUNT3 = COUNT3 + 1
+15480       ELSE IF FLAG = 1 THEN
+15490         LET COUNT1 = COUNT1 + 1
+15500       END IF
+15510     ELSE IF TEMPRE(K) <> 0 OR TEMPIM(K) <> 0 THEN
+15520       LET FLAG = 1
+15530       LET COUNT2 = MAX(COUNT1, COUNT2)
+15540       LET COUNT1 = 0
+15550     END IF
+15560     IF MOD(K,128) = 0 THEN PRINT ".";
+15570   NEXT K
+15580   LET COUNT3 = COUNT3 + COUNT1
+15590   LET COUNT2 = MAX(COUNT2, COUNT3)
+15600   LET PNUM = N - COUNT2
+15610   FOR K = 0 TO N - 1
+15620     LET TEMP2RE(K) = ABS(X2RE(K))
+15630     LET TEMP2IM(K) = ABS(X2IM(K))
+15640     LET A3 = MAX(A3, TEMP2RE(K))
+15650     LET A4 = MAX(A4, TEMP2IM(K))
+15660     IF MOD(K,128) = 0 THEN PRINT ".";
+15670   NEXT K
+15680   IF A3 <> 0 THEN
+15690     FOR K = 0 TO N - 1
+15700       IF TEMP2RE(K) < .001*A3 THEN LET TEMP2RE(K) = 0
+15710       IF MOD(K,128) = 0 THEN PRINT ".";
+15720     NEXT K
+15730   END IF
+15740   IF A4 <> 0 THEN
+15750     FOR K = 0 TO N - 1
+15760       IF TEMP2IM(K) < .001*A4 THEN LET TEMP2IM(K) = 0
+15770       IF MOD(K,128) = 0 THEN PRINT ".";
+15780     NEXT K
+15790   END IF
+15800   LET FLAG   = 0
+15810   LET COUNT1 = 0
+15820   LET COUNT2 = 0
+15830   LET COUNT3 = 0
+15840   FOR K = 0 TO N - 1
+15850     IF TEMP2RE(K) = 0 AND TEMP2IM(K) = 0 THEN
+15860       IF FLAG = 0 THEN
+15870         LET COUNT3 = COUNT3 + 1
+15880       ELSE IF FLAG = 1 THEN
+15890         LET COUNT1 = COUNT1 + 1
+15900       END IF
+15910     ELSE IF TEMP2RE(K) <> 0 OR TEMP2IM(K) <> 0 THEN
+15920       LET FLAG = 1
+15930       LET COUNT2 = MAX(COUNT1, COUNT2)
+15940       LET COUNT1 = 0
+15950     END IF
+15960     IF MOD(K,128) = 0 THEN PRINT ".";
+15970   NEXT K
+15980   LET COUNT3 = COUNT3 + COUNT1
+15990   LET COUNT2 = MAX(COUNT2, COUNT3)
+16000   LET QNUM = N - COUNT2
+16010   PRINT !TO RELEASE THE ";"
+16020
+16030   IF PNUM + QNUM > N + 1 THEN
+16040     CLEAR
+16050
+16060     CALL BOX25( PNUM, QNUM, N, ZT$, A$, CONCORFLAG )
+16070
+16080     IF ZT$ = "Q" THEN LET MMENU = 1
+16090   END IF
+16100 END IF
+16110
+16120 IF MMENU = 0 THEN
+16130   LET TIMESTART = TIME
+16140   IF FORM$ = "POWEROF2" THEN
+16150     CALL RUNFFT1( N, NU, XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), IBR, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG )
+16160   ELSE IF FORM$ = "COMPOSITE" OR FORM$ = "PRIME" THEN
+16170     CALL RUNFFT2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, FORM$ )
+16180   END IF
+16190   LET FFTFLAG = 1
+16200   ! FFT OF PRIMARY  X  IS IN PRIMARY
+16210
+16220   FOR K = 0 TO N - 1
+16230     LET FFT2RE(K) = FFTRE(K)         ! PUT PRIMARY FFT IN SECONDARY
+16240     LET FFT2IM(K) = FFTIM(K)
+16250   NEXT K
+16260
+16270   FOR K = 0 TO N - 1
+16280     LET TEMPRE(K) = XRE(K)           ! PUT PRIMARY X IN SECONDARY
+16290     LET TEMPIM(K) = XIM(K)           ! AND SECONDARY X IN PRIMARY
+16300     LET XRE(K)    = X2RE(K)
+16310     LET XIM(K)    = X2IM(K)
+16320     LET X2RE(K)   = TEMPRE(K)
+16330     LET X2IM(K)   = TEMPIM(K)
+16340   NEXT K
+16350
+16360   ! NOW RUNNING FFT ON SECONDARY  X
+16370   IF FORM$ = "POWEROF2" THEN
+16380     CALL RUNFFT1( N, NU, XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), IBR, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG )
+16390   ELSE IF FORM$ = "COMPOSITE" OR FORM$ = "PRIME" THEN
+16400     CALL RUNFFT2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, FORM$ )
+16410   END IF
+16420   LET FFT2FLAG = 1
+16430   ! FFT OF SECONDARY  X  IS NOW IN PRIMARY
+16440
+16450   FOR K = 0 TO N - 1            ! PUT PRIMARY X BACK INTO PRIMARY
+16460     LET TEMPRE(K) = XRE(K)      ! AND SECONDARY X INTO SECONDARY
+16470     LET TEMPIM(K) = XIM(K)
+16480     LET XRE(K)    = X2RE(K)
+16490     LET XIM(K)    = X2IM(K)
+16500     LET X2RE(K)   = TEMPRE(K)
+16510     LET X2IM(K)   = TEMPIM(K)
+16520   NEXT K
+16530
+16540   FOR K = 0 TO N - 1
+16550     LET TEMPRE(K) = FFTRE(K)     ! PUT PRIMARY FFT IN PRIMARY
+16560     LET TEMPIM(K) = FFTIM(K)     ! AND SECONDARY IN SECONDARY
+16570     LET FFTRE(K)  = FFT2RE(K)
+16580     LET FFTIM(K)  = FFT2IM(K)
+16590     LET FFT2RE(K) = TEMPRE(K)
+16600     LET FFT2IM(K) = TEMPIM(K)
+16610   NEXT K
+16620
+16630   IF CONCORFLAG = 0 THEN         ! IF RUNNING CORRELATION
+16640     FOR K = 0 TO N - 1
+16650       LET FFTIM(K) = -FFTIM(K)
+16660     NEXT K
+16670   END IF
+16680
+16690               ! PERFORM COMPLEX MULTIPLICATION OF PRIMARY AND SECONDARY FFT'S
+16700   FOR K = 0 TO N - 1
+16710     LET TEMPRE(K) = (FFTRE(K)*FFT2RE(K) - FFTIM(K)*FFT2IM(K))
+16720     LET TEMPIM(K) = (FFTIM(K)*FFT2RE(K) + FFTRE(K)*FFT2IM(K))
+16730   NEXT K
+16740   FOR K = 0 TO N - 1
+16750     LET FFTRE(K) = TEMPRE(K)
+16760     LET FFTIM(K) = TEMPIM(K)
+16770   NEXT K
+16780
+16790                       ! INVERT PRIMARY FFT TO OBTAIN IFFT
+16800   IF FORM$ = "POWEROF2" THEN
+16810     CALL RUNIFFT1( N, NU, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM, IFFTRE(), IFFTIM(), KOS(), ZIN(), IBR, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG )
+16820   ELSE IF FORM$ = "COMPOSITE" OR FORM$ = "PRIME" THEN
+16830     CALL RUNIFFT2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, FORM$, CONVFLAG )
+16840   END IF
+16850
+16860   LET CONVFLAG = 1
+16870
+16880   LET TIMEEND = TIME
+16890   LET TOTALTIME = TIMEEND - TIMESTART
+16900
+16910   CLEAR
+16920
+16930   CALL BOX57A( TOTALTIME, A$, CONCORFLAG )
+16940
+16950   CLEAR
+16960
+16970   CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, NOCONV, HJWFLAG, KLEEN$ )
+16980   CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )
+16990
+17000 END IF
+17010
+17020 END SUB !CONVOLUTION
+17030 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

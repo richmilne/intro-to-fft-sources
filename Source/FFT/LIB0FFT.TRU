@@ -1,0 +1,515 @@
+EXTERNAL             !LIB1FFT
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! "LIB1FFT.TRU"
+
+! SUB MAINSUB
+! SUB SETUP
+! SUB PAINTMAINMENU
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! "LIB2FFT.TRU"
+
+! SUB CREATE
+   ! sub createx
+   ! sub whereorigin
+   ! sub createf
+   ! sub intsneither
+   ! sub paintneither
+   ! sub paintheading
+   ! sub intsevenodd
+   ! sub paintevenodd
+   ! sub drawline
+   ! sub showints
+   ! sub recall
+   ! sub doloop
+   ! sub numbertest
+   ! sub formula
+   ! sub title
+   ! sub makespectrum
+   ! sub maindo
+   ! sub errorhandler
+   ! sub fixit
+   ! sub edit
+   ! sub loaddata
+   ! sub createvectors
+   ! sub dirac
+   ! sub store
+   ! sub fetch
+   ! sub exclude
+! SUB TEXTVALUEQ
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! "LI3FFT.TRU"
+
+! SUB ENTERNANDT (WITH DIM DECLARATIONS)
+! SUB POSTPROCS
+   ! sub cleartemps
+! SUB XPOST
+   ! sub zf
+   ! sub zy
+! SUB FPOST
+   ! sub zy
+! SUB YPOST
+! SUB PLOT
+   ! sub greekomega
+! SUB MAXMIN
+! SUB FINDMULT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! "LIB4FFT.TRU"
+
+! SUB SHOWNUMBERS
+   ! sub menu3
+   ! sub menu4
+! SUB ARCTAN
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! "LIB5FFT.TRU"
+
+! SUB CREATEORCHANGE
+   ! sub changedata
+   ! sub createdata
+   ! sub makevalues
+! SUB Hjw
+   ! sub createhjw
+   ! sub showhjw
+   ! sub changehjw
+   ! sub loadhjw
+! SUB LOADHS   (FOR LAPLACE TRANSFORMS AS WELL AS FOURIER. CURRENTLY COMMENTED OUT)
+! SUB CLEARFFT2
+! SUB CONVOLUTION
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! "LIB6FFT.TRU"
+
+! SUB LOADFROMDISK
+   ! sub load
+! SUB FILETODISK
+   ! sub datafiletodisk
+   ! sub send
+   ! sub printfiletodisk
+   ! sub blip
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! "LIB7FFT.TRU"
+
+! SUB LOADFROMDISK  (MOD)
+! SUB FILETODISK    (MOD)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!"LIB8FFT.TRU"
+
+! SUB TESTFORMFFT
+! SUB TESTFORMIFFT
+! SUB RUNFFT1
+! SUB RUNIFFT1
+! SUB XFORM1
+! SUB LOADSINCOS
+! SUB IBRSUB
+! SUB RUNFFT2
+! SUB RUNIFFT2
+! SUB XFORM2
+! SUB FACTORIZE
+! SUB LOADTABLE
+! SUB ENCODE
+! SUB DECODE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!"LIB1DOS.TRU"
+
+! SUB BOX1
+      !sub errormessage1
+      !sub mustuse
+! SUB SETUPMENU
+      !sub errormessage2
+      !sub errormessage3
+! SUB WRITESUB
+! SUB BOX2
+      ! sub box138
+! SUB BOX3
+! SUB BOX39
+! SUB BOX78
+! SUB BOX107
+! SUB BOXQ
+! SUB BOXEXPIRE
+! SUB BOX138
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!"LIB2DOS.TRU"
+
+! SUB BOX77
+! SUB BOX101
+! SUB BOX102
+! SUB BOX103
+! SUB BOX104
+! SUB BOX105
+! SUB BOX105B
+! SUB BOX106
+! SUB BOX108
+! SUB BOX109
+! SUB BOX110
+! SUB BOX118
+! SUB BOX118B
+! SUB BOX118C
+! SUB BOX119
+! SUB BOX120
+! SUB BOX121
+! SUB BOX122
+! SUB BOX123
+! SUB BOX129
+! SUB BOX130
+! SUB BOX131
+! SUB BOX132
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!"LIB3DOS.TRU"
+
+! SUB BOX4
+! SUB BOX5
+! SUB BOX6
+! SUB POWERTEST
+! SUB BOX7
+! SUB BOX8
+! SUB BOX9
+! SUB BOX11
+! SUB BOX12
+      !Sub Printsub
+! SUB BOX17
+! SUB BOX18
+! SUB BOX19
+! SUB BOX40
+! SUB BOX40B
+! SUB BOX41
+! SUB BOX42
+! SUB BOX43
+! SUB BOX46
+! SUB BOX49
+! SUB BOX66
+! SUB BOXXPOST
+! SUB BOXFPOST
+! SUB BOXYPOST
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!"LIB4DOS.TRU"
+
+! SUB BOX21
+! SUB BOX22
+! SUB BOX45
+! SUB BOX50
+! SUB BOX51
+! SUB BOX61
+! SUB BOX67
+! SUB BOX68
+! SUB BOX72
+! SUB BOX73
+! SUB BOX74
+! SUB BOX75
+! SUB BOX76
+!SUB TEXTVALUE2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!"LIB5DOS.TRU"
+
+! SUB BOX25
+! SUB BOX28
+! SUB BOX29
+! SUB BOX30
+! SUB BOX31
+! SUB BOX32
+! SUB BOX33
+! SUB BOX34
+! SUB BOX35
+! SUB BOX38
+! SUB BOX57A
+! SUB BOX59
+! SUB BOX60
+! SUB BOX111
+! SUB BOX112
+! SUB BOX113
+! SUB BOX114
+! SUB BOX115
+! SUB BOX116
+! SUB BOX117
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!"LIB6DOS.TRU"
+
+! SUB BOX24
+! SUB BOX27A
+! SUB BOX27B
+! SUB BOX100
+! SUB BOX124
+! SUB BOX125
+! SUB BOX126
+! SUB BOX133
+! SUB BOX134
+! SUB BOX135
+! SUB BOX136
+! SUB BOX137
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!"LIB8DOS.TRU"
+
+! SUB TESTXDATA
+! SUB TESTFFTDATA
+      !sub testfft
+! SUB TESTIFFTDATA
+! SUB CLEARALL
+! SUB CLEANUP
+! SUB BOX48M
+! SUB BOX48MFIX
+! SUB BOX48C
+! SUB BOX48CFIX
+! SUB BOX54
+! SUB BOX57
+! SUB BOXU
+! SUB LINEU
+! SUB APROMPT
+! SUB SETCOLOR
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! SECTION 1 ..... COMMENTS
+! ------------------------
+
+! N IS THE NUMBER OF SAMPLES TO BE SENT TO THE FFT PROGRAM
+! N IS ALSO THE NUMBER OF FFT SPECTRUM VALUES THAT ARE RETURNED
+
+! XRE(K) IS THE REAL PART OF THE PRIMARY INPUT VECTOR
+! XIM(K) IS THE IMAG PART OF THE PRIMARY INPUT VECTOR
+
+! X2RE(K) IS THE REAL PART OF THE SECONDARY INPUT VECTOR
+! X2IM(K) IS THE IMAG PART OF THE SECONDARY INPUT VECTOR
+
+! FFTRE(K) IS THE REAL PART OF THE PRIMARY FFT VECTOR
+! FFTIM(K) IS THE IMAG PART OF THE PRIMARY FFT VECTOR
+
+! FFT2RE(K) IS THE REAL PART OF THE SECONDARY FFT VECTOR
+! FFT2IM(K) IS THE IMAG PART OF THE SECONDARY FFT VECTOR
+
+! IFFTRE(K) IS THE REAL PART OF THE INVERSE FFT VECTOR
+! IFFTRE(K) IS THE IMAG PART OF THE INVERSE FFT VECTOR
+
+! TEMPRE(K) IS THE REAL PART OF THE FIRST TEMP STORAGE VECTOR
+! TEMPIM(K) IS THE IMAG PART OF THE FIRST TEMP STORAGE VECTOR
+
+! TEMP2RE(K) IS THE REAL PART OF THE 2-ND TEMP STORAGE VECTOR
+! TEMP2IM(K) IS THE IMAG PART OF THE 2-ND TEMP STORAGE VECTOR
+
+! T IS THE NUMBER OF SECONDS THAT N REPRESENTS
+
+! IBR IS THE INTEGER (BASE 10) OF THE BINARY NUMBER K WHOSE BITS HAVE BEEN REVERSED
+
+! NU IS DEFINED BY N = 2^NU WHEN N IS A POWER OF 2
+
+! KOS(K) IS COS(-2*PI*K/N)
+! ZIN(K) IS SIN(-2*PI*K/N)
+
+! Q IS THE NUMBER OF PRIME FACTORS IN  N
+! R() IS THE VECTOR OF THOSE PRIMES (FOR USE IN MIXED RADIX)
+! TEMPR() IS A TEMP VECTOR FOR R()
+
+! MATK(,) IS THE MATRIX  FORMED BY ENCODING EVERY NUMBER 0 TO N-1 BASE R()
+
+! DITK() IS THE VECTOR OF DIGITS BASE R() FOR A GIVEN NUMBER (A ROW FROM MATK)
+
+! TEMPDITK() IS A TEMP VECTOR FOR DITK()
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB MAINSUB( CALL$ )
+
+  CLEAR
+
+  DIM XRE     ( 0 : 2 )
+  DIM XIM     ( 0 : 2 )
+  DIM X2RE    ( 0 : 2 )
+  DIM X2IM    ( 0 : 2 )
+  DIM FFTRE   ( 0 : 2 )
+  DIM FFTIM   ( 0 : 2 )
+  DIM FFT2RE  ( 0 : 2 )
+  DIM FFT2IM  ( 0 : 2 )
+  DIM IFFTRE  ( 0 : 2 )
+  DIM IFFTIM  ( 0 : 2 )
+  DIM TEMPRE  ( 0 : 2 )
+  DIM TEMPIM  ( 0 : 2 )
+  DIM TEMP2RE ( 0 : 2 )
+  DIM TEMP2IM ( 0 : 2 )
+  DIM KOS     ( 0 : 2 )
+  DIM ZIN     ( 0 : 2 )
+  DIM R       ( 1 : 10   )
+  DIM TEMPR   ( 1 : 10   )
+  DIM MATK    ( 0:2, 0:8 )
+  DIM DITK    ( 0 :  9   )
+  DIM TEMPDITK( 0 :  9   )
+
+  DIM CTOP    (-1 :  16  )
+  DIM CBOT    (-1 :  16  )
+  DIM ROM     ( 0 :  16  )
+  DIM COSMULT ( 0 :  16  )
+  DIM SINMULT ( 0 :  16  )
+
+  DIM OLDVARS$   (11,2)
+  DIM OLDINTSX$  ( 1,1)
+  DIM OLDINTSX2$ ( 1,1)
+  DIM OLDEXPRX$  ( 1,1)
+  DIM OLDEXPRX2$ ( 1,1)
+  DIM OLDEXPRF$  ( 2,2)
+  DIM OLDDIRAC$  ( 1,4)
+
+  LET A$ = REPEAT$(" ",80)
+  LET MODE$ = "NOT SET"
+  LET T = 1
+  LET KLEEN$ = "ONE"
+  LET TAXIS = 2
+  LET FAXIS = 2
+  LET CONCORFLAG = 1
+
+  LET CBOT(-1) = -1
+  LET CTOP(-1) = -1
+  RANDOMIZE
+
+  CALL TC_WIN_SETFONT(0,"TERMINAL",10,"PLAIN")
+
+  CALL SETUP( COLNUMBR, CARD$, COLOR$, AXIS$, KLEEN$, A$, TAXIS, FAXIS, WXI$, GMODE$, N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTRE(), IFFTIM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, CENTFREQ, CONCORFLAG, STORDATE )
+
+  LET FIRSTTIME = 1
+
+  DO
+    DO
+      ASK FREE MEMORY FREEMEM
+      !CALL XM_FREE(NKB)       !will crash if this is in
+      LET MMENU = 0
+      CALL PAINTMAINMENU( N, OPTION$, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, T, TYPE$, MODE$, CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, FREEMEM, CALL$, A$, NOCONV, HJWFLAG, NKB, FILESTR$, CONCORFLAG )
+      IF OPTION$ = "A" THEN CALL CREATE( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, FORM$, TYPE$, T, MODE$, NOCONV, MMENU, HJWFLAG, CTOP(), CBOT(), ROM(), COSMULT(), SINMULT(), A$, CALL$, FIRSTTIME, FREEMEM, OLDVARS$(,), OLDINTSX$(,), OLDINTSX2$(,), OLDEXPRX$(,), OLDEXPRX2$(,), OLDEXPRF$(,), OLDDIRAC$(,), ORG$, ORG2$, ONLYONCE, KLEEN$, CLEARTEMPS, FILESTR$ )
+      IF OPTION$ = "B" THEN CALL LOADFROMDISK( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, FORM$, TYPE$, T, MODE$, NOCONV, MMENU, HJWFLAG, A$, CALL$, FIRSTTIME, FREEMEM, ONLYONCE, ORG$, ORG2$, FILESTR$, KLEEN$, CLEARTEMPS )
+      IF OPTION$ = "C" THEN CALL CREATEORCHANGE( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, FORM$, TYPE$, T, MODE$, NOCONV, MMENU, HJWFLAG, A$, CALL$, FIRSTTIME, FREEMEM, ONLYONCE, ORG$, ORG2$, KLEEN$, CLEARTEMPS )
+      IF OPTION$ = "D" THEN CALL TESTFORMFFT( FORM$, N, NU, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), IBR, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, NOCONV, A$, KLEEN$, CONCORFLAG )
+      IF OPTION$ = "E" THEN CALL TESTFORMIFFT( FORM$, N, NU, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), IBR, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, A$, KLEEN$, CONCORFLAG )
+      IF OPTION$ = "F" THEN CALL CONVOLUTION( FORM$, N, NU, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), KOS(), ZIN(), IBR, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, T, MODE$, TYPE$, HJWFLAG, NOCONV, A$, KLEEN$, CONCORFLAG )
+      IF OPTION$ = "G" THEN CALL POSTPROCS( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, FORM$, TYPE$, T, MODE$, NOCONV, HJWFLAG, CONVFLAG, A$, KLEEN$, ORG$, ORG2$, FAXIS )
+      IF OPTION$ = "H" THEN CALL PLOT( N, NU, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), CARD$, COLOR$, AXIS$, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, T, TYPE$, MODE$, KLEEN$, A$, CALL$, FIRSTTIME, CENT, TAXIS, FAXIS, PULSESCALE, ORG$, ORG2$, CENTFREQ, CONCORFLAG )
+      IF OPTION$ = "I" THEN CALL SHOWNUMBERS( CONCORFLAG, N, NU, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, T, TYPE$, MODE$, KLEEN$, A$, CALL$, CARD$, COLOR$ )
+      IF OPTION$ = "J" THEN CALL FILETODISK ( N, T, TYPE$, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, MODE$, NOCONV, MMENU, KLEEN$, A$, FILESTR$ )
+      IF OPTION$ = "S" THEN
+        LET ZFLAG = 1
+
+        CALL SETUPMENU( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, ZFLAG, A$, TAXIS, FAXIS, WXI$, GMODE$, N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTRE(), IFFTIM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, CENTFREQ, CONCORFLAG, STORDATE )
+
+      END IF
+    LOOP UNTIL OPTION$ = "Q"
+
+    CALL BOX107( WXY$, CALL$, A$ )
+
+  LOOP WHILE WXY$ = "N"
+
+  SET MODE "HISTORY"
+
+END SUB !MAINSUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB SETUP( COLNUMBR, CARD$, COLOR$, AXIS$, KLEEN$, A$, TAXIS, FAXIS, WXI$, GMODE$, N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTRE(), IFFTIM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, CENTFREQ, CONCORFLAG, STORDATE )
+
+  CALL BOX1( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, ZFLAG, A$, TAXIS, FAXIS, WXI$, GMODE$, N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTRE(), IFFTIM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, CENTFREQ, CONCORFLAG, STORDATE )
+
+  CALL VERSIONDATE( VERSDATE )          !obtains the version date
+
+  LET NOWDATE = DATE                    !format: 95025 = Jan 25, 1995
+
+  IF NOWDATE <> -1 THEN                 !machine is responding to DATE
+    IF STORDATE = 0 THEN                !first time after install
+      LET STORDATE = NOWDATE
+
+      CALL WRITESUB( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, TAXIS, FAXIS, WXI$, A$, CENTFREQ, CONCORFLAG, STORDATE )
+
+    END IF
+
+    IF NOWDATE > VERSDATE + 182 THEN    !expired by 6 months
+
+      IF NOWDATE >= STORDATE THEN
+
+        !CALL BOXEXPIRE     ! ---> will crash if this is in
+
+        LET STORDATE = NOWDATE + 92     !advance by another 92 days
+
+        !taking care of a possible crossover to the next year
+
+        LET DAYCOUNT = MOD(STORDATE, 1000)            !strip off the year
+        LET YEARCOUNT = STORDATE - DAYCOUNT           !get the year
+        IF YEARCOUNT/4000 = INT(YEARCOUNT/4000) THEN  !leapyear
+          LET VAL1 = 366
+        ELSE                                          !not a leapyear
+          LET VAL1 = 365
+        END IF
+        IF DAYCOUNT > VAL1 THEN                       !a crossover
+          LET DAYCOUNT = MOD(DAYCOUNT, VAL1)
+          LET STORDATE = YEARCOUNT + 1000 + DAYCOUNT
+        END IF
+
+        CALL WRITESUB( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, TAXIS, FAXIS, WXI$, A$, CENTFREQ, CONCORFLAG, STORDATE )
+
+      END IF
+    END IF
+  END IF
+
+  IF WXI$ <> "HIDE" THEN
+    CALL BOXQ( WXI$, A$ )
+    IF WXI$ = "H" THEN
+      LET WXI$ = "HIDE"
+
+      CALL WRITESUB( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, TAXIS, FAXIS, WXI$, A$, CENTFREQ, CONCORFLAG, STORDATE )
+
+    END IF
+  END IF
+
+  CALL BOX2( A$ )
+
+  CALL BOX39
+
+END SUB !SETUP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PAINTMAINMENU( N, OPTION$, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, T, TYPE$, MODE$, CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, FREEMEM, CALL$, A$, NOCONV, HJWFLAG, NKB, FILESTR$, CONCORFLAG )
+
+  CALL BOX3( N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, OPTION$, CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, FREEMEM, CALL$, A$, NOCONV, HJWFLAG, NKB, FILESTR$, CONCORFLAG )
+
+END SUB !PAINTMAINMENU
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

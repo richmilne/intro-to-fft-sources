@@ -1,0 +1,11 @@
+#! /usr/bin/env bash
+TOUCH="touch -c -d"
+
+${TOUCH} '1995-04-10 11:36:08+02:00' 'Source/Plots/PLOTS.TRU'
+${TOUCH} '1995-03-28 20:53:20+02:00' 'Source/Plots/PLOTSDOS.TRU'
+${TOUCH} '1994-03-06 10:38:50+02:00' 'Source/Plots/PLOTSUB1.TRU'
+${TOUCH} '1994-03-06 10:42:26+02:00' 'Source/Plots/PLOTSUB2.TRU'
+${TOUCH} '1994-03-06 10:46:20+02:00' 'Source/Plots/PLOTSUB3.TRU'
+${TOUCH} '1994-03-06 11:12:00+02:00' 'Source/Plots/PLOTSUB4.TRU'
+${TOUCH} '1994-03-06 10:38:50+02:00' 'Source/Plots'
+${TOUCH} '1994-03-06 10:38:50+02:00' 'Source'

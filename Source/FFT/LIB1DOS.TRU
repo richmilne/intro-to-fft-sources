@@ -1,6 +1,70 @@
 EXTERNAL             !LIB1DOS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB SETUP( COLNUMBR, CARD$, COLOR$, AXIS$, KLEEN$, A$, TAXIS, FAXIS, WXI$, GMODE$, N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTRE(), IFFTIM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, CENTFREQ, CONCORFLAG, STORDATE )
+
+  CALL BOX1( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, ZFLAG, A$, TAXIS, FAXIS, WXI$, GMODE$, N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTRE(), IFFTIM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, CENTFREQ, CONCORFLAG, STORDATE )
+
+  CALL VERSIONDATE( VERSDATE )          !obtains the version date
+
+  LET NOWDATE = DATE                    !format: 95025 = Jan 25, 1995
+
+  IF NOWDATE <> -1 THEN                 !machine is responding to DATE
+    IF STORDATE = 0 THEN                !first time after install
+      LET STORDATE = NOWDATE
+
+      CALL WRITESUB( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, TAXIS, FAXIS, WXI$, A$, CENTFREQ, CONCORFLAG, STORDATE )
+
+    END IF
+
+    IF NOWDATE > VERSDATE + 182 THEN    !expired by 6 months
+
+      IF NOWDATE >= STORDATE THEN
+
+        !CALL BOXEXPIRE     ! ---> will crash if this is in
+
+        LET STORDATE = NOWDATE + 92     !advance by another 92 days
+
+        !taking care of a possible crossover to the next year
+
+        LET DAYCOUNT = MOD(STORDATE, 1000)            !strip off the year
+        LET YEARCOUNT = STORDATE - DAYCOUNT           !get the year
+        IF YEARCOUNT/4000 = INT(YEARCOUNT/4000) THEN  !leapyear
+          LET VAL1 = 366
+        ELSE                                          !not a leapyear
+          LET VAL1 = 365
+        END IF
+        IF DAYCOUNT > VAL1 THEN                       !a crossover
+          LET DAYCOUNT = MOD(DAYCOUNT, VAL1)
+          LET STORDATE = YEARCOUNT + 1000 + DAYCOUNT
+        END IF
+
+        CALL WRITESUB( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, TAXIS, FAXIS, WXI$, A$, CENTFREQ, CONCORFLAG, STORDATE )
+
+      END IF
+    END IF
+  END IF
+
+  IF WXI$ <> "HIDE" THEN
+    CALL BOXQ( WXI$, A$ )
+    IF WXI$ = "H" THEN
+      LET WXI$ = "HIDE"
+
+      CALL WRITESUB( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, TAXIS, FAXIS, WXI$, A$, CENTFREQ, CONCORFLAG, STORDATE )
+
+    END IF
+  END IF
+
+  CALL BOX2( A$ )
+
+  CALL BOX39
+
+END SUB !SETUP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUB BOXEXPIRE
 
   SET CURSOR "OFF"
@@ -714,6 +778,15 @@ END SUB !ERRORMESSAGE3
 END SUB !SETUPMENU
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PAINTMAINMENU( N, OPTION$, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, T, TYPE$, MODE$, CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, FREEMEM, CALL$, A$, NOCONV, HJWFLAG, NKB, FILESTR$, CONCORFLAG )
+
+  CALL BOX3( N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, OPTION$, CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, FREEMEM, CALL$, A$, NOCONV, HJWFLAG, NKB, FILESTR$, CONCORFLAG )
+
+END SUB !PAINTMAINMENU
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 

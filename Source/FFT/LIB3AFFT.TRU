@@ -316,3 +316,24 @@ SUB ENTERNANDT( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), F
 
 END SUB !ENTERNANDT
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB POWERTEST( VALN, CNR, POT )
+
+  LET CNR = 0
+  DO
+    LET VALN = VALN/2
+    LET CNR = CNR + 1
+    IF VALN = 1 THEN
+      LET POT = 1
+      EXIT DO
+    ELSE IF VALN < 1 THEN
+      LET POT = 2
+      EXIT DO
+    END IF
+  LOOP
+
+END SUB !POWEROF2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

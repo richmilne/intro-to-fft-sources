@@ -1,0 +1,3249 @@
+EXTERNAL       !LIB2FFT.TRU
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB CREATE( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, FORM$, TYPE$, T, MODE$, NOCONV, MMENU, HJWFLAG, CTOP(), CBOT(), ROM(), COSMULT(), SINMULT(), A$, CALL$, FIRSTTIME, FREEMEM, OLDVARS$(,), OLDINTSX$(,), OLDINTSX2$(,), OLDEXPRX$(,), OLDEXPRX2$(,), OLDEXPRF$(,), OLDDIRAC$(,), ORG$, ORG2$, ONLYONCE, KLEEN$, CLEARTEMPS, FILESTR$ )
+
+!  THE MATRIX OLDVARS$(I,J) HAS THE FOLLOWING FORMAT:
+!
+!             1                      2
+
+!    1    STR$( N )              STR$( T )
+
+!    2    MODE$                  TYPE$
+
+!    3    Z2$                    VARTYPE$ ... IF Z2$ = "X" OR Z2$ = "BX" THEN  R  OR  C
+!                                             IF Z2$ = "F" THEN  ( R  OR  I  OR  C  FOR THE  F  VECTOR )
+!                                             IF Z2$ = "BF" THEN SEE BELOW
+
+!    4    DVU$                   DVU2$
+
+!    5    NNII (for S = 1)       NNII (for S = 2)
+
+!    6    STTMT (for S = 1)      STTMT (for S = 2)
+
+!    7    i FOR REDIMMING        i FOR REDIMMING
+!           OLDINTSX$(i,j)         OLDINTSX2$(i,j)
+!           AND OLDEXPRX$(i,j)     AND OLDEXPRX2$(i,j)
+!          j IS ALWAYS 2          j IS ALWAYS 2
+
+!    8    ORG$                   ORG2$
+!    9    OFFSET (for S = 1)     OFFSET (for S = 2)
+
+!   10    DIRACCOUNT             TIME or FREQ
+!   11    DIRECT OR ""           VARTYPE$ FOR  F2
+
+!  THE MATRICES OLDINTSX$(I,J) AND OLDINTSX2$ HAVE THE FOLLOWING FORMAT:
+!
+!           1                    2
+!    1    START                END       of interval 1
+!    2    START                END       of interval 2
+!    3    START                END       of interval 3
+!    4      "                   "        "      "    4
+!    5    .....                ...       .............
+
+!  THE MATRICES OLDEXPRX$(I,J) AND OLDEXPRX2$ HAVE THE FOLLOWING FORMAT:
+!
+!                 1                    2
+!    1    EXPRESSION FOR XRE   EXRESSION FOR XIM  for interval 1
+!    2    EXPRESSION FOR XRE   EXRESSION FOR XIM  for interval 2
+!    3    EXPRESSION FOR XRE   EXRESSION FOR XIM  for interval 3
+!    4      "                   "        "      "              4
+!    5    ..................   ..................  ..............
+
+!  THE MATRIX OLDEXPRF$(I,2) HAS THE FOLLOWING FORMAT:
+!
+!                 1                    2
+!    1    EXPRESSION FOR FRE   EXRESSION FOR FIM
+!    2    EXPRESSION FOR F2RE  EXRESSION FOR F2IM
+
+!  THE MATRIX OLDDIRAC$(I,4) HAS THE FOLLOWING FORMAT:
+!
+!           1                 2                  3               4
+
+!    1  VALUE OF k OR n  WEIGHT (X OR F)   VALUE OF k OR n   WEIGHT (X2 OR FIM)
+!    2  VALUE OF k OR n  WEIGHT (X OR F)   VALUE OF k OR n   WEIGHT (X2 OR FIM)
+!    3  VALUE OF k OR n  WEIGHT (X OR F)   VALUE OF k OR n   WEIGHT (X2 OR FIM)
+!    4        "                "                   "                 "
+!    5  ...............  ...............   ...............   ..................
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  DIM BOLDVARS$(11,2)
+
+  DIM BOLDINTSX$(1,1)
+  DIM BOLDINTSX2$(1,1)
+
+  DIM BOLDEXPRX$(1,1)
+  DIM BOLDEXPRX2$(1,1)
+
+  DIM BOLDEXPRF$(2,2)
+
+  DIM BOLDDIRAC$(1,4)
+
+  DECLARE DEF REPSTR$
+  DECLARE DEF REPMIX$
+  DECLARE DEF EVAL
+  DECLARE DEF LEFT$
+  DECLARE DEF MID$
+  DECLARE DEF RIGHT$
+  DECLARE DEF NOSPACE$
+
+  !all matrices used for OLD-PROBLEM are TEXT format.
+  !numerical values from a matrix are VAL'd whenever they must be used
+  !and are STR$'d whenever they are placed in a matrix
+
+  DIM INTSX$(1,1)
+  DIM INTSX2$(1,1)
+  DIM INTS$(1,1)
+  DIM TEMP$(1,1)
+  DIM VARS$(1)                   !REQUIRED BY SUPERVAL
+
+  LET MMENU      = 0
+  LET DIRACTOX   = 0
+  LET DIRACTOX2  = 0
+  LET DIRACTOFRE = 0
+  LET DIRACTOFIM = 0
+
+  DO
+    LET CHANGEPARAMS = 0
+
+    CALL ENTERNANDT( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, FORM$, TYPE$, T, MODE$, NOCONV, MMENU, HJWFLAG, A$, CALL$, FIRSTTIME, FREEMEM, ONLYONCE, CLEARTEMPS )
+
+    IF MMENU = 0 THEN
+      DO
+        LET LOOPROUND = 0
+        LET RECALLFLAG = 0
+
+        MAT TEMPRE  = 0   !CLEAR TEMPRE()
+        MAT TEMPIM  = 0   !CLEAR TEMPIM()
+        MAT TEMP2RE = 0   !CLEAR TEMP2RE()
+        MAT TEMP2IM = 0   !CLEAR TEMP2IM()
+
+        CALL BOX77( MODE$, Z2$, A$, OLDVARS$(,), NOCONV )
+
+        IF Z2$ = "Q" THEN
+          LET CHANGEPARAMS = 1
+        END IF
+
+        IF CHANGEPARAMS = 0 THEN
+
+          IF Z2$ = "U" THEN
+            LET SZI$ = "O"        !USING THE OLD-PROBLEM
+
+            CALL RECALL
+
+          ELSE IF Z2$ = "FD" THEN
+            LET LOOPROUND = 1
+
+            CALL FETCH
+
+          ELSE IF Z2$ = "TD" THEN
+            LET LOOPROUND = 1
+
+            CALL STORE
+
+          ELSE IF Z2$ <> "U" AND Z2$ <> "FD" AND Z2$ <> "TD" AND Z2$ <> "H" THEN
+            LET SZI$ = "N"        !CREATING A NEW PROBLEM
+
+            IF MODE$ = "SAMP" THEN
+              LET END = T
+            ELSE IF MODE$ = "DISC" THEN
+              LET END = N
+            END IF
+
+            IF Z2$ = "X" OR Z2$ = "BX" THEN  !CREATING THE  X  VECTORS
+              LET ORG$ = "-"
+              LET ORG2$ = "-"
+
+              CALL CREATEX
+              CALL CREATEVECTORS   !TO ECHO WHEN EVEN OR ODD
+
+            ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN  !CREATING THE  F  VECTORS
+
+              IF Z2$ = "BF" THEN
+                IF HJWFLAG = 1 THEN
+
+                  CALL BOX59( CRT$, A$ )
+
+                  IF CRT$ = "Q" THEN
+                    LET LOOPROUND = 1
+                  ELSE
+                    LET HJWFLAG = 0
+                  END IF
+                END IF
+              END IF
+
+              IF LOOPROUND = 0 THEN
+
+                CALL CREATEF
+                CALL CREATEVECTORS   !TO ECHO WHEN EVEN OR ODD
+
+              END IF
+
+            ELSE IF Z2$ = "D" THEN
+              LET DIRECT = 1
+            END IF
+
+            IF CHANGEPARAMS = 0 AND LOOPROUND = 0 THEN
+
+              CALL DIRAC
+
+            END IF
+
+          ELSE IF Z2$ = "H" THEN
+
+            IF HJWFLAG = 1 THEN
+
+              CALL BOX59( CRT$, A$ )
+
+              IF CRT$ = "Q" THEN
+                LET LOOPROUND = 1
+              END IF
+            END IF
+
+            IF LOOPROUND = 0 THEN
+
+              CALL Hjw( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, FORM$, TYPE$, T, MODE$, NOCONV, MMENU, HJWFLAG, CTOP(), CBOT(), ROM(), COSMULT(), SINMULT(), A$, CALL$, FIRSTTIME, FREEMEM, ORG$, ORG2$, LOOPROUND, KLEEN$ )
+
+            END IF
+          END IF
+        END IF
+
+      LOOP WHILE LOOPROUND = 1
+    END IF
+  LOOP WHILE CHANGEPARAMS = 1
+
+  IF Z2$ <> "H" THEN
+    IF MMENU = 0 THEN
+
+      IF DIRECT = 0 OR (DIRECT = 1 AND (DIRACTOX = 1 OR DIRACTOX2 = 1 OR DIRACTOFRE = 1 OR DIRACTOFIM = 1)) THEN
+
+        CALL BOX105( AZO$, A$ )  !YOU HAVE NOW CREATED ...
+
+        IF AZO$ = "Q" THEN
+          CALL BOX105B( AZO$, A$ ) !REALLY WANT TO QUIT...
+        END IF
+
+        IF AZO$ <> "Q" THEN
+
+          IF Z2$ = "X" OR Z2$ = "BX" OR DIRACTOX = 1 OR DIRACTOX2 = 1 THEN
+            MAT XRE = TEMPRE
+            MAT XIM = TEMPIM
+            MAT FFTRE = 0
+            MAT FFTIM = 0
+
+            IF Z2$ = "BX" OR DIRACTOX2 = 1 THEN
+              MAT X2RE = TEMP2RE
+              MAT X2IM = TEMP2IM
+              MAT FFT2RE = 0
+              MAT FFT2IM = 0
+            END IF
+
+          ELSE IF Z2$ = "F" OR Z2$ = "BF" OR DIRACTOFRE = 1 OR DIRACTOFIM = 1 THEN
+            MAT XRE = 0
+            MAT XIM = 0
+            MAT FFTRE = TEMPRE
+            MAT FFTIM = TEMPIM
+
+            IF Z2$ = "BF" THEN
+              MAT X2RE = 0
+              MAT X2IM = 0
+              MAT FFT2RE = TEMP2RE
+              MAT FFT2IM = TEMP2IM
+            END IF
+          END IF
+
+          MAT IFFTRE = 0
+          MAT IFFTIM = 0
+
+          LET FIRSTTIME = 1     !FOR THE DISPLAY-ORIGIN POSITION
+          PRINT
+
+          CALL TESTXDATA( N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, KLEEN$ )
+          CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, NOCONV, HJWFLAG, KLEEN$ )
+          CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )
+
+          CLEAR
+          PRINT
+
+          IF XFLAG <> 0 OR X2FLAG <> 0 OR FFTFLAG <> 0 OR FFT2FLAG <> 0 THEN
+
+            MAT OLDINTSX$  = NUL$
+            MAT OLDEXPRX$  = NUL$
+            MAT OLDINTSX2$ = NUL$
+            MAT OLDEXPRX2$ = NUL$
+            MAT OLDEXPRF$  = NUL$
+            MAT OLDDIRAC$  = NUL$
+
+            MAT OLDVARS$ = BOLDVARS$
+
+            IF Z2$ = "X" OR Z2$ = "BX" THEN
+              MAT OLDINTSX$ = BOLDINTSX$
+              MAT OLDEXPRX$ = BOLDEXPRX$
+
+              IF Z2$ = "BX" THEN
+                MAT OLDINTSX2$ = BOLDINTSX2$
+                MAT OLDEXPRX2$ = BOLDEXPRX2$
+              END IF
+
+            ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+              MAT OLDEXPRF$ = BOLDEXPRF$
+            END IF
+
+            MAT OLDDIRAC$ = BOLDDIRAC$
+
+            CALL BOX110( A$ )
+
+          ELSE IF XFLAG = 0 AND X2FLAG = 0 AND FFTFLAG = 0 AND FFT2FLAG = 0 THEN
+
+            CALL BOX132( A$ )
+
+          END IF
+          PRINT
+        END IF
+      END IF
+    END IF
+  END IF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB CREATEX
+
+  LET ORG$ = "-"
+  LET ORG2$ = "-"
+  MAT BOLDVARS$ = ""
+
+  LET BOLDVARS$(1,1) = STR$(N)
+
+  LET ASR$ = USING$("+#.############^^^^^",T)
+  LET BOLDVARS$(1,2) = ASR$
+
+  LET BOLDVARS$(2,1) = MODE$
+  LET BOLDVARS$(2,2) = TYPE$
+  LET BOLDVARS$(3,1) = Z2$
+  LET BOLDVARS$(8,1) = ORG$
+  LET BOLDVARS$(8,2) = ORG2$
+
+  MAT BOLDINTSX$  = ""
+  MAT BOLDINTSX2$ = ""
+  MAT BOLDEXPRX$  = ""
+  MAT BOLDEXPRX2$ = ""
+
+  LET DIRECT = 0
+  CLEAR
+
+  IF Z2$ = "X" THEN          !ONLY HAVE TO CREATE  X  VECTOR
+    LET XTOP = 1
+  ELSE IF Z2$ = "BX" THEN    !HAVE TO CREATE BOTH  X  AND  X2  VECTORS
+    LET XTOP = 2
+  END IF
+
+  CALL BOX101( Z2$, SUT$, A$ )
+
+  IF SUT$ = "R" THEN
+    LET VARTYPE$ = "R"
+  ELSE IF SUT$ = "C" THEN
+    LET VARTYPE$ = "C"
+  ELSE IF SUT$ = "Q" THEN
+    LET LOOPROUND = 1
+  END IF
+  LET BOLDVARS$(3,2) = VARTYPE$
+
+  IF LOOPROUND = 0 THEN
+
+    FOR S = 1 TO XTOP   !CREATE THE INTERVALS AND LOAD THE FORMULAE
+
+      IF S = 1 THEN
+        LET VECTOR$ = "X"
+
+        !!!!!!!!!!!!!!!!!!!!!!
+        IF MODE$ = "SAMP" THEN
+
+          CALL BOX102( VECTOR$, DVU$, A$ )
+
+          IF DVU$ = "Q" THEN LET LOOPROUND = 1
+
+          IF LOOPROUND = 0 THEN
+            IF N/2 <> INT(N/2) AND DVU$ <> "N" THEN  ! N is odd and "even/odd" selected
+              SOUND 500,.1
+
+              CALL BOX103( EXI$, A$ )
+
+              IF EXI$ = "C" THEN
+                LET CHANGEPARAMS = 1
+              ELSE IF EXI$ = "Q" THEN
+                LET LOOPROUND = 1
+              END IF
+            END IF
+
+            IF DVU$ = "E" OR DVU$ = "O" THEN   !if "even/odd" selected
+              LET ORG$ = "C"                   !set the display-origin
+            END IF
+          END IF
+        ELSE IF MODE$ = "DISC" THEN
+          LET DVU$ = "N"    !discrete functions are always "neither"
+          LET ORG$ = "L"    !display-origin always at left
+        END IF
+
+        LET BOLDVARS$(4,1) = DVU$     !store the origin position
+
+        IF CHANGEPARAMS = 0 AND LOOPROUND = 0 AND MODE$ = "SAMP" THEN
+          IF DVU$ = "N" THEN
+            LET STR7$ = "X"
+
+            IF N/2 = INT(N/2) THEN    !if  N  is even
+
+              CALL WHEREORIGIN        !send STR7$, return ORF$
+
+              IF ORF$ = "L" THEN
+                LET ORG$ = "L"        !origin at left
+              ELSE IF ORF$ = "C" THEN
+                LET ORG$ = "C"        !origin at center
+              ELSE IF ORF$ = "Q" THEN
+                LET LOOPROUND = 1
+              END IF
+            ELSE
+              LET ORG$ = "L"          !origin at left if  N  is odd
+            END IF
+          END IF
+        END IF
+
+        LET BOLDVARS$(8,1) = ORG$     !store the display-origin position
+        !!!!!!!!!!!!!!!!!!!!!!
+
+      ELSE IF S = 2 THEN
+        LET VECTOR$ = "X2"
+
+        !!!!!!!!!!!!!!!!!!!!!!
+        IF MODE$ = "SAMP" THEN
+
+          IF N/2 = INT(N/2) THEN  !if  N  is even
+
+            CALL BOX102( VECTOR$, DVU2$, A$ )
+
+            IF DVU2$ = "Q" THEN
+              LET LOOPROUND = 1
+            END IF
+
+            IF LOOPROUND = 0 THEN
+              IF DVU2$ = "E" OR DVU2$ = "O" THEN
+                LET ORG2$ = "C"
+              END IF
+            END IF
+
+          ELSE                   !if  N  is odd
+            LET DVU2$ = "N"
+            LET ORG2$ = "L"
+          END IF
+        ELSE IF MODE$ = "DISC" THEN
+          LET DVU2$ = "N"
+          LET ORG2$ = "L"
+        END IF
+        LET BOLDVARS$(4,2) = DVU2$
+
+        IF CHANGEPARAMS = 0 AND LOOPROUND = 0 AND MODE$ = "SAMP" THEN
+          IF DVU2$ = "N" THEN
+
+            LET STR7$ = "X2"
+            IF N/2 = INT(N/2) THEN        !if  N  is even
+
+              CALL WHEREORIGIN            !send DVU2$, return ORF$
+
+              IF ORF$ = "L" THEN
+                LET ORG2$ = "L"
+              ELSE IF ORF$ = "C" THEN
+                LET ORG2$ = "C"
+              ELSE IF ORF$ = "Q" THEN
+                LET LOOPROUND = 1
+              END IF
+            END IF
+          END IF
+
+        END IF
+
+        LET BOLDVARS$(8,2) = ORG2$
+        !!!!!!!!!!!!!!!!!!!!!!
+
+      END IF
+
+      IF CHANGEPARAMS = 0 AND LOOPROUND = 0 THEN
+        DO
+          LET GO_ON = 0
+          IF (S = 1 AND DVU$ = "N") OR (S = 2 AND DVU2$ = "N") THEN
+            DO
+              LET GO_ON = 0
+
+              CALL INTSNEITHER    ! VECTOR IS NEITHER EVEN NOR ODD
+
+            LOOP UNTIL GO_ON = 1 OR LOOPROUND = 1
+          ELSE IF (S = 1 AND (DVU$ = "E" OR DVU$ = "O")) OR (S = 2 AND (DVU2$ = "E" OR DVU2$ = "O")) THEN
+            DO
+              LET GO_ON = 0
+
+              CALL INTSEVENODD   !VECTOR IS EVEN OR ODD
+
+            LOOP UNTIL GO_ON = 1 OR LOOPROUND = 1
+          END IF
+
+          IF LOOPROUND = 1 THEN EXIT DO
+
+          IF S = 1 THEN   !THIS IS FOR THE  X  VECTOR
+            IF DVU$ = "N" THEN                       !NEITHER EVEN NOR ODD
+              LET NNII = NIX                          !NI IS TOTAL NUMBER OF INTERVALS
+              LET STTMT$ = "NEITHER EVEN NOR ODD"
+            ELSE IF DVU$ = "E" OR DVU$ = "O" THEN    !EVEN OR ODD
+              LET NNII = NIX/2
+              IF DVU$ = "E" THEN LET STTMT$ = "EVEN"
+              IF DVU$ = "O" THEN LET STTMT$ = "ODD"
+            END IF
+            MAT REDIM INTS$(NNII,2)
+            MAT INTS$ = INTSX$
+
+            LET BOLDVARS$(5,1) = STR$(NNII)
+            LET BOLDVARS$(6,1) = STTMT$
+            MAT REDIM BOLDINTSX$( NNII,2 )
+            LET BOLDVARS$(7,1) = STR$(NNII)
+            MAT BOLDINTSX$ = INTSX$
+            MAT REDIM BOLDEXPRX$( NNII,2 )
+
+          ELSE IF S = 2 THEN                      !THIS IS FOR THE  X2  VECTOR
+            IF DVU2$ = "N" THEN                   !NEITHER EVEN NOR ODD
+              LET NNII = NIX2                     !NNII IS TOTAL NUMBER OF INTERVALS
+              LET STTMT$ = "NEITHER EVEN NOR ODD"
+            ELSE IF DVU2$ = "E" OR DVU2$ = "O" THEN    !EVEN OR ODD
+              LET NNII = NIX2/2
+              IF DVU2$ = "E" THEN LET STTMT$ = "EVEN"
+              IF DVU2$ = "O" THEN LET STTMT$ = "ODD"
+            END IF
+            MAT REDIM INTS$(NNII,2)
+            MAT INTS$ = INTSX2$
+
+            LET BOLDVARS$(5,2) = STR$(NNII)
+            LET BOLDVARS$(6,2) = STTMT$
+            MAT REDIM BOLDINTSX2$( NNII,2 )
+            LET BOLDVARS$(7,2) = STR$(NNII)
+            MAT BOLDINTSX2$ = INTSX2$
+            MAT REDIM BOLDEXPRX2$( NNII,2 )
+
+          END IF
+
+          CALL SHOWINTS           !SHOW THE INTERVALS
+
+        LOOP WHILE GOBACK = 1
+
+      END IF
+      IF CHANGEPARAMS = 1 OR LOOPROUND = 1 THEN EXIT FOR
+
+      CALL FORMULA    !LOAD THE  X  OR  X2  EXPRESSIONS
+
+      IF CHANGEPARAMS = 1 OR LOOPROUND = 1 THEN EXIT FOR
+
+    NEXT S
+
+  END IF
+
+END SUB !CREATEX
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB WHEREORIGIN
+
+   CALL BOX104( STR7$, ORF$, A$ )
+
+END SUB !WHEREORIGIN
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB CREATEF
+
+  LET DIRECT = 0
+  LET NZA = 0
+
+  IF N/2 <> INT(N/2) THEN
+    SOUND 500,.1
+
+    CALL BOX108( DSW$, A$ )   !SORRY,  N  MUST BE EVEN
+
+    IF DSW$ = "C" THEN
+      LET CHANGEPARAMS = 1
+    ELSE IF DSW$ = "Q" THEN
+      LET LOOPROUND = 1
+    END IF
+  END IF
+
+  IF CHANGEPARAMS = 0 AND LOOPROUND = 0 THEN
+
+    DO        !LOOP FOR  Q-REVERSE
+
+      IF LOOPING = 0 OR (LOOPING = 1 AND LOOPUP1 = 1) THEN
+        IF LOOPING = 1 AND LOOPUP1 = 1 THEN
+          LET NZA = 0
+          LET LOOPING = 0
+          LET LOOPUP1 = 0
+        END IF
+        LET VECTOR$ = "F"
+
+        !DISPLAY1
+        CALL BOX109( VECTOR$, SUF$, A$ )   !THE  F  VECTOR IS REAL, IMAG COMPLEX
+
+        MAT BOLDVARS$ = ""   !CLEAR ANY PREVIOUS ITEMS
+
+        LET BOLDVARS$(1,1) = STR$(N)
+
+        LET ASG$ = USING$("+#.############^^^^^",T)
+        LET BOLDVARS$(1,2) = ASG$
+
+        LET BOLDVARS$(2,1) = MODE$
+        LET BOLDVARS$(2,2) = TYPE$
+        LET BOLDVARS$(3,1) = Z2$
+
+        MAT BOLDEXPRF$ = ""
+
+        IF SUF$ = "Q" THEN LET LOOPROUND = 1
+      END IF
+
+      IF LOOPROUND = 0 THEN
+        IF LOOPING = 0 THEN
+          LET LOOPING = 0
+          LET LOOPUP2 = 0
+
+          LET VARTYPE$ = SUF$
+          LET S = 3
+          LET NNII = 1
+          LET BOLDVARS$(3,2) = VARTYPE$
+          LET ORG$ = "C"
+          LET BOLDVARS$(8,1) = ORG$
+
+          !DISPLAY2
+          CALL FORMULA    !LOAD THE  F  EXPRESSIONS
+
+          IF LOOPROUND = 1 THEN
+            LET LOOPROUND = 0
+            LET LOOPUP1 = 1
+          END IF
+        END IF
+      END IF
+
+      IF Z2$ = "BF" THEN
+        IF LOOPROUND = 0 AND LOOPUP1 = 0 THEN
+          IF LOOPING = 0 OR (LOOPING = 1 AND LOOPUP3 = 1) THEN
+            LET LOOPING = 0
+            LET LOOPUP3 = 0
+
+            LET VECTOR$ = "F2"
+
+            !DISPLAY3
+            CALL BOX109( VECTOR$, SUF$, A$ )   !THE  F2  FUNCTION IS REAL, IMAG, COMPLEX
+
+            IF SUF$ = "Q" THEN LET LOOPUP1 = 1
+          END IF
+        END IF
+
+        IF LOOPROUND = 0 AND LOOPUP1 = 0 THEN
+          IF LOOPING = 0 THEN
+            LET VARTYPE$ = SUF$
+            LET S = 4
+            LET NNII = 1
+            LET BOLDVARS$(11,2) = VARTYPE$
+            LET ORG2$ = "C"
+            LET BOLDVARS$(8,2) = ORG$
+
+            !DISPLAY4
+            CALL FORMULA    !LOAD THE  F2  EXPRESSIONS
+
+            IF LOOPROUND = 1 THEN
+              LET LOOPROUND = 0
+              LET LOOPUP3 = 1
+            END IF
+
+          END IF
+        END IF
+      END IF
+      IF LOOPUP1 = 1 OR LOOPUP3 = 1 THEN LET LOOPING = 1
+    LOOP WHILE LOOPING = 1
+  END IF
+
+  IF TYPE$ = "PER" THEN LET GETOUTD = 1
+
+END SUB !CREATEF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB INTSNEITHER   !CREATING THE INTERVALS, NEITHER EVEN NOR ODD
+
+  CALL PAINTNEITHER
+
+  IF S = 1 THEN
+    IF ORG$ = "L" THEN LET EXPRV$ = "LEFT"
+    IF ORG$ = "C" THEN LET EXPRV$ = "CENTER"
+  ELSE IF S = 2 THEN
+    IF ORG2$ = "L" THEN LET EXPRV$ = "LEFT"
+    IF ORG2$ = "C" THEN LET EXPRV$ = "CENTER"
+  END IF
+
+  PRINT TAB(7,2);"YOUR  " & VECTOR$ & "  FUNCTION IS NEITHER EVEN NOR ODD"
+  PRINT TAB(8,2);"WITH THE ORIGIN AT THE " & EXPRV$
+
+  PRINT TAB(10,2); "HOW MANY INTERVALS DO YOU WANT TO CREATE"
+  IF MODE$ = "SAMP" THEN
+    LET STRING$ = "| A POSITIVE INTEGER | ? "
+  ELSE IF MODE$ = "DISC" THEN
+    LET STRING$ = "| A POSITIVE INTEGER <= " & STR$(N) & " | ? "
+  END IF
+
+  DO
+
+    CALL TEXTVALUEQ( STRING$, FDG, FLAG, 12, 2, A$ )
+
+    IF FLAG = 0 THEN
+      LET VALL = FDG
+      IF VALL <> INT(VALL) OR VALL <= 0  THEN SOUND 500,.1
+    END IF
+
+    LET BIT = 0
+    IF MODE$ = "SAMP" THEN
+      IF VALL = INT(VALL) AND VALL > 0 THEN LET BIT = 1
+    ELSE IF MODE$ = "DISC" THEN
+      IF VALL = INT(VALL) AND VALL > 0 AND VALL <= N THEN LET BIT = 1
+    END IF
+    IF BIT = 0 AND FLAG = 0 THEN SOUND 500,.1
+
+  LOOP UNTIL FLAG = 1 OR BIT = 1
+  IF FLAG = 1 THEN LET LOOPROUND = 1
+
+  IF LOOPROUND = 0 THEN
+    LET GO_ON = 1
+    IF S = 1 THEN
+      LET NIX = VALL            ! NIX  is the number of intervals in  X
+      MAT REDIM INTSX$(NIX,2)
+      MAT REDIM TEMP$(NIX,2)
+      LET NITEMP = NIX
+      LET TOPP = NIX - 1
+    ELSE IF S = 2 THEN
+      LET NIX2 = VALL           ! NIX2  is the number of intervals in  X2
+      MAT REDIM INTSX2$(NIX2,2)
+      MAT REDIM TEMP$(NIX2,2)
+      LET NITEMP = NIX2
+      LET TOPP = NIX2 - 1
+    END IF
+
+    IF (S = 1 AND ORG$ = "L") OR (S = 2 AND ORG2$ = "L") THEN
+      LET TEMP$(1,1) = STR$(0)         ! first interval starts at  0
+      IF MODE$ = "SAMP" THEN
+        LET TEMP$(NITEMP,2) = STR$(END)  ! last interval ends at T
+      ELSE IF MODE$ = "DISC" THEN
+        LET TEMP$(NITEMP,2) = STR$(END - 1)  ! last interval ends at N - 1
+      END IF
+      LET OFFSET = 0
+      LET SHIFT = 0
+
+    ELSE IF (S = 1 AND ORG$ = "C") OR (S = 2 AND ORG2$ = "C") THEN
+      LET OFFSET = 36
+
+      IF MODE$ = "SAMP" THEN
+        LET TEMP$(1,1) = STR$(-END/2)   !first interval starts at  -T/2
+        LET TEMP$(NITEMP,2) = STR$(END/2)  ! last interval ends at  T/2
+        LET SHIFT = END/2
+
+      ELSE IF MODE$ = "DISC" THEN
+        LET TEMP$(1,1) = STR$(-INT(END/2))  !first interval starts at  -N/2
+        LET TEMP$(NITEMP,2) = STR$(INT(END/2 - 1))  !last ends at N/2 - 1
+        LET SHIFT = INT(END/2)
+      END IF
+
+    END IF
+
+    IF S = 1 THEN
+      LET BOLDVARS$(9,1) = STR$(OFFSET)
+    ELSE IF S = 2 THEN
+      LET BOLDVARS$(9,2) = STR$(OFFSET)
+    END IF
+
+    IF (S = 1 AND NIX > 1) OR (S = 2 AND NIX2 > 1) THEN
+      FOR J = 1 TO TOPP
+
+        CALL PAINTNEITHER
+
+        FOR Q1 = 1 TO J
+          LET POS = ROUND(VAL(TEMP$(Q1,1))*72/END) + OFFSET
+          PRINT TAB(4,POS+2);"|"
+        NEXT Q1
+
+        IF MODE$ = "SAMP" THEN
+          LET STR3$ = " STARTS AT  t = "
+          LET STR4$ = "| A NUMBER > "
+          LET STR5$ = " AND < "
+          LET LOLIM = VAL(TEMP$(J,1))   !starting point
+          LET UPLIM = T - SHIFT  !SHIFT is zero for "neither" and T/2 for "even/odd"
+
+        ELSE IF MODE$ = "DISC" THEN
+          LET STR3$ = " STARTS AT  k = "
+          LET STR4$ = "| AN INTEGER >= "
+          LET STR5$ = " AND < "
+          LET LOLIM = VAL(TEMP$(J,1))  !starting point
+          LET UPLIM = N - (NITEMP - J) - SHIFT !end point, allowing for no. of intervals
+        END IF
+
+        LET STR6$ = " |  ?  "
+
+        IF J = 1 THEN
+          PRINT TAB(7,2);"YOU MUST NOW SPECIFY  ";TOPP - J + 1;"  BREAKPOINT(S)"
+        ELSE IF J > 1 THEN
+          PRINT TAB(7,2);"YOU MUST STILL SPECIFY  ";TOPP - J + 1;"  BREAKPOINT(S)"
+        END IF
+
+        PRINT TAB(9,2);"INTERVAL No. " & STR$(J) & STR3$ & TEMP$(J,1) & ".  WHERE DOES IT END ?"
+
+        LET COUNT$ = STR$(UPLIM)
+        LET STRING$ = STR4$ & STR$(LOLIM) & STR5$ & COUNT$ & STR6$
+
+        DO
+          LET QQ = 0
+
+          CALL TEXTVALUEQ( STRING$, FDG, FLAG, 11, 2, A$ )  !entering the end point as text
+
+          IF FLAG = 0 THEN
+            LET VALL = FDG                  !numerical value of endpoint
+            IF MODE$ = "SAMP" THEN
+              IF VALL <= LOLIM OR VALL >= UPLIM THEN SOUND 500,.1
+              IF VALL > LOLIM AND VALL < UPLIM THEN LET QQ = 1
+            ELSE IF MODE$ = "DISC" THEN
+              IF VALL <> INT(VALL) OR VALL < LOLIM OR VALL >= UPLIM THEN SOUND 500,.1
+              IF VALL = INT(VALL) AND VALL >= LOLIM AND VALL < UPLIM THEN LET QQ = 1
+            END IF
+          END IF
+        LOOP UNTIL FLAG = 1 OR QQ = 1
+
+        IF FLAG = 1 THEN
+          LET GO_ON = 0
+          EXIT FOR
+        ELSE
+          LET TEMP$(J,2) = STR$(VALL)
+        END IF
+
+        IF MODE$ = "SAMP" THEN
+          LET TEMP$(J+1,1) = TEMP$(J,2)
+        ELSE IF MODE$ = "DISC" THEN
+          LET TEMP$(J+1,1) = STR$(VALL + 1)
+        END IF
+
+      NEXT J
+
+    ELSE
+      LET GO_ON = 1
+    END IF
+    IF S = 1 THEN
+      MAT INTSX$ = TEMP$
+    ELSE IF S = 2 THEN
+      MAT INTSX2$ = TEMP$
+    END IF
+  END IF
+
+END SUB !INTSNEITHER
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PAINTNEITHER
+
+  CALL PAINTHEADING
+
+  PRINT TAB(4,2); "|-----------------------------------------------------------------------|--->"
+
+  IF (S = 1 AND ORG$ = "L") OR (S = 2 AND ORG2$ = "L") THEN
+    PRINT TAB(5,2); "0"
+    IF MODE$ = "SAMP" THEN
+      PRINT TAB(4,79);"t"
+      PRINT TAB(5,74);"T"
+    ELSE IF MODE$ = "DISC" THEN
+      PRINT TAB(4,79);"n"
+      PRINT TAB(5,74);"N"
+    END IF
+
+  ELSE IF (S = 1 AND ORG$ = "C") OR (S = 2 AND ORG2$ = "C") THEN
+    PRINT TAB(4,79);"t"
+    PRINT TAB(5,1); "-T/2"
+    PRINT TAB(4,38);"."
+    PRINT TAB(5,38); "0"
+    PRINT TAB(5,74);"T/2"
+  END IF
+
+END SUB !PAINTNEITHER
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PAINTHEADING
+
+  CLEAR
+  LET XPOS = 2
+  LET LR = 4
+  LET GATE = 0
+  LET SP1$ = " "
+
+  DO
+    LET LOOPWN = 0
+    LET SP3$ = ""
+    FOR WN = 1 TO LR
+      LET SP3$ = SP3$ & " "
+    NEXT WN
+
+    IF Z2$ = "X" OR Z2$ = "BX" THEN
+      LET SUBSTR$ =  "Ts" & SP1$ & "=" & SP1$ & STR$(T/N)
+    ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+      LET SUBSTR$ =  "OMEGAs" & SP1$ & "=" & SP1$ & STR$(2*PI/T)
+    END IF
+
+    IF MODE$ = "SAMP" THEN
+      IF TYPE$ = "PER" THEN
+        LET STRH$ = "N" & SP1$ & "=" & SP1$ & STR$(N) & SP3$ & "T" & SP1$ & "=" & SP1$ & STR$(T) & SP3$ & SUBSTR$ & SP3$ & "SAMPLED PERIODIC"
+      ELSE IF TYPE$ = "PUL" THEN
+        LET STRH$ = "N" & SP1$ & "=" & SP1$ & STR$(N) & SP3$ & "T" & SP1$ & "=" & SP1$ & STR$(T) & SP3$ & SUBSTR$ & SP3$ & "SAMPLED PULSE"
+      END IF
+    ELSE IF MODE$ = "DISC" THEN
+      LET STRH$ = "N" & SP1$ & "=" & SP1$ & STR$(N) & SP3$ & "DISCRETE:"
+    END IF
+
+    LET STRH$ = STRH$ & SP3$ & "NOW CREATING " & VECTOR$
+
+    IF GATE = 0 THEN
+      IF LEN(STRH$) > 79 THEN
+        LET LR = LR - 1
+        LET LOOPWN = 1
+        IF LR = 1 THEN
+          LET LR = 2
+          LET GATE = 1
+          LET SP1$ = ""
+          LET XPOS = 1
+        END IF
+      END IF
+    END IF
+
+  LOOP WHILE LOOPWN = 1
+
+  PRINT TAB(2,XPOS);STRH$
+
+END SUB !PAINTHEADING
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB INTSEVENODD   !CREATE THE INTERVALS, EVEN OR ODD FUNCTION
+
+  LET OFFSET = 0
+  LET BOLDVARS$(9,1) = STR$(OFFSET)
+  LET BOLDVARS$(9,2) = STR$(OFFSET)
+
+  CALL PAINTEVENODD
+
+  PRINT TAB(7,2);"YOUR  " & VECTOR$ & "  FUNCTION IS " & TEXT$
+
+  PRINT TAB(9,2);"HOW MANY INTERVALS DO YOU WANT TO CREATE IN THE ---> RIGHT HALF"
+  PRINT TAB(10,2);"(WE WILL REPLICATE THEM IN THE LEFT HALF)"
+
+  LET STRING$ = "| A POSITIVE INTEGER | ? "
+  DO
+
+    CALL TEXTVALUEQ( STRING$, FDG, FLAG, 12, 2, A$ )
+
+    IF FLAG = 0 THEN
+      LET VALL = FDG
+      IF VALL <> INT(VALL) OR VALL <= 0 THEN SOUND 500,.1
+    END IF
+  LOOP UNTIL FLAG = 1 OR VALL = INT(VALL) AND VALL > 0
+  IF FLAG = 1 THEN LET LOOPROUND = 1
+
+  IF LOOPROUND = 0 THEN
+    LET GO_ON = 1
+    IF S = 1 THEN
+      LET NIX = 2*VALL
+      MAT REDIM INTSX$(NIX,2)
+      MAT REDIM TEMP$(NIX,2)
+      LET NITEMP = NIX
+      LET TOPP = NIX/2   !topp = nix/2 = VALL for X
+    ELSE IF S = 2 THEN
+      LET NIX2 = 2*VALL
+      MAT REDIM INTSX2$(NIX2,2)
+      MAT REDIM TEMP$(NIX2,2)
+      LET NITEMP = NIX2
+      LET TOPP = NIX2/2   !topp = nix2/2 = VALL for X2
+    END IF
+
+    LET TEMP$(1,1)            = STR$(0)
+    LET TEMP$(NITEMP/2,2)     = STR$(END/2)  !END IS T IF "SAMP", N IF "DISC", N IF A SPECTRUM
+    LET TEMP$(NITEMP/2 + 1,1) = STR$(END/2)
+
+    LET TEMP$(NITEMP,2)       = STR$(END)
+
+    IF (S = 1 AND NIX > 2) OR (S = 2 AND NIX2 > 2) THEN
+      FOR J = 1 TO TOPP - 1
+
+        CALL PAINTEVENODD
+
+        FOR Q2 = 2 TO J
+          LET POS = ROUND(VAL(TEMP$(Q2,1))*71/END)
+          PRINT TAB(4,38+POS);"|"
+          PRINT TAB(4,38-POS);"|"
+        NEXT Q2
+
+        LET STR3$ = " STARTS AT  t = "
+        LET STR4$ = "| A NUMBER > "
+        LET STR5$ = " AND < "
+        LET UPLIM = T/2
+        LET LOLIM = VAL(TEMP$(J,1))
+
+        PRINT TAB(7,2);"YOUR  " & VECTOR$ & "  FUNCTION IS " & TEXT$
+
+        IF J = 1 THEN
+          PRINT TAB(9,2);"YOU MUST NOW SPECIFY  ";TOPP - J ;"  BREAKPOINT(S) IN THE ---> RIGHT HALF"
+        ELSE IF J > 1 THEN
+          PRINT TAB(9,2);"YOU MUST STILL SPECIFY  ";TOPP - J ;"  BREAKPOINT(S) IN THE ---> RIGHT HALF"
+        END IF
+        PRINT TAB(11,2);"INTERVAL No. " & STR$(J) & STR3$ & TEMP$(J,1) & ".  WHERE DOES IT END ?"
+
+        LET COUNT$ = STR$(UPLIM)
+        LET STRING$ = STR4$ & STR$(LOLIM) & STR5$ & COUNT$ & " |  ?  "
+        DO
+
+          CALL TEXTVALUEQ( STRING$, FDG, FLAG, 13, 2, A$ )
+
+          IF FLAG = 0 THEN
+            LET VALL = FDG
+            IF VALL <= LOLIM OR VALL >= UPLIM THEN SOUND 500,.1
+          END IF
+        LOOP UNTIL FLAG = 1 OR (VALL > LOLIM AND VALL < UPLIM)
+
+        IF FLAG = 1 THEN
+          LET GO_ON = 0
+          EXIT FOR
+        ELSE
+          LET TEMP$(J,2) = STR$(VALL)
+        END IF
+
+        LET TEMP$(NITEMP-J+1,1) = STR$(END - VALL)
+
+        LET TEMP$(J+1,1)            = TEMP$(J,2)
+        LET TEMP$(NITEMP-(J+1)+1,2) = STR$(END - VAL(TEMP$(J,2)))
+
+      NEXT J
+
+    ELSE
+      LET GO_ON = 1
+    END IF
+
+    IF S = 1 THEN
+      MAT INTSX$ = TEMP$
+      LET ROUNDED1 = ROUNDED
+    ELSE IF S = 2 THEN
+      MAT INTSX2$ = TEMP$
+      LET ROUNDED2 = ROUNDED
+    END IF
+END IF
+
+END SUB !INTSEVENODD
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PAINTEVENODD        !ONLY IN SAMPLED MODE
+
+  CALL PAINTHEADING
+
+  IF Z2$ = "X" OR Z2$ = "BX" THEN
+    PRINT TAB(4,78); "t"
+  ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+    PRINT TAB(4,78); "n"
+  END IF
+
+  PRINT TAB(4,3);  "| -  -  -  -  -  -  -  -  -  -  -  |----------------------------------|--->"
+  PRINT TAB(5,38);"0"
+  PRINT TAB(5,16);"left half"
+  PRINT TAB(5,51);"right half"
+
+  IF Z2$ = "X" OR Z2$ = "BX" THEN
+    PRINT TAB(5,1);  "-T/2"
+    PRINT TAB(5,72); "T/2"
+  ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+    PRINT TAB(5,1);  "-N/2"
+    PRINT TAB(5,72); "N/2"
+  END IF
+
+  IF S = 1 THEN
+    IF DVU$ = "E" THEN LET TEXT$ = "EVEN"
+    IF DVU$ = "O" THEN LET TEXT$ = "ODD"
+  ELSE IF S = 2 THEN
+    IF DVU2$ = "E" THEN LET TEXT$ = "EVEN"
+    IF DVU2$ = "O" THEN LET TEXT$ = "ODD"
+  END IF
+
+END SUB !PAINTEVENODD
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB DRAWLINE
+
+  CLEAR
+  IF (S = 1 AND DVU$ = "N") OR (S = 2 AND DVU2$ = "N") THEN
+
+    CALL PAINTNEITHER
+
+    IF S = 1 THEN
+      FOR J2 = 2 TO NNII
+        LET POS = ROUND(VAL(INTSX$(J2,1))*72/END) + OFFSET
+        PRINT TAB(4,POS + 2);"|"
+      NEXT J2
+    ELSE IF S = 2 THEN
+      FOR J2 = 2 TO NNII
+        LET POS = ROUND(VAL(INTSX2$(J2,1))*72/END) + OFFSET
+        PRINT TAB(4,POS + 2);"|"
+      NEXT J2
+    END IF
+
+  ELSE IF (S = 1 AND (DVU$ <> "N")) OR (S = 2 AND (DVU2$ <> "N")) OR S = 3 THEN
+
+    CALL PAINTEVENODD
+
+    IF S = 1 THEN
+      FOR J3 = 2 TO NNII
+        LET POS = ROUND(VAL(INTSX$(J3,1))*71/END)
+        PRINT TAB(4,38+POS);"|"
+        PRINT TAB(4,38-POS);"|"
+      NEXT J3
+    ELSE IF S = 2 THEN
+      FOR J3 = 2 TO NNII
+        LET POS = ROUND(VAL(INTSX2$(J3,1))*71/END)
+        PRINT TAB(4,38+POS);"|"
+        PRINT TAB(4,38-POS);"|"
+      NEXT J3
+    END IF
+  END IF
+
+  PRINT
+  PRINT
+
+END SUB !DRAWLINE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB SHOWINTS   !DISPLAYING THE INTERVALS THAT HAVE BEEN CREATED
+
+  CALL DRAWLINE
+
+  IF NIX = 1 THEN
+    PRINT TAB(7,2);"HERE IS THE  " & VECTOR$ & "  INTERVAL"
+  ELSE IF NIX > 1 THEN
+    PRINT TAB(7,2);"HERE ARE THE  " & VECTOR$ & "  INTERVALS"
+  END IF
+  PRINT
+
+  IF MODE$ = "SAMP" THEN
+    PRINT "INTERVAL","LEFT (t)","RIGHT (t)"
+  ELSE IF MODE$ = "DISC" THEN
+    PRINT "INTERVAL","LEFT (k)","RIGHT (k)"
+  END IF
+  PRINT
+
+  IF (S = 1 AND DVU$ = "N") OR (S = 2 AND DVU2$ = "N") THEN  !FOR "NEITHER"
+    FOR J = 1 TO NNII
+      PRINT J, VAL(INTS$(J,1)), VAL(INTS$(J,2))
+    NEXT J
+  ELSE IF (S = 1 AND (DVU$ <> "N")) OR (S = 2 AND (DVU2$ <> "N")) THEN  !FOR "EVEN/ODD"
+    FOR J = 1 TO NNII
+      PRINT J, -VAL(INTS$(NNII-J+1,2)), -VAL(INTS$(NNII-J+1,1))
+    NEXT J
+    FOR J = 1 TO NNII
+      PRINT J + NNII, VAL(INTS$(J,1)), VAL(INTS$(J,2))
+    NEXT J
+  END IF
+
+  PRINT
+  ASK CURSOR AXZ, BXZ
+
+  LET FRAZ$ = "| CONTINUE ... C |  ?  "
+  LET SSQ = 0
+  DO
+    IF SSQ = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( AXZ, BXZ, A$, FRAZ$, WEZ$ )
+
+    LET SSQ = 1
+  LOOP UNTIL WEZ$ = "C" OR WEZ$ = "Q"
+
+  LET GOBACK = 0
+  IF WEZ$ = "Q" THEN
+    LET GOBACK = 1
+  END IF
+
+END SUB !SHOWINTS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB RECALL
+
+  LET NZA = 0
+  LET ASQ$ = USING$("+#.############^^^^^",T)
+
+  IF (OLDVARS$(1,1) <> STR$(N))  OR  (OLDVARS$(2,1) = "SAMP" AND OLDVARS$(1,2) <> ASQ$)  OR  (OLDVARS$(2,1) <> MODE$) THEN
+    SOUND 500,.1
+
+    CALL BOX131( OLDVARS$(,), N, T, MODE$, A$ )
+
+    LET CHANGEPARAMS = 1
+  END IF
+
+  IF CHANGEPARAMS = 0 THEN
+
+    LET RECALLFLAG = 1
+    MAT BOLDVARS$ = OLDVARS$
+
+    IF OLDVARS$(2,1) = "SAMP" THEN
+      LET END = T
+    ELSE IF OLDVARS$(2,1) = "DISC" THEN
+      LET END = N
+    END IF
+
+    LET Z2$   = OLDVARS$(3,1)
+    LET ORG$  = OLDVARS$(8,1)
+    LET ORG2$ = OLDVARS$(8,2)
+
+    IF Z2$ = "X" OR Z2$ = "BX" THEN
+      LET VARTYPE$ = OLDVARS$(3,2)
+      MAT BOLDINTSX$  = OLDINTSX$
+      MAT BOLDEXPRX$  = OLDEXPRX$
+      MAT BOLDINTSX2$ = OLDINTSX2$
+      MAT BOLDEXPRX2$ = OLDEXPRX2$
+
+      IF Z2$ = "X" THEN          !ONLY HAVE TO CREATE  X  VECTOR
+        LET XTOP = 1
+      ELSE IF Z2$ = "BX" THEN    !HAVE TO CREATE BOTH  X  AND  X2  VECTORS
+        LET XTOP = 2
+      END IF
+
+      FOR S = 1 TO XTOP   !LOAD THE FORMULAE
+        IF S = 1 THEN
+          LET VECTOR$ = "X"
+          LET OFFSET = VAL(OLDVARS$(9,1))
+          LET STTMT$ = OLDVARS$(6,1)
+          LET DVU$   = OLDVARS$(4,1)
+          LET NNII   = VAL(OLDVARS$(5,1))
+
+          MAT INTSX$ = OLDINTSX$
+          MAT INTS$  = OLDINTSX$
+
+        ELSE IF S = 2 THEN
+          LET VECTOR$ = "X2"
+          LET OFFSET = VAL(OLDVARS$(9,2))
+          LET STTMT$ = OLDVARS$(6,2)
+          LET DVU2$  = OLDVARS$(4,2)
+          LET NNII   = VAL(OLDVARS$(5,2))
+
+          MAT INTSX2$ = OLDINTSX2$
+          MAT INTS$   = OLDINTSX2$
+
+        END IF
+
+        CALL FORMULA
+        IF LOOPROUND = 1 THEN EXIT FOR
+
+      NEXT S
+
+    ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+      MAT BOLDEXPRF$ = OLDEXPRF$
+
+      IF Z2$ = "F" THEN          !ONLY HAVE TO CREATE  F  VECTOR
+        LET XTOP = 3
+      ELSE IF Z2$ = "BF" THEN    !HAVE TO CREATE BOTH  F  AND  F2  VECTORS
+        LET XTOP = 4
+      END IF
+
+      FOR S = 3 TO XTOP   !LOAD THE FORMULAE
+        LET NNII = 1
+        IF S = 3 THEN
+          LET VARTYPE$ = OLDVARS$(3,2)
+          LET VECTOR$ = "F"
+        ELSE IF S = 4 THEN
+          LET VARTYPE$ = OLDVARS$(11,2)
+          LET VECTOR$ = "F2"
+        END IF
+
+        CALL FORMULA
+
+        IF LOOPROUND = 1 THEN EXIT FOR
+      NEXT S
+    END IF
+
+    IF OLDVARS$(11,1) <> "DIRECT" THEN
+      CALL CREATEVECTORS   !TO ECHO WHEN EVEN OR ODD
+    END IF
+
+    IF LOOPROUND = 0 THEN
+      IF OLDVARS$(10,1) <> "" THEN           !ONE OR MORE DIRAC DELTAS EXIST
+        CLEAR
+        MAT BOLDDIRAC$ = OLDDIRAC$
+        LET HIGHLIM = VAL(OLDVARS$(10,1))
+        LET DIRACTYPE$ = OLDVARS$(10,2)
+        LET FRAZZ2$ = "( PLEASE EDIT OR ACCEPT )"
+        LET NOWDIRAC = 1
+
+        IF DIRACTYPE$ = "TIME" THEN
+          LET MULTIP = N/T
+
+          FOR CES = 1 TO HIGHLIM
+            IF OLDDIRAC$(CES,1) <> "-" THEN
+              LET TEST$ = STR$(VAL(OLDDIRAC$(CES,1))/MULTIP)       !ENTERING THE POSITION FOR  X
+              LET FRAZZ1$ = "A DIRAC DELTA WAS ADDED TO  X  AT THE FOLLOWING LOCATION..."
+              LET CLEARIT = 1
+              LET DIRACPLACE = 1
+              LET LINE1  =  2
+              LET LINE   =  6
+              LET LINEST = 12
+
+              CALL DOLOOP
+              IF LOOPROUND = 1 THEN EXIT FOR
+
+              LET BOLDDIRAC$(CES,1) = STR$(ROUND(VAL(TEST$)*MULTIP))
+
+              LET TEST$ = STR$(VAL(OLDDIRAC$(CES,2))/MULTIP) !ENTERING THE WEIGHT
+              LET FRAZZ1$ = "ITS WEIGHT WAS AS FOLLOWS: "
+              LET CLEARIT = 0
+              LET DIRACPLACE = 3
+              LET LINE1  =  8
+              LET LINE   = 12
+              LET LINEST = 18
+
+              CALL DOLOOP
+              IF LOOPROUND = 1 THEN EXIT FOR
+
+              LET BOLDDIRAC$(CES,2) = STR$(VAL(TEST$)*MULTIP)
+              LET TEMPRE(MOD(VAL(BOLDDIRAC$(CES,1)),N)) = TEMPRE(MOD(VAL(BOLDDIRAC$(CES,1)),N)) + VAL(BOLDDIRAC$(CES,2))
+              LET DIRACTOX = 1
+
+            ELSE IF OLDDIRAC$(CES,3) <> "-" THEN
+              LET TEST$ = STR$(VAL(OLDDIRAC$(CES,3))/MULTIP)   !ENTERING THE POSITION FOR X2
+
+              LET FRAZZ1$ = "A DIRAC DELTA WAS ADDED TO  X2  AT THE FOLLOWING LOCATION..."
+              LET CLEARIT = 1
+              LET DIRACPLACE = 1
+              LET LINE1  =  2
+              LET LINE   =  6
+              LET LINEST = 12
+
+              CALL DOLOOP
+              IF LOOPROUND = 1 THEN EXIT FOR
+
+              LET BOLDDIRAC$(CES,3) = STR$(ROUND(VAL(TEST$)*MULTIP))
+
+              LET TEST$ = STR$(VAL(OLDDIRAC$(CES,4))/MULTIP)  !ENTERING THE WEIGHT FOR X2
+
+              LET FRAZZ1$ = "ITS WEIGHT WAS AS FOLLOWS: "
+              LET CLEARIT = 0
+              LET DIRACPLACE = 3
+              LET LINE1  =  8
+              LET LINE   = 12
+              LET LINEST = 18
+
+              CALL DOLOOP
+              IF LOOPROUND = 1 THEN EXIT FOR
+
+              LET BOLDDIRAC$(CES,4) = STR$(VAL(TEST$)*MULTIP)
+              LET TEMP2RE(MOD(VAL(BOLDDIRAC$(CES,3)),N)) = TEMP2RE(MOD(VAL(BOLDDIRAC$(CES,3)),N)) + VAL(BOLDDIRAC$(CES,4))
+              LET DIRACTOX2 = 1
+
+            END IF
+          NEXT CES
+
+        ELSE IF DIRACTYPE$ = "FREQ" THEN
+
+          LET MULTIP = T/(2*PI)*(N/T)
+
+          FOR CES = 1 TO HIGHLIM
+            IF OLDDIRAC$(CES,1) <> "-" THEN
+
+              LET TEST$ = STR$(VAL(OLDDIRAC$(CES,1))*(2*PI/T))    !ENTERING THE POSITION FOR FRE
+              LET FRAZZ1$ = "A DIRAC DELTA WAS ADDED TO  FRE  AT THE FOLLOWING LOCATION..."
+              LET CLEARIT = 1
+              LET DIRACPLACE = 2
+              LET LINE1  =  2
+              LET LINE   =  6
+              LET LINEST = 12
+
+              CALL DOLOOP
+              IF LOOPROUND = 1 THEN EXIT FOR
+
+              LET BOLDDIRAC$(CES,1) = STR$(ROUND(VAL(TEST$)/(2*PI/T)))
+
+              LET TEST$ = STR$(VAL(OLDDIRAC$(CES,2))/MULTIP)
+              LET FRAZZ1$ = "ITS WEIGHT WAS AS FOLLOWS: "
+              LET CLEARIT = 0
+              LET DIRACPLACE = 3
+              LET LINE1  =  8
+              LET LINE   = 12
+              LET LINEST = 18
+
+              CALL DOLOOP
+              IF LOOPROUND = 1 THEN EXIT FOR
+
+              LET BOLDDIRAC$(CES,2) = STR$(VAL(TEST$)*MULTIP)
+              LET TEMPRE(MOD(VAL(BOLDDIRAC$(CES,1)),N)) = TEMPRE(MOD(VAL(BOLDDIRAC$(CES,1)),N)) + VAL(BOLDDIRAC$(CES,2))
+              LET DIRACTOFRE = 1
+
+            ELSE IF OLDDIRAC$(CES,3) <> "-" THEN
+              LET TEST$ = STR$(VAL(OLDDIRAC$(CES,3))*(2*PI/T))    !ENTERING THE POSITION FOR FIM
+              LET FRAZZ1$ = "A DIRAC DELTA WAS ADDED TO  FIM  AT THE FOLLOWING LOCATION..."
+              LET CLEARIT = 1
+              LET DIRACPLACE = 2
+              LET LINE1  =  2
+              LET LINE   =  6
+              LET LINEST = 12
+
+              CALL DOLOOP
+              IF LOOPROUND = 1 THEN EXIT FOR
+
+              LET BOLDDIRAC$(CES,3) = STR$(ROUND(VAL(TEST$)/(2*PI/T)))
+              LET TEST$ = STR$(VAL(OLDDIRAC$(CES,4))/MULTIP)
+
+              LET FRAZZ1$ = "ITS WEIGHT WAS AS FOLLOWS: "
+              LET CLEARIT = 0
+              LET DIRACPLACE = 3
+              LET LINE1  =  8
+              LET LINE   = 12
+              LET LINEST = 18
+
+              CALL DOLOOP
+              IF LOOPROUND = 1 THEN EXIT FOR
+
+              LET BOLDDIRAC$(CES,4) = STR$(VAL(TEST$)*MULTIP)
+              LET TEMPIM(MOD(VAL(BOLDDIRAC$(CES,3)),N)) = TEMPIM(MOD(VAL(BOLDDIRAC$(CES,3)),N)) + VAL(BOLDDIRAC$(CES,4))
+              LET DIRACTOFIM = 1
+
+            END IF
+          NEXT CES
+        END IF
+      END IF
+    END IF
+  END IF
+
+  LET NOWDIRAC = 0
+
+END SUB !RECALL
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB DOLOOP
+
+  DO
+    IF CLEARIT = 1 THEN CLEAR
+
+    PRINT TAB(LINE1  ,1); A$
+    PRINT TAB(LINE1  ,1); FRAZZ1$
+    PRINT TAB(LINE1+2,1); A$
+    PRINT TAB(LINE1+2,1); FRAZZ2$
+
+    LET SIRIN$ = TEST$
+
+    CALL EDIT
+
+    LET TEST$ = SIRIN$
+
+    CALL NUMBERTEST
+
+    IF LOOPROUND = 0 THEN
+      FOR HU = 14 TO 18
+        PRINT TAB(HU,1);A$
+      NEXT HU
+    END IF
+  LOOP WHILE DOAGAIN = 1
+
+END SUB !DOLOOP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB NUMBERTEST
+
+  LET DOAGAIN = 0
+
+  WHEN ERROR IN
+    LET NUMBER = EVAL(SIRIN$)
+    LET TEST$ = STR$(NUMBER)
+  USE
+    IF SIRIN$ = "Q" OR SIRIN$ = "q" THEN
+      LET LOOPROUND = 1
+    ELSE
+      SOUND 500,.1
+      LET DOAGAIN = 1
+      PRINT
+      PRINT
+      PRINT "THE EXPRESSION THAT YOU ENTERED WAS NOT ACCEPTABLE..."
+      PRINT "PLEASE EDIT IT AGAIN"
+
+      LET FRAZ$ = "| CONTINUE ... C |  ?  "
+      LET WRT = 0
+      DO
+        IF WRT = 1 THEN SOUND 500,.1
+
+        CALL APROMPT( LINEST, 1, A$, FRAZ$, ZC$ )
+
+        LET WRT = 1
+      LOOP UNTIL ZC$ = "C" OR ZC$ = "Q"
+
+    END IF
+  END WHEN
+
+END SUB !NUMBERTEST
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB FORMULA
+
+  LET FLAG2 = 0
+  LET LOOPROUND = 0
+  LET EXIT2 = 0
+  LET ZIPOUT = 0
+  LET EXPR1$ = "N = " & STR$(N)    !TELLING SUPERVAL THE VALUE OF N
+
+  CALL SUPERVAL(VARS$, EXPR1$, XXX)
+
+  IF MODE$ = "SAMP" THEN
+    LET EXPR1$ = "T = " & USING$("+#.############^^^^^",T)  !TELLING SUPERVAL THE VALUE OF T
+
+    CALL SUPERVAL(VARS$, EXPR1$, XXX)
+
+  END IF
+
+  IF VARTYPE$ = "R" THEN
+    LET TOPEND = 1
+  ELSE IF VARTYPE$ = "I" THEN
+    LET TOPEND = 1
+  ELSE IF VARTYPE$ = "C" THEN
+    LET TOPEND = 2
+  END IF
+
+  FOR H = 1 TO TOPEND
+
+    LET IMAGFLAG = 0
+    IF S = 1 THEN
+      IF H = 1 THEN LET VECTOR$ = "XRE"
+      IF H = 2 THEN LET VECTOR$ = "XIM"
+    ELSE IF S = 2 THEN
+      IF H = 1 THEN LET VECTOR$ = "X2RE"
+      IF H = 2 THEN LET VECTOR$ = "X2IM"
+    ELSE IF S = 3 THEN
+      IF H = 1 AND VARTYPE$ <> "I" THEN
+        LET VECTOR$ = "FRE"
+        LET STTMT$  = "EVEN"
+      ELSE IF (H = 1 AND VARTYPE$ = "I") OR H = 2 THEN
+        LET VECTOR$ = "FIM"
+        LET IMAGFLAG = 1
+        LET STTMT$  = "ODD"
+      END IF
+    ELSE IF S = 4 THEN
+      IF H = 1 AND VARTYPE$ <> "I" THEN
+        LET VECTOR$ = "F2RE"
+        LET STTMT$  = "EVEN"
+      ELSE IF (H = 1 AND VARTYPE$ = "I") OR H = 2 THEN
+        LET VECTOR$ = "F2IM"
+        LET IMAGFLAG = 1
+        LET STTMT$  = "ODD"
+      END IF
+    END IF
+
+    IF SZI$ = "N" THEN
+      LET PHR1$ = "PLEASE ENTER YOUR EXPRESSION FOR  "
+    ELSE IF SZI$ = "O" THEN
+      LET PHR1$ = "PLEASE EDIT YOUR EXPRESSION FOR  "
+    END IF
+
+    LET PHR2$ = "USING ---> "
+    LET PHR3$ = " <--- AS THE RUNNING VARIABLE"
+    LET PHR4$ = "THE ONLY SYMBOLIC VARIABLES CAN BE  "
+    IF MODE$ = "SAMP" THEN
+      LET PHR5$ = ", T, N and PI/pi, or you can use Q/q (QUIT)"
+    ELSE IF MODE$ = "DISC" THEN
+      LET PHR5$ = ", N and PI/pi, or you can use Q/q (QUIT)"
+    END IF
+
+    IF Z2$ = "X" OR Z2$ = "BX" THEN
+      IF MODE$ = "SAMP" THEN
+        LET VAR1$ = "t"
+        LET VAR2$ = "t (not T)"
+      ELSE IF MODE$ = "DISC" THEN
+        LET VAR1$ = "k"
+        LET VAR2$ = "k (not K)"
+      END IF
+    ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+      IF MODE$ = "DISC" OR TYPE$ = "PER" THEN
+        LET VAR1$ = "n"
+        LET VAR2$ = "n (not N)"
+      ELSE
+        LET VAR1$ = "w"
+        LET VAR2$ = "w (not W)"
+      END IF
+    END IF
+
+    DO                                       !THIS IS THE BEGIN AGAIN LOOP
+      LET BEGINAGAIN = 0
+
+      LET SWITCHON = 0
+      FOR J = 1 TO NNII                      !HERE'S THE MAJOR LOAD LOOP
+
+        LET DONTPAINT = 0
+
+        DO
+          CLEAR
+
+          IF DONTPAINT = 0 THEN
+            IF Z2$ = "X" OR Z2$ = "BX" THEN
+
+              CALL DRAWLINE
+
+            ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+
+              CALL PAINTHEADING
+
+              PRINT
+            END IF
+          END IF
+
+          IF FLAG2 = 0 THEN    !THIS WAY THROUGH IF NO ERRORS
+            PRINT TAB(7,1); "NOW CREATING ---> " & VECTOR$ & " <--- WHICH IS " & STTMT$
+
+            IF Z2$ = "X" OR Z2$ = "BX" THEN
+              PRINT TAB(9,1);"THIS IS FOR INTERVAL " & STR$(J) & " WHICH RUNS FROM  " & VAR1$ & " = " & INTS$(J,1) & "  TO  " & VAR1$ & " = " & INTS$(J,2)
+
+              PRINT TAB(11,1); PHR1$ & VECTOR$ & "(" & VAR1$ & ")"
+              PRINT TAB(12,1); PHR2$ & VAR2$ & PHR3$
+
+              PRINT TAB(14,1); PHR4$ & VAR1$ & PHR5$
+
+            ELSE
+              PRINT TAB(4,1); PHR1$ & VECTOR$ & "(" & VAR1$ & ")"
+              PRINT TAB(5,1); PHR2$ & VAR2$ & PHR3$
+
+              PRINT TAB(7,1); PHR4$ & VAR1$ & PHR5$
+
+            END IF
+            IF Z2$ = "X" OR Z2$ = "BX" THEN
+              LET LINE = 18
+            ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+              LET LINE = 11
+            END IF
+
+            CALL TITLE( LINE )
+
+            IF SZI$ = "N" THEN
+
+              DO
+                WHEN ERROR IN
+                  LET SIRIN$ = ""
+
+                  CALL EDIT         !THIS IS THE FUNCTION THAT IS ENTERED
+
+                USE
+                  SOUND 500,.1
+                  LET ANP = 1
+                END WHEN
+              LOOP WHILE ANP = 1
+
+            ELSE IF SZI$ = "O" THEN
+                             !THIS IS WHEN AN OLD-PROBLEM HAS BEEN RECALLED
+
+              IF S = 1 THEN
+                IF H = 1 THEN
+                  LET SIRIN$ = OLDEXPRX$( J,1 )
+                ELSE IF H = 2 THEN
+                  LET SIRIN$ = OLDEXPRX$( J,2 )
+                END IF
+              ELSE IF S = 2 THEN
+                IF H = 1 THEN
+                  LET SIRIN$ = OLDEXPRX2$( J,1 )
+                ELSE IF H = 2 THEN
+                  LET SIRIN$ = OLDEXPRX2$( J,2 )
+                END IF
+              ELSE IF S = 3 THEN
+                IF H = 1 THEN
+                  LET SIRIN$ = OLDEXPRF$( 1,1 )
+                ELSE IF H = 2 THEN
+                  LET SIRIN$ = OLDEXPRF$( 1,2 )
+                END IF
+              ELSE IF S = 4 THEN
+                IF H = 1 THEN
+                  LET SIRIN$ = OLDEXPRF$( 2,1 )
+                ELSE IF H = 2 THEN
+                  LET SIRIN$ = OLDEXPRF$( 2,2 )
+                END IF
+              END IF
+
+              CALL EDIT
+
+              PRINT
+            END IF
+
+          ELSE IF FLAG2 = 1 THEN   !THIS WAY THROUGH IF AN ERROR HAS OCCURRED
+
+            CALL FIXIT
+
+          END IF
+
+          IF SIRIN$ <> "Q" AND SIRIN$ <> "q" THEN
+            IF S = 1 THEN
+              IF H = 1 THEN
+                LET BOLDEXPRX$( J,1 ) = SIRIN$
+              ELSE IF H = 2 THEN
+                LET BOLDEXPRX$( J,2 ) = SIRIN$
+              END IF
+            ELSE IF S = 2 THEN
+              IF H = 1 THEN
+                LET BOLDEXPRX2$( J,1 ) = SIRIN$
+              ELSE IF H = 2 THEN
+                LET BOLDEXPRX2$( J,2 ) = SIRIN$
+              END IF
+            ELSE IF S = 3 THEN
+              IF H = 1 THEN
+                LET BOLDEXPRF$( 1,1 ) = SIRIN$
+              ELSE IF H = 2 THEN
+                LET BOLDEXPRF$( 1,2 ) = SIRIN$
+              END IF
+            ELSE IF S = 4 THEN
+              IF H = 1 THEN
+                LET BOLDEXPRF$( 2,1 ) = SIRIN$
+              ELSE IF H = 2 THEN
+                LET BOLDEXPRF$( 2,2 ) = SIRIN$
+              END IF
+            END IF
+          END IF
+
+          CALL FIXMATH( SIRIN$ )
+
+          LET SIRKEEP$ = SIRIN$          !SIRKEEP$ is for replay if an error
+          LET SIRTEST$ = UCASE$(SIRIN$)  !SIRTEST$ is for testing for Q
+
+          IF SIRTEST$ <> "Q" AND SIRTEST$ <> "q" THEN
+
+            LET PSTART = N/32 + 1
+
+            IF Z2$ = "X" OR Z2$ = "BX" THEN
+              IF MODE$ = "DISC" THEN
+
+                LET DF$ = "K"
+                CALL EXCLUDE( DF$ )
+
+                LET STARTT = ROUND(VAL(INTS$(J,1)))
+                LET ENDD   = ROUND(VAL(INTS$(J,2)))
+
+              ELSE IF MODE$ = "SAMP" THEN
+
+                LET DF$ = "k"
+                CALL EXCLUDE( DF$ )
+
+                LET DF$ = "K"
+                CALL EXCLUDE( DF$ )
+
+                LET OLD$ = "t"
+                LET NEW$ = "(K*T/N)"
+
+                LET LONUMBR = VAL(INTS$(J,1))*N/T
+                LET LOTEST = ROUND(LONUMBR)
+                IF ABS(LONUMBR - LOTEST) < 1E-5 THEN   !TESTING FOR EQUALITY
+                  LET STARTT = LOTEST
+                ELSE
+                  LET STARTT = INT(LONUMBR) + 1
+                END IF
+                LET HINUMBR = VAL(INTS$(J,2))*N/T
+                LET HITEST = ROUND(HINUMBR)
+
+                IF ABS(HINUMBR - HITEST) < 1E-5 THEN  !TESTING FOR EQUALITY
+                  LET ENDD = HITEST
+                ELSE
+                  LET ENDD = INT(HINUMBR)
+                END IF
+
+              END IF
+
+            ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+
+              LET DF$ = "k"
+              CALL EXCLUDE( DF$ )
+
+              LET DF$ = "K"
+              CALL EXCLUDE( DF$ )
+
+              LET DF$ = "t"
+              CALL EXCLUDE( DF$ )
+
+              LET STARTT = 0
+              LET ENDD   = N/2
+
+              IF MODE$ = "DISC" OR TYPE$ = "PER" THEN
+                LET OLD$ = "n"
+                LET NEW$ = "K"
+              ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+                LET OLD$ = "w"
+                LET NEW$ = "(K*2*PI/T)"
+              END IF
+
+            END IF
+
+            LET SIR$ = REPSTR$(SIRIN$, OLD$, NEW$)
+
+            PRINT
+
+            IF Z2$ = "X" OR Z2$ = "BX" THEN
+              LET ZEEROSFLAG = 0
+
+              FOR K = STARTT TO ENDD
+
+                IF ZEEROSFLAG = 1 THEN LET K = ENDD
+                IF SIR$ = STR$(0) THEN LET ZEEROSFLAG = 1
+
+                IF DIVBYZERO = 1 THEN
+                  LET DIVBYZERO = 0
+                  PRINT TAB(12,1);
+                END IF
+
+                IF MOD(K,16) = 0 THEN
+                  PRINT ".";
+                END IF
+
+                CALL MAINDO( K )
+
+                IF GETOUT = 1 THEN
+                  EXIT FOR
+                ELSE IF LOOPROUND = 1 THEN
+                  LET EXIT2 = 1
+                  LET ZIPOUT = 1
+                  EXIT FOR
+                END IF
+
+                CALL LOADDATA
+
+              NEXT K
+
+              IF GETOUT = 0 THEN LET SWITCHON = 1
+              PRINT
+
+            ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+
+              CALL MAKESPECTRUM
+
+            END IF
+
+          ELSE IF (SIRTEST$ = "Q" OR SIRTEST$ = "q") AND J > 1 THEN
+            LET EXIT2 = 1
+            LET BEGINAGAIN = 1
+            LET FLAG2 = 0
+            EXIT FOR
+
+          ELSE IF (SIRTEST$ = "Q" OR SIRTEST$ = "q") AND J = 1 THEN
+            LET EXIT2 = 1
+            LET LOOPROUND = 1
+            EXIT FOR
+          END IF
+
+        LOOP UNTIL EXIT2 = 1
+
+        IF ZIPOUT = 1 THEN EXIT FOR
+      NEXT J
+    LOOP UNTIL BEGINAGAIN = 0 OR LOOPROUND = 1
+
+    IF LOOPROUND = 1 THEN EXIT FOR
+
+  NEXT H
+
+END SUB !FORMULA
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB TITLE( LINE )
+
+  IF NOWDIRAC = 0 THEN
+    IF Z2$ = "X" OR Z2$ = "BX" THEN
+      IF MODE$ = "SAMP" THEN
+        LET SYMBOL$ = "t"
+      ELSE IF MODE$ = "DISC" THEN
+        LET SYMBOL$ = "k"
+      END IF
+    ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+      IF MODE$ = "DISC" OR TYPE$ = "PER" THEN
+        LET SYMBOL$ = "n"
+      ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+        LET SYMBOL$ = "w"
+      END IF
+    END IF
+    PRINT TAB(LINE,1);
+    IF S = 1 THEN
+      IF H = 1 THEN
+        PRINT " XRE(" & SYMBOL$ & ") = ";
+      ELSE IF H = 2 THEN
+        PRINT " XIM(" & SYMBOL$ & ") = ";
+      END IF
+    ELSE IF S = 2 THEN
+      IF H = 1 THEN
+        PRINT "X2RE(" & SYMBOL$ & ") = ";
+      ELSE IF H = 2 THEN
+        PRINT "X2IM(" & SYMBOL$ & ") = ";
+      END IF
+    ELSE IF S = 3 THEN
+      IF H = 1 AND VARTYPE$ <> "I" THEN
+        PRINT " FRE(" & SYMBOL$ & ") = ";
+      ELSE IF (H = 1 AND VARTYPE$ = "I") OR H = 2 THEN
+        PRINT " FIM(" & SYMBOL$ & ") = ";
+      END IF
+    ELSE IF S = 4 THEN
+      IF H = 1 AND VARTYPE$ <> "I" THEN
+        PRINT "F2RE(" & SYMBOL$ & ") = ";
+      ELSE IF (H = 1 AND VARTYPE$ = "I") OR H = 2 THEN
+        PRINT "F2IM(" & SYMBOL$ & ") = ";
+      END IF
+    END IF
+  ELSE IF NOWDIRAC = 1 THEN
+    IF DIRACPLACE = 1 THEN
+      PRINT TAB(LINE, 7); "t = ";
+    ELSE IF DIRACPLACE = 2 THEN
+      PRINT TAB(LINE, 7); "w = ";
+    ELSE IF DIRACPLACE = 3 THEN
+      PRINT TAB(LINE, 2); "WEIGHT = ";
+    END IF
+  END IF
+END SUB !TITLE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB MAKESPECTRUM
+
+  IF NZA = 0 THEN                      !ALPHA IS ZERO
+    LET NEWALPHA = 1                   !A NEW ALPHA CAN BE SELECTED LATER
+
+    CALL BOX118( ALPHA, FLAG, A$ )     !TO SPECIFY ALPHA FOR THE FIRST AND ONLY TIME
+
+    IF FLAG = 0 THEN
+      IF ALPHA = 0 THEN
+        LET NZA = 0                    !ZERO-ALPHA HAS BEEN SELECTED
+      ELSE IF ALPHA <> 0 THEN
+        LET NZA = 1                    !NONZERO-ALPHA HAS BEEN SELECTED
+        LET ALPHAHOLD = ALPHA          !STORING THE VALUE OF NONZERO-ALPHA
+      END IF
+    ELSE IF FLAG = 1 THEN              !QUIT
+      LET SCRAM = 1
+    END IF
+
+  ELSE IF NZA = 1 THEN                 !A NON-ZERO ALPHA HAS BEEN SELECTED
+    LET NEWALPHA = 0                   !A NEW ALPHA CANNOT BE SELECTED LATER
+
+    IF ALPHA <> 0 THEN                 !ALPHA WAS SELECTED AND STILL STANDS
+
+      CALL BOX118B( ALPHA, SUF$, A$ )  !LEAVE ALPHA STAND OR SET TO ZERO
+
+      IF SUF$ = "N" THEN
+        LET ALPHA = 0                  !SETTING ALPHA TO ZERO FOR FIM
+      ELSE IF SUF$ = "Q" THEN
+        LET SCRAM = 1                  !QUIT
+      END IF
+
+    ELSE IF ALPHA = 0 THEN             !NONZER-ALPHA WAS SELECTED BUT ALPHA IS NOW ZERO
+
+      CALL BOX118C( ALPHAHOLD, SUF$, A$ ) !LEAVE ALPHA ZERO OR RESET IT TO ALPHAHOLD
+
+      IF SUF$ = "R" THEN
+        LET ALPHA = ALPHAHOLD        !RESETTING ALPHA
+      ELSE IF SUF$ = "Q" THEN
+        LET SCRAM = 1
+      END IF
+    END IF
+  END IF
+
+  IF SCRAM = 1 THEN
+    LET SCRAM = 0
+    LET LOOPROUND = 1
+    LET EXIT2 = 1
+    LET ZIPOUT = 1
+  END IF
+
+  IF LOOPROUND = 0 THEN
+    DO
+
+      LET WCT$ = ""
+      LET P = PSTART
+      CLEAR
+      PRINT TAB(2,1);"ALIASING LEVEL IS ---> ALPHA =";ALPHA;":   PRESS SPACEBAR TO TAKE CONTROL"
+      PRINT TAB(4,1);
+
+      IF ALPHA*N <= 1024 THEN
+        LET AP = 4
+      ELSE IF ALPHA*N > 1024 AND ALPHA*N <= 4096 THEN
+        LET AP = 2
+      ELSE IF ALPHA*N > 4096 THEN
+        LET AP = 1
+      END IF
+
+      FOR K = STARTT TO ENDD
+        IF MOD(K,16) = 0 THEN
+          LET P = P - 1
+          PRINT "| " & STR$(INT(P)) &" |";
+        ELSE IF MOD(K,16) <> 0 AND MOD(K,AP) = O THEN
+          PRINT ".";
+        END IF
+        LET SUMM = 0
+        FOR RR = -ALPHA TO ALPHA
+
+          LET V = K + RR*N
+
+          CALL MAINDO( V )
+
+          IF GETOUT = 1 THEN
+            EXIT FOR
+          ELSE IF LOOPROUND = 1 THEN
+            LET EXIT2 = 1
+            LET ZIPOUT = 1
+            EXIT FOR
+          END IF
+
+          LET SUMM = SUMM + RESULT
+
+          IF KEY INPUT THEN
+            GET KEY INKEY
+            IF INKEY = 32 THEN
+              CLEAR
+
+              IF NEWALPHA = 1 THEN   ! A NEW ALPHA CAN BE SELECTED
+                DO
+                  LET FRAZ$ = "| RESUME CALCULATION ... R | NEW ALPHA ... N | QUIT ... Q |  ?  "
+
+                  CALL APROMPT( 2, 1, A$, FRAZ$, WCT$ )
+
+                  IF WCT$ <> "R" AND WCT$ <> "N" AND WCT$ <> "Q" THEN SOUND 500,.1
+                LOOP UNTIL WCT$ = "R" OR WCT$ = "N" OR WCT$ = "Q"
+
+              ELSE IF NEWALPHA = 0 THEN   ! A NEW ALPHA CANNOT BE SELECTED
+                DO
+                  LET FRAZ$ = "| RESUME CALCULATION ... R | QUIT ... Q |  ?  "
+
+                  CALL APROMPT( 2, 1, A$, FRAZ$, WCT$ )
+
+                  IF WCT$ <> "R" AND WCT$ <> "Q" THEN SOUND 500,.1
+                LOOP UNTIL WCT$ = "R" OR WCT$ = "Q"
+              END IF
+
+              IF WCT$ = "R" THEN
+                CLEAR
+                PRINT TAB(2,1);"ALIASING LEVEL IS ---> ALPHA =";ALPHA;":   PRESS SPACEBAR TO TAKE CONTROL"
+                PRINT
+
+              ELSE IF WCT$ = "N" THEN   ! SELECTING A NEW ALPHA
+                CLEAR
+                LET SFT$ = "| SELECT A NEW ALIASING LEVEL ( AN INTEGER >= 0 ) |  ?  "
+                DO
+
+                  CALL TEXTVALUEQ( SFT$, FDG, FLAG, 2, 1, A$ )
+
+                  IF FLAG = 1 THEN     !QUIT
+                    LET LOOPROUND = 1
+                    LET EXIT2 = 1
+                    LET ZIPOUT = 1
+                    EXIT FOR
+                  ELSE IF FLAG = 0 THEN
+                    LET ALPHA = FDG
+                    IF ALPHA = INT(ALPHA) AND ALPHA >= 0 THEN
+                      IF ALPHA = 0 THEN
+                        LET NZA = 0                  !ZERO-ALPHA HAS BEEN SELECTED
+                      ELSE IF ALPHA <> 0 THEN
+                        LET NZA = 1                  !NONZERO-ALPHA HAS BEEN SELECTED
+                        LET ALPHAHOLD = ALPHA        !STORING THE VALUE OF ALPHA
+                      END IF
+
+                    ELSE IF ALPHA <> INT(ALPHA) OR ALPHA < 0 THEN
+                      SOUND 500,.1
+                    END IF
+                  END IF
+                LOOP UNTIL FLAG = 1 OR (ALPHA = INT(ALPHA) AND ALPHA >= 0)
+                LET TRIP = 1
+                EXIT FOR
+
+              ELSE IF WCT$ = "Q" THEN
+                LET LOOPROUND = 1
+                EXIT FOR
+              END IF
+            END IF
+          END IF
+
+        NEXT RR
+
+        IF LOOPROUND = 0 THEN
+          IF GETOUT = 1 THEN
+            EXIT FOR
+          ELSE
+            LET RESULT = SUMM
+
+            CALL LOADDATA
+
+          END IF
+        END IF
+
+        IF ZIPOUT = 1 OR LOOPROUND = 1 OR TRIP = 1 THEN EXIT FOR
+      NEXT K
+      LET TRIP = 0
+
+    LOOP WHILE WCT$ = "N"
+    PRINT
+  END IF
+
+END SUB !MAKESPECTRUM
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB MAINDO( K )
+
+  LET EXPRFORK$ = "K = " & STR$(K)    !STATING THE VALUE OF K FOR SUPERVAL
+
+  CALL SUPERVAL(VARS$, EXPRFORK$, XXX)
+
+  LET EXIT2 = 1
+  LET FLAG1 = 1
+  LET FLAG2 = 0
+
+  WHEN ERROR IN                       !ERROR HANDLER
+
+    CALL SUPERVAL(VARS$, SIR$, RESULT)
+
+  USE
+
+    CALL ERRORHANDLER
+
+  END WHEN
+
+END SUB !MAINDO
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ERRORHANDLER
+
+  LET GETOUT = 0
+  LET EXXTYPE = EXTYPE    !stored EXTYPE as EXXTYPE because a naked ENTER
+                          !in the subroutine APROMPT
+                          !was causing a change in the value of EXTYPE
+
+  IF EXXTYPE <> 3001 OR IMAGFLAG = 0 OR (IMAGFLAG = 1 AND V <> 0) THEN
+
+    CALL BOX123( EXXTYPE, A$ )  !AN ERROR HAS OCCURRED, ITS MESSAGE READS ...
+
+  END IF
+
+  LET DONTPAINT = 1
+
+  ! EXXTYPE = 1:    "UNACCEPTABLE SYNTAX"
+  ! EXXTYPE = 2:    "UNKNOWN VARIABLE "
+  ! EXXTYPE = 3:    "BAD VARIABLE NAME"
+  ! EXXTYPE = 3001: "DIVISION BY ZERO"
+  ! EXXTYPE = 3002: "NEGATIVE NUMBER TO A NONINTEGRAL POWER"
+  ! EXXTYPE = 3003: "ZERO RO A NEGATIVE POWER"
+  ! EXXTYPE = 3004: "LOG OF A NUMBER <= 0"
+  ! EXXTYPE = 3005: "SQR OF A NEGATIVE NUMBER"
+  ! EXXTYPE = 4001: "VAL STRING ISN'T A PROPER NUMBER"
+
+  IF EXXTYPE = 1 OR EXXTYPE = 2 OR EXXTYPE = 3 OR EXXTYPE = 3002 OR EXXTYPE = 3003 OR EXXTYPE = 3004 OR EXXTYPE = 3005 OR EXXTYPE = 4001 THEN   !STRING IS NOT A PROPER EXPRESSION
+    LET EXIT2 = 0
+    LET FLAG1 = 0
+    LET FLAG2 = 1
+    LET GETOUT = 1
+
+    IF EXXTYPE = 2 THEN
+      LET SIRIN$ = SIRKEEP$
+    END IF
+
+  ELSE IF EXXTYPE = 3001 AND (IMAGFLAG = 0 OR (IMAGFLAG = 1 AND V <> 0)) THEN     !DIVISION BY ZERO
+    PRINT
+    PRINT
+
+    IF Z2$ = "X" OR Z2$ = "BX" THEN
+      IF MODE$ = "SAMP" THEN
+        LET EXPRE$ = "t"
+        LET EXPRE2$ = "t = " & STR$(K*T/N)
+      ELSE IF MODE$ = "DISC" THEN
+        LET EXPRE$ = "k"
+        LET EXPRE2$ = "k = " & STR$(K)
+      END IF
+    ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+      IF MODE$ = "DISC" OR TYPE$ = "PER" THEN
+        LET EXPRE$ = "n"
+        LET EXPRE2$ = "n = " & STR$(K)
+      ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+        LET EXPRE$ = "w"
+        LET EXPRE2$ = "w = " & STR$(K*2*PI/T)
+      END IF
+    END IF
+
+    CLEAR
+    PRINT TAB(2,1);"DIVISION BY ZERO FOR  " & EXPRE2$
+    PRINT TAB(4,1);"HERE IS THE EXPRESSION THAT YOU ENTERED:"
+    PRINT TAB(6,1);VECTOR$ & "(" & EXPRE$ & ") = " & SIRIN$
+
+    DO
+      PRINT TAB(9,1); "³ STATE THE VALUE OF  "& VECTOR$ & "(" & EXPRE$ & ")  AT  " & EXPRE2$ & " ... A ³"
+      PRINT TAB(11,1);A$
+      PRINT TAB(11,1); "    or    ³ LET US TRY TO OBTAIN IT FOR YOU ... B ³"
+      PRINT TAB(13,1);
+      LET TEXT1$ = "                                                     "
+
+      INPUT PROMPT TEXT1$ : SEL$
+      LET SEL$ = UCASE$(SEL$)
+      IF SEL$ <> "A" AND SEL$ <> "B" AND SEL$ <> "Q" THEN SOUND 500,.1
+    LOOP UNTIL SEL$ = "A" OR SEL$ = "B" OR SEL$ = "Q"
+
+    IF SEL$ = "Q" THEN
+      LET FLAG = 1
+
+    ELSE IF SEL$ = "A" THEN
+      CLEAR
+      PRINT TAB(2,1);"DIVISION BY ZERO FOR  " & EXPRE2$
+      PRINT TAB(4,1);"HERE IS THE EXPRESSION THAT YOU ENTERED:"
+      PRINT TAB(6,1);VECTOR$ & "(" & EXPRE$ & ") = " & SIRIN$
+      PRINT TAB(8,1);"PLEASE FIND THE VALUE OF  ---> " & VECTOR$ & "(" & EXPRE$ & ") <--- AT  " & EXPRE2$
+      PRINT TAB(9,1);"  AND ENTER IT BELOW"
+      LET STRING$ = "ITS VALUE IS  "
+
+      CALL TEXTVALUEQ( STRING$, FDG, FLAG, 11, 1, A$ )
+
+    ELSE IF SEL$ = "B" THEN
+      IF Z2$ = "X" OR Z2$ = "BX" THEN
+        LET SDX = K + .001
+      ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+        LET SDX = V + .001
+      END IF
+
+      CALL MAINDO( SDX )
+
+      DO
+        CLEAR
+        PRINT TAB(2,1);"THE VALUE THAT WE OBTAINED IS SHOWN BELOW..."
+        PRINT TAB(4,1);"PLEASE EDIT OR ACCEPT"
+
+        LET LINE = 7
+        LET SIRINHOLD$ = SIRIN$
+        LET BYPASS = 1
+        LET SIRIN$ = STR$(RESULT)
+
+        CALL EDIT
+
+        IF SIRIN$ = "Q" OR SIRIN$ = "q" THEN
+          LET FLAG = 1
+          EXIT DO
+        ELSE
+          WHEN ERROR IN
+            LET LOP = 0
+            LET FDG = VAL(SIRIN$)
+          USE
+            SOUND 500,.1
+            PRINT TAB(9,1);"YOUR ENTRY WAS UNACCEPTABLE... PLEASE CLEAR THE PROBLEM"
+            DO
+              PRINT TAB(11,1);A$
+              PRINT TAB(11,1);
+              INPUT PROMPT "³ CONTINUE ... C ³  ?  "  :  WXK$
+              LET WXK$ = UCASE$(WXK$)
+              IF WXK$ <> "C" THEN SOUND 500,.1
+            LOOP UNTIL WXK$ = "C"
+            LET LOP = 1
+            LET SIRIN$ = SIRINHOLD$
+            LET BYPASS = 0
+          END WHEN
+        END IF
+      LOOP UNTIL LOP = 0
+
+      LET SIRIN$ = SIRINHOLD$
+      LET BYPASS = 0
+
+    END IF
+
+    IF FLAG = 0 THEN
+
+      LET DIVBYZERO = 1
+      LET RESULT = FDG
+
+      IF S = 3 OR S = 4 THEN
+        CLEAR
+        PRINT
+        PRINT "ALIASING LEVEL IS ---> ALPHA =";ALPHA;":   PRESS SPACEBAR TO TAKE CONTROL"
+        PRINT
+        PRINT "| " & STR$(P) & " |";
+      END IF
+
+      LET EXIT2 = 1
+    ELSE IF FLAG = 1 THEN
+      LET LOOPROUND = 1
+    END IF
+
+  END IF
+
+END SUB !ERRORHANDLER
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB FIXIT
+
+  CLEAR
+  IF Z2$ = "X" OR Z2$ = "BX" THEN
+    PRINT TAB(2,1); "THIS IS FOR INTERVAL No. " & STR$(J) & " ..."
+  END IF
+  PRINT TAB(4,1);"THE EXPRESSION THAT YOU ENTERED WAS UNACCEPTABLE... PLEASE CORRECT IT"
+  PRINT TAB(6,1); PHR4$ & VAR1$ & PHR5$
+
+  CALL EDIT
+
+END SUB !FIXIT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB EDIT
+
+  LET C$ = REPEAT$(" ", 70)
+  IF S = 3 AND H = 1 THEN LET ALPHAFIX = 0
+  LET GETOUT = 0
+
+  IF BYPASS = 0 THEN
+    IF SZI$ = "N" THEN
+      IF FLAG2 = 1 THEN LET LINE = 10       !A NEW-PROBLEM ERROR
+
+    ELSE IF SZI$ = "O" THEN
+      IF NOWDIRAC = 0 THEN                  !NOT A DIRAC DELTA
+        IF Z2$ = "X" OR Z2$ = "BX" THEN
+          IF FLAG2 = 1 THEN                 !AN OLD-PROBLEM  X/X2  ERROR
+            LET LINE = 10
+          END IF
+        ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+          IF FLAG2 = 1 THEN                 !AN OLD-PROBLEM  F/F2  ERROR
+            LET LINE = 10
+          END IF
+        END IF
+      END IF
+    END IF
+  END IF
+
+  LET CHARS = LEN( SIRIN$ )
+  LET COL = CHARS + 1
+  LET BEGYN = CHARS - 67
+
+  DO
+    LET CHARS = LEN( SIRIN$ )
+
+    IF CHARS - BEGYN > 67 THEN LET DELFLAG = 0
+
+    IF COL < 1 THEN
+      LET COL = 1
+    ELSE IF COL > CHARS + 1 THEN
+      LET COL = CHARS + 1
+    END IF
+
+    IF DELFLAG = 0 THEN
+      IF BEGYN > CHARS - 67 THEN LET BEGYN = CHARS - 67
+    END IF
+
+    IF BEGYN < 1 THEN LET BEGYN = 1
+
+    LET SIRINSHOW$ = SIRIN$
+
+    LET SIRINSHOW$ = MID$(SIRINSHOW$, BEGYN, 68)
+
+    CALL TITLE( LINE )
+    PRINT SIRINSHOW$
+
+!print tab(21,1);"BEGYN = ";begyn
+!print tab(22,1);"CHARS = ";chars        ! NM: KEEP THIS FOR FUTURE USE
+!print tab(23,1);"COL = ";col
+
+    LET ENDPOS = COL - BEGYN + 11
+    IF ENDPOS > 79 THEN LET ENDPOS = 79
+    SET CURSOR  LINE, ENDPOS
+
+    GET KEY SLU
+
+    IF SLU = 331 OR SLU = 587 THEN               !LEFT ARROW
+      LET COL = COL - 1
+      IF COL < BEGYN THEN
+        LET BEGYN = BEGYN - 1
+      END IF
+
+    ELSE IF SLU = 333 OR SLU = 589 THEN          !RIGHT ARROW
+      LET COL = COL + 1
+      IF COL - BEGYN > 68 THEN LET BEGYN = BEGYN + 1
+
+    ELSE IF SLU = 327 THEN                       !HOME
+      LET COL = 1
+      LET BEGYN = 1
+
+    ELSE IF SLU = 335 THEN                       !END
+      LET COL = CHARS + 1
+      IF DELFLAG = 0 THEN LET BEGYN = COL - 67
+
+    ELSE IF SLU = 339 THEN                       !DEL
+      LET HOLD1$ = LEFT$(SIRIN$, COL - 1)
+      LET HOLD2$ = RIGHT$(SIRIN$, CHARS - COL)
+      LET SIRIN$ = HOLD1$ & HOLD2$
+      PRINT TAB(LINE,11);C$
+      LET DELFLAG = 1
+
+    ELSE IF SLU = 008 THEN                       !BACKSPACE
+      LET HOLD1$ = LEFT$(SIRIN$, COL - 2)
+      LET HOLD2$ = RIGHT$(SIRIN$, 1 + CHARS - COL)
+      LET SIRIN$ = HOLD1$ & HOLD2$
+      PRINT TAB(LINE,11);C$
+      LET COL = COL - 1
+      LET DELFLAG = 1
+
+    ELSE IF SLU = 10 THEN                        !CTL ENTER
+      LET SIRIN$ = LEFT$(SIRIN$, COL - 1)        !DELETE TO RIGHT OF CURSOR
+      PRINT TAB(LINE,11);C$
+      LET DELFLAG = 1
+
+    ELSE IF SLU >= 32 AND SLU <= 126 THEN        !A CHARACTER
+      LET HOLD1$ = LEFT$(SIRIN$, COL - 1)
+      LET HOLD2$ = RIGHT$(SIRIN$, 1 + CHARS - COL)
+      LET SIRIN$ = HOLD1$ & CHR$( SLU ) & HOLD2$
+      LET COL = COL + 1
+      IF COL - BEGYN > 68 THEN LET BEGYN = BEGYN + 1
+    END IF
+
+  LOOP UNTIL SLU = 013                           !ENTER
+
+  LET CHARS = LEN(SIRIN$)
+  FOR H1 = 1 TO CHARS
+    IF ORD(SIRIN$[H1:H1]) < 32 OR ORD(SIRIN$[H1:H1]) > 126 THEN LET SIRIN$[H1:H1] = ""
+  NEXT H1
+
+  PRINT
+
+END SUB !EDIT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB LOADDATA
+
+  IF S = 1 AND H = 1 THEN            !loading results for X and/or X2
+    CALL SUBLD( TEMPRE() )
+  ELSE IF S = 1 AND H = 2 THEN
+    CALL SUBLD( TEMPIM() )
+  ELSE IF S = 2 AND H = 1 THEN
+    CALL SUBLD( TEMP2RE() )
+  ELSE IF S = 2 AND H = 2 THEN
+    CALL SUBLD( TEMP2IM() )
+  END IF
+
+  IF S = 3 THEN                      !loading results for F and or F2
+    IF H = 1 AND VARTYPE$ <> "I" THEN
+      LET TEMPRE(MOD(K,N)) = RESULT
+    ELSE IF (H = 1 AND VARTYPE$ = "I") OR H = 2 THEN
+      LET TEMPIM(MOD(K,N)) = RESULT
+    END IF
+  ELSE IF S = 4 THEN
+    IF H = 1 AND VARTYPE$ <> "I" THEN
+      LET TEMP2RE(MOD(K,N)) = RESULT
+    ELSE IF (H = 1 AND VARTYPE$ = "I") OR H = 2 THEN
+      LET TEMP2IM(MOD(K,N)) = RESULT
+    END IF
+  END IF
+
+END SUB !LOADDATA
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB SUBLD( DUMV() )
+
+  IF MODE$ = "SAMP" THEN       !LOADING THE DATA AND CREATING THE HALF-VALUES
+
+    IF SWITCHON = 0 THEN  !FIRST TIME THROUGH FOR A GIVEN VECTOR
+
+      !this is for "neither" with origin on left, first time through
+      IF (S = 1 AND DVU$ = "N" AND ORG$ = "L") OR (S = 2 AND DVU2$ = "N" AND ORG2$ = "L") THEN
+        IF K < N THEN
+          LET DUMV(K) = RESULT
+        ELSE IF K = N THEN
+          LET DUMV(0) = (DUMV(0) + RESULT)/2
+        END IF
+
+      !this is for "neither" with origin at center, first time through
+      ELSE IF (S = 1 AND DVU$ = "N" AND ORG$ = "C") OR (S = 2 AND DVU2$ = "N" AND ORG2$ = "C") THEN
+        IF K <> N/2 THEN
+          LET DUMV(MOD(K,N)) = RESULT
+        ELSE IF K = N/2 THEN
+          LET DUMV(K) = (DUMV(K) + RESULT)/2
+        END IF
+
+      !this is for "even/odd" with origin at center, first time through
+      ELSE IF (S = 1 AND (DVU$ = "E" OR DVU$ = "O")) OR (S = 2 AND (DVU2$ = "E" OR DVU2$ = "O")) THEN
+        LET DUMV(K) = RESULT
+      END IF
+
+    ELSE IF SWITCHON = 1 THEN
+
+      !this is for "neither" with origin on left, second times through
+      IF (S = 1 AND DVU$ = "N" AND ORG$ = "L") OR (S = 2 AND DVU2$ = "N" AND ORG2$ = "L") THEN
+        IF K = LASTK THEN   !A HALF VALUE
+          LET DUMV(K) = (DUMV(K) + RESULT)/2
+        ELSE IF K = N THEN
+          LET DUMV(0) = (DUMV(0) + RESULT)/2
+        ELSE
+          LET DUMV(K) = RESULT
+        END IF
+
+      !this is for "neither" with origin at center, second times through
+      ELSE IF (S = 1 AND DVU$ = "N" AND ORG$ = "C") OR (S = 2 AND DVU2$ = "N" AND ORG2$ = "C") THEN
+        IF K = LASTK THEN   !A HALF VALUE
+          LET DUMV(MOD(K,N)) = (DUMV(MOD(K,N)) + RESULT)/2
+        ELSE IF K = N/2 THEN
+          LET DUMV(K) = (DUMV(K) + RESULT)/2
+        ELSE
+          LET DUMV(MOD(K,N)) = RESULT
+        END IF
+
+      !this is for "even/odd" second times through
+      ELSE IF (S = 1 AND (DVU$ = "E" OR DVU$ = "O")) OR (S = 2 AND (DVU2$ = "E" OR DVU2$ = "O")) THEN
+        IF K = LASTK THEN
+          LET DUMV(K) = (DUMV(K) + RESULT)/2
+        ELSE
+          LET DUMV(K) = RESULT
+        END IF
+      END IF
+    END IF
+    LET LASTK = K
+
+  ELSE IF MODE$ = "DISC" THEN
+    LET DUMV(MOD(K,N)) = RESULT
+  END IF
+
+END SUB !SUBLD
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB CREATEVECTORS     !DOES THE ECHOING OF THE TEMPS AS NEEDED
+
+  IF LOOPROUND = 0 AND CHANGEPARAMS = 0 THEN
+
+    IF Z2$ = "X" OR Z2$ = "BX" THEN
+
+      CALL CRX( TEMPRE(), DVU$ )
+      CALL CRX( TEMPIM(), DVU$ )
+      CALL CRX( TEMP2RE(), DVU2$ )
+      CALL CRX( TEMP2IM(), DVU2$ )
+
+    ELSE IF Z2$ = "F" OR Z2$ = "BF" THEN
+      LET MW = 1
+      IF MODE$ = "SAMP" THEN
+        IF TYPE$ = "PER" THEN
+          LET MW = N
+        ELSE IF TYPE$ = "PUL" THEN
+          LET MW = N/T
+        END IF
+      END IF
+
+      CALL CRF( TEMPRE(), TEMPIM() )
+      CALL CRF( TEMP2RE(), TEMP2IM() )
+
+    END IF
+
+  END IF
+
+END SUB !CREATEVECTORS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB CRX( DUMX(), DUMDVU$ )
+
+    IF DUMDVU$ = "E" THEN   !ECHOING FOR AN EVEN FUNCTION
+      FOR K1 = 0 TO N/2
+        LET DUMX(N - K1) = DUMX(K1)
+      NEXT K1
+    ELSE IF DUMDVU$ = "O" THEN   !ECHOING FOR AN ODD FUNCTION
+      FOR K1 = 0 TO N/2
+        LET DUMX(N - K1) = -DUMX(K1)
+      NEXT K1
+      LET DUMX(0)   = 0
+      LET DUMX(N/2) = 0
+    END IF
+
+END SUB !CRX
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB CRF( DUMFRE(), DUMFIM() )
+
+   FOR K1 = 0 TO N/2
+     LET DUMFRE(K1)   = MW*DUMFRE(K1)
+   NEXT K1
+   FOR K1 = 0 TO N/2
+     LET DUMFRE(N-K1) = DUMFRE(K1)
+   NEXT K1
+
+   FOR K1 = 0 TO N/2
+     LET DUMFIM(K1)   =  MW*DUMFIM(K1)
+   NEXT K1
+   FOR K1 = 0 TO N/2
+     LET DUMFIM(N-K1) = -DUMFIM(K1)
+   NEXT K1
+   LET DUMFIM(0) = 0
+   LET DUMFIM(N/2) = 0
+
+END SUB !CRF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB DIRAC
+
+  MAT BOLDDIRAC$ = "-"
+
+  DO
+    LET GOBAK1 = 0
+
+    IF CHANGEPARAMS = 0 AND MODE$ = "SAMP" THEN
+
+      IF DIRECT = 1 THEN
+
+        IF DIRACTOFRE = 1 OR DIRACTOFIM = 1 THEN
+          LET FDOM = 1
+        ELSE IF DIRACTOX = 1 OR DIRACTOX2 = 1 THEN
+          LET TDOM = 1
+        END IF
+
+        CALL BOX106( SBP$, A$, TDOM, FDOM )  !CREATE A DIRAC DELTA IN ANY OF THE FOLLOWING
+
+        IF SBP$ = "F" AND TYPE$ = "PER" THEN
+          SOUND 500,.1
+          CALL BOX119( A$ )  !SORRY, NO DIRAC DELTAS IN THE FREQUENCY DOMAIN
+          LET LOOPROUND = 1
+
+        ELSE IF SBP$ = "Q" THEN
+          LET LOOPROUND = 1
+
+        ELSE IF SBP$ = "M" THEN
+          LET MMENU = 1
+
+        ELSE
+          LET ORG$ = "-"
+          LET ORG2$ = "-"
+          LET BOLDVARS$(11,1) = "DIRECT"
+        END IF
+      END IF
+
+      IF CHANGEPARAMS = 0 AND LOOPROUND = 0 AND MMENU = 0 THEN
+        MAT BOLDDIRAC$ = "-"
+
+        LET BOLDVARS$(1,1) = STR$(N)
+
+        LET ASA$ = USING$("+#.############^^^^^",T)
+        LET BOLDVARS$(1,2) = ASA$
+
+        LET BOLDVARS$(2,1) = MODE$
+        LET BOLDVARS$(2,2) = TYPE$
+        LET BOLDVARS$(3,1) = Z2$
+
+        LET DIRACCOUNT = 0
+
+        DO
+          IF STARTAGAIN = 1 THEN
+            LET DIRACCOUNT = 0
+            LET STARTAGAIN = 0
+          END IF
+          LET NOQUIT = 0
+          CLEAR
+          PRINT
+
+          IF Z2$ = "X" OR Z2$ = "BX" OR SBP$ = "T" THEN
+
+            LET TF$ = "TIME"
+
+            IF NOCONV = 0 THEN
+
+              CALL BOX120( TF$, SWITCH1, DOA$, A$ ) !ADD A DIRAC DELTA TO X, X2, NEITHER ?
+
+              IF DOA$ = "N" THEN
+                LET GETOUTD = 1
+              ELSE IF DOA$ = "Q" AND DIRECT = 1 THEN
+                LET GOBAK1 = 1
+              ELSE IF DOA$ = "Q" AND DIRECT = 0 THEN
+
+                CALL BOX105B( AZO$, A$ ) !REALLY WANT TO QUIT...
+
+                IF AZO$ = "Q" THEN
+                  LET MMENU = 1
+                ELSE IF AZO$ = "C" THEN
+                  LET NOQUIT = 1
+                END IF
+              END IF
+
+            ELSE IF NOCONV = 1 THEN
+
+              CALL BOX121( DIRECT, SWITCH1, DOA$, A$ ) !ADD A DIRAC DELTA TO  X  Y/N
+
+              IF DOA$ = "Y" THEN
+                LET DOA$ = "X"
+              ELSE IF DOA$ = "N" THEN
+                LET GETOUTD = 1
+              ELSE IF DOA$ = "Q" THEN
+                LET GOBAK1 = 1
+              END IF
+            END IF
+
+          ELSE IF ((Z2$ = "F" OR Z2$ = "BF") AND TYPE$ = "PUL") OR SBP$ = "F" THEN
+            LET TF$ = "FREQ"
+
+            CALL BOX120( TF$, SWITCH1, DOA$, A$ ) !ADD A DIRAC DELTA TO F, F2, NEITHER ?
+
+            IF DOA$ = "N" THEN
+              LET GETOUTD = 1
+            ELSE IF DOA$ = "Q" AND DIRECT = 1 THEN
+              LET GOBAK1 = 1
+            ELSE IF DOA$ = "Q" AND DIRECT = 0 THEN
+
+              CALL BOX105B( AZO$, A$ ) !REALLY WANT TO QUIT...
+
+              IF AZO$ = "Q" THEN
+                LET MMENU = 1
+              ELSE IF AZO$ = "C" THEN
+                LET NOQUIT = 1
+              END IF
+            END IF
+          END IF
+
+          IF NOQUIT = 0 AND GETOUTD = 0 AND CHANGEPARAMS = 0 AND LOOPROUND = 0 AND GOBAK1 = 0 AND MMENU = 0 THEN
+
+            LET FLAG7 = 0
+
+            CALL BOX122( DOA$, N, T, FDQ, CVE$, FLAG7, SWITCH1, A$ ) !WHERE IS THE DIRAC DELTA
+
+            LET STARTAGAIN = 0
+            IF CVE$ = "Q" THEN
+              LET STARTAGAIN = 1
+            END IF
+
+            IF STARTAGAIN = 0 THEN
+
+              LET FLAG7 = 1
+
+              CALL BOX122( DOA$, N, T, DCI, CVE$, FLAG7, SWITCH1, A$ ) !WHAT IS WEIGHT OF THE DIRAC DELTA
+
+              IF CVE$ = "Q" THEN
+                LET STARTAGAIN = 1
+              END IF
+
+              IF STARTAGAIN = 0 THEN
+
+                LET DIRACCOUNT = DIRACCOUNT + 1
+                MAT REDIM BOLDDIRAC$(DIRACCOUNT,4)
+
+                FOR XQ = 1 TO 4
+                  LET BOLDDIRAC$(DIRACCOUNT,XQ) = "-"
+                NEXT XQ
+
+                LET BOLDVARS$(10,1) = STR$(DIRACCOUNT)
+
+                IF DOA$ = "X" OR DOA$ = "X2" THEN  !adding a DIRAC to X or X2
+                  LET DIRACTYPE$ = "TIME"
+                ELSE IF DOA$ = "R" OR DOA$ = "I" THEN  !adding a DIRAC to FRE or FIM
+                  LET DIRACTYPE$ = "FREQ"
+                END IF
+
+                LET BOLDVARS$(10,2) = DIRACTYPE$
+
+                IF DOA$ = "X"  THEN  !adding a DIRAC to X
+                  LET ADDIT = DCI*(N/T)
+                  LET TEMPRE(MOD(FDQ,N)) = TEMPRE(MOD(FDQ,N)) + ADDIT
+                  LET BOLDDIRAC$(DIRACCOUNT,1) = USING$("+#.############^^^^^",FDQ)
+                  LET BOLDDIRAC$(DIRACCOUNT,2) = USING$("+#.############^^^^^",ADDIT)
+                  IF ORG$ = "-" THEN LET ORG$ = "C"
+                  LET BOLDVARS$(8,1) = ORG$
+                  LET DIRACTOX = 1
+
+                ELSE IF DOA$ = "X2" THEN  !adding a DIRAC to X2
+                  LET ADDIT = DCI*(N/T)
+                  LET TEMP2RE(MOD(FDQ,N)) = TEMP2RE(MOD(FDQ,N)) + ADDIT
+                  LET BOLDDIRAC$(DIRACCOUNT,3) = USING$("+#.############^^^^^",FDQ)
+                  LET BOLDDIRAC$(DIRACCOUNT,4) = USING$("+#.############^^^^^",ADDIT)
+                  IF ORG2$ = "-" THEN LET ORG2$ = "C"
+                  LET BOLDVARS$(8,2) = ORG2$
+                  LET DIRACTOX2 = 1
+
+                ELSE IF DOA$ = "R"  THEN   !adding a DIRAC to FRE
+                  LET ADDIT = DCI*(T/(2*PI))*N/T
+                  LET TEMPRE(MOD(FDQ,N)) = TEMPRE(MOD(FDQ,N)) + ADDIT
+                  LET BOLDDIRAC$(DIRACCOUNT,1) = USING$("+#.############^^^^^",FDQ)
+                  LET BOLDDIRAC$(DIRACCOUNT,2) = USING$("+#.############^^^^^",ADDIT)
+                  LET DIRACTOFRE = 1
+
+                ELSE IF DOA$ = "I"  THEN   !adding a DIRAC to FIM
+                  LET ADDIT = DCI*(T/(2*PI))*N/T
+                  LET TEMPIM(MOD(FDQ,N)) = TEMPIM(MOD(FDQ,N)) + ADDIT
+                  LET BOLDDIRAC$(DIRACCOUNT,3) = USING$("+#.############^^^^^",FDQ)
+                  LET BOLDDIRAC$(DIRACCOUNT,4) = USING$("+#.############^^^^^",ADDIT)
+                  LET DIRACTOFIM = 1
+
+                END IF
+              END IF
+            END IF
+          END IF
+        LOOP UNTIL (MMENU = 1 OR GETOUTD = 1 OR LOOPROUND = 1 OR GOBAK1 = 1 ) AND STARTAGAIN = 0 AND NOQUIT = 0
+
+      END IF
+
+    END IF
+    PRINT
+    LET SWITCH1 = 0
+
+  LOOP UNTIL GOBAK1 = 0
+
+END SUB  !DIRAC
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB STORE
+
+  LET LOOPROUND = 0
+
+  DO
+    LET LOOPIT = 0
+
+    CALL BOX129( SNM$, A$, "STORE" )
+
+    IF SNM$ = "Q" THEN LET LOOPROUND = 1
+
+    IF LOOPROUND = 0 THEN
+      WHEN ERROR IN
+
+        CLOSE #1
+        OPEN #1: NAME SNM$, ORGANIZATION TEXT, CREATE NEWOLD, ACCESS OUTIN
+        SET #1: MARGIN 400
+
+      USE
+        LET MESG$ = """" & EXTEXT$ & """"
+
+        CALL BOX40B( MESG$, A$ )
+
+        LET LOOPIT = 1
+      END WHEN
+
+      IF LOOPIT = 0 THEN
+        WHEN ERROR IN
+          ERASE #1
+          FOR I = 1 TO 11
+            FOR J = 1 TO 2
+              IF OLDVARS$(I,J) = "" THEN
+                PRINT #1: "-"
+              ELSE
+                PRINT #1: OLDVARS$(I,J)
+              END IF
+            NEXT J
+          NEXT I
+
+          IF OLDVARS$(3,1) = "X" OR OLDVARS$(3,1) = "BX" THEN
+            FOR I = 1 TO VAL(OLDVARS$(7,1))
+              FOR J = 1 TO 2
+                IF OLDINTSX$(I,J) = "" THEN
+                  PRINT #1: "-"
+                ELSE
+                  PRINT #1: OLDINTSX$(I,J)
+                END IF
+              NEXT J
+            NEXT I
+
+            FOR I = 1 TO VAL(OLDVARS$(7,1))
+              FOR J = 1 TO 2
+                IF OLDEXPRX$(I,J) = "" THEN
+                  PRINT #1: "-"
+                ELSE
+                  PRINT #1: OLDEXPRX$(I,J)
+                END IF
+              NEXT J
+            NEXT I
+          END IF
+
+          IF OLDVARS$(3,1) = "BX" THEN
+            FOR I = 1 TO VAL(OLDVARS$(7,2))
+              FOR J = 1 TO 2
+                IF OLDINTSX2$(I,J) = "" THEN
+                  PRINT #1: "-"
+                ELSE
+                  PRINT #1: OLDINTSX2$(I,J)
+                END IF
+              NEXT J
+            NEXT I
+
+            FOR I = 1 TO VAL(OLDVARS$(7,2))
+              FOR J = 1 TO 2
+                IF OLDEXPRX2$(I,J) = "" THEN
+                  PRINT #1: "-"
+                ELSE
+                  PRINT #1: OLDEXPRX2$(I,J)
+                END IF
+              NEXT J
+            NEXT I
+          END IF
+
+          IF OLDVARS$(3,1) = "F" OR OLDVARS$(3,1) = "BF" THEN
+            FOR I = 1 TO 2
+              FOR J = 1 TO 2
+                IF OLDEXPRF$(I,J) = "" THEN
+                  PRINT #1: "-"
+                ELSE
+                  PRINT #1: OLDEXPRF$(I,J)
+                END IF
+              NEXT J
+            NEXT I
+          END IF
+
+          IF OLDVARS$(10,2) = "TIME" OR OLDVARS$(10,2) = "FREQ" THEN
+            FOR I = 1 TO VAL(OLDVARS$(10,1))
+              FOR J = 1 TO 4
+                IF OLDDIRAC$(I,J) = "" THEN
+                  PRINT #1: "-"
+                ELSE
+                  PRINT #1: OLDDIRAC$(I,J)
+                END IF
+              NEXT J
+            NEXT I
+          END IF
+
+          CALL BOX130( "STORE", SNM$, GUZ$, A$ )  !OK: YOUR FILE HAS BEEN STORED TO FILENAME
+
+          LET LOOPROUND = 1
+        USE
+          LET MESG$ = """" & EXTEXT$ & """"
+
+          CALL BOX40B( MESG$, A$ )
+
+          LET LOOPIT = 1
+        END WHEN
+      END IF
+    END IF
+
+    CLOSE #1
+
+  LOOP WHILE LOOPIT = 1
+
+  LET FILENAME$ = SNM$
+  IF FILENAME$ <> "" AND FILENAME$ <> "q" AND FILENAME$ <> "Q" THEN
+    LET FILESTR$ = RIGHT$(FILENAME$, 12)
+    LET FILESTR$ = "LAST STORE: " & FILESTR$
+  ELSE
+    LET FILESTR$ = ""
+  END IF
+
+END SUB  !STORE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB FETCH
+
+  LET LOOPROUND = 0
+
+  DO
+    LET LOOPIT = 0
+
+    CALL BOX129( SNM$, A$, "FETCH" )   !ENTER FILE NAME OR QUIT
+
+    IF SNM$ = "Q" THEN LET LOOPROUND = 1
+
+    IF LOOPROUND = 0 THEN
+
+      WHEN ERROR IN
+
+        CLOSE #2
+        OPEN #2: NAME SNM$, ORGANIZATION TEXT, ACCESS INPUT
+
+      USE
+        LET MESG$ = """" & EXTEXT$ & """"
+
+        CALL BOX40B( MESG$, A$ )
+
+        LET LOOPIT = 1
+      END WHEN
+
+      IF LOOPIT = 0 THEN
+        WHEN ERROR IN
+          FOR I = 1 TO 11
+            FOR J = 1 TO 2
+              INPUT #2: OLDVARS$(I,J)
+              IF OLDVARS$(I,J) = "-" THEN LET OLDVARS$(I,J) = ""
+            NEXT J
+          NEXT I
+
+          IF OLDVARS$(3,1) = "X" OR OLDVARS$(3,1) = "BX" THEN
+            LET HHH =   VAL(OLDVARS$(7,1))
+            MAT REDIM OLDINTSX$(HHH,2)
+            FOR I = 1 TO HHH
+              FOR J = 1 TO 2
+                INPUT #2: OLDINTSX$(I,J)
+                IF OLDINTSX$(I,J) = "-" THEN LET OLDINTSX$(I,J) = ""
+              NEXT J
+            NEXT I
+
+            MAT REDIM OLDEXPRX$(HHH,2)
+            FOR I = 1 TO HHH
+              FOR J = 1 TO 2
+                INPUT #2: OLDEXPRX$(I,J)
+                IF OLDEXPRX$(I,J) = "-" THEN LET OLDEXPRX$(I,J) = ""
+              NEXT J
+            NEXT I
+          END IF
+
+          IF OLDVARS$(3,1) = "BX" THEN
+            LET HHH =   VAL(OLDVARS$(7,2))
+            MAT REDIM OLDINTSX2$(HHH,2)
+            FOR I = 1 TO HHH
+              FOR J = 1 TO 2
+                INPUT #2: OLDINTSX2$(I,J)
+                IF OLDINTSX2$(I,J) = "-" THEN LET OLDINTSX2$(I,J) = ""
+              NEXT J
+            NEXT I
+
+            MAT REDIM OLDEXPRX2$(HHH,2)
+            FOR I = 1 TO HHH
+              FOR J = 1 TO 2
+                INPUT #2: OLDEXPRX2$(I,J)
+                IF OLDEXPRX2$(I,J) = "-" THEN LET OLDEXPRX2$(I,J) = ""
+              NEXT J
+            NEXT I
+          END IF
+
+          IF OLDVARS$(3,1) = "F" OR OLDVARS$(3,1) = "BF" THEN
+            FOR I = 1 TO 2
+              FOR J = 1 TO 2
+                INPUT #2: OLDEXPRF$(I,J)
+                IF OLDEXPRF$(I,J) = "-" THEN LET OLDEXPRF$(I,J) = ""
+              NEXT J
+            NEXT I
+          END IF
+
+          IF OLDVARS$(10,1) <> "" THEN
+            LET HHH = VAL(OLDVARS$(10,1))
+            MAT REDIM OLDDIRAC$(HHH,4)
+            FOR I = 1 TO HHH
+              FOR J = 1 TO 4
+                INPUT #2: OLDDIRAC$(I,J)
+
+!          this was commented out when I found a bug in recalling X2 diracs
+!                IF OLDDIRAC$(I,J) = "-" THEN LET OLDDIRAC$(I,J) = ""
+
+              NEXT J
+            NEXT I
+          END IF
+
+          CALL BOX130( "FETCH", SNM$, GUZ$, A$ )  !OK:  FILENAME HAS BEEN RETRIEVED
+
+          IF GUZ$ = "Q" THEN
+            LET LOOPROUND = 1
+          ELSE IF GUZ$ = "C" THEN
+            LET SZI$ = "O"        !USING THE OLD-PROBLEM
+
+            CALL RECALL
+
+          END IF
+        USE
+          LET MESG$ = """" & EXTEXT$ & """"
+
+          CALL BOX40B( MESG$, A$ )
+
+          LET LOOPIT = 1
+        END WHEN
+      END IF
+    END IF
+
+    CLOSE #2
+
+  LOOP WHILE LOOPIT = 1
+
+  LET FILENAME$ = SNM$
+  IF FILENAME$ <> "" AND FILENAME$ <> "q" AND FILENAME$ <> "Q" THEN
+    LET FILESTR$ = RIGHT$(FILENAME$, 12)
+    LET FILESTR$ = "LAST FETCH: " & FILESTR$
+  ELSE
+    LET FILESTR$ = ""
+  END IF
+
+END SUB !FETCH
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB EXCLUDE( DF$ )
+
+  LET SIRIN$ = REPSTR$(SIRIN$, DF$, "Z")
+
+END SUB !EXCLUDE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB FIXMATH( INSTRING$ )
+
+  LET INSTRING$ = NOSPACE$(INSTRING$)
+
+  LET OLD$ = "SIN"
+  LET NEW$ = "SIN"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "COS"
+  LET NEW$ = "COS"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "TAN"
+  LET NEW$ = "TAN"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "ATN"
+  LET NEW$ = "ATN"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "SQR"
+  LET NEW$ = "SQR"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "SGN"
+  LET NEW$ = "SGN"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "ABS"
+  LET NEW$ = "ABS"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "INT"
+  LET NEW$ = "INT"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "ROUND"
+  LET NEW$ = "ROUND"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "LOG"
+  LET NEW$ = "LOG"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "LOG2"
+  LET NEW$ = "LOG2"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "LOG10"
+  LET NEW$ = "LOG10"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "EXP"
+  LET NEW$ = "EXP"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "RAD"
+  LET NEW$ = "RAD"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "DEG"
+  LET NEW$ = "DEG"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "EPS"
+  LET NEW$ = "EPS"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "PI"
+  LET NEW$ = "PI"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "RND"
+  LET NEW$ = "RND"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "DATE"
+  LET NEW$ = "DATE"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "TIME"
+  LET NEW$ = "TIME"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+  LET OLD$ = "MAXNUM"
+  LET NEW$ = "MAXNUM"
+  LET INSTRING$ = REPMIX$(INSTRING$, OLD$, NEW$)
+
+END SUB !FIXMATH
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END SUB !CREATE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB TEXTVALUEQ( STRING$, FDG, FLAG, AQ, BQ, A$ )
+
+  DECLARE DEF EVAL
+  LET FLAG = 0
+
+  DO
+    LET  LOOPBACKK = 0
+    DO
+      WHEN ERROR IN
+        LET SXT = 0
+        LET CV = 1
+        LET FDGG$ = ""
+
+        DO
+          PRINT TAB(AQ,1);A$
+          PRINT TAB(AQ,BQ);
+          LET ARS = 0
+          WHEN ERROR IN
+            INPUT PROMPT STRING$ : FDGG$
+          USE
+            SOUND 500,.1
+            PRINT TAB(1,1);A$
+            LET ARS = 1
+          END WHEN
+        LOOP WHILE ARS = 1
+
+      USE
+        SOUND 500,.1
+        PRINT TAB(1,1);A$
+        LET SXT = 1
+      END WHEN
+    LOOP WHILE SXT = 1
+
+    WHEN ERROR IN
+      PRINT TAB(CV,1);A$
+      LET FDG = EVAL(FDGG$)
+    USE
+      IF UCASE$(FDGG$) = "Q" THEN
+        LET FLAG = 1
+      ELSE
+        LET LOOPBACKK = 1
+        SOUND 500,.1
+        LET STR$ = "YOUR EXPRESSION ----> " & FDGG$ & " <---- WAS NOT A NUMBER  "
+        LET LENGTH = LEN(STR$)
+        PRINT TAB(CV,1);A$
+        PRINT TAB(CV,1);
+        IF LENGTH <= 76 THEN
+          PRINT STR$
+        ELSE
+          SOUND 500,.2
+          PRINT "STOP PLAYING GAMES!"
+        END IF
+      END IF
+    END WHEN
+  LOOP WHILE LOOPBACKK = 1
+
+END SUB !TEXTVALUEQ
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

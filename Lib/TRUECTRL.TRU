@@ -1,0 +1,6095 @@
+! TrueControls     1998 April 27
+! Version 5.0
+! Copyright (c) 1994, 1995, 1996, 1997, and  by True BASIC, Inc.
+!                                               12 Commerce Avenue
+!                                               West Lebanon, NH  03784
+! All rights reserved
+! Written by Alex J. Cuthbert
+! Modified by Thomas E. Kurtz
+! Further modified by Christopher Sweeney
+!
+! Collection of routines for managing objects,
+! menus, windows and interface controls.
+!
+! For use with Version 5 of True BASIC and later.
+
+MODULE TrueControls
+
+    ! General startup and shutdown routines
+
+    ! Note:
+    ! All routines whose name begins with TC_ are publicly available.
+    ! All other routines are PRIVATE.
+
+    ! SUB TC_Init
+    ! SUB TC_Cleanup
+    ! SUB Init_Objutil
+    !
+    ! General routines
+    !
+    ! SUB TC_Erase (cid)
+    ! SUB TC_Show (cid)
+    ! SUB TC_Show_Default (default)
+    ! SUB TC_SetUnitsToUsers
+    ! SUB TC_SetUnitsToPixels
+    ! SUB TC_SetTextJustify (cid, justify$)
+    ! SUB TC_GetRect (cid, xl, xr, yb, yt)
+    ! SUB TC_SetRect (cid, xl, xr, yb, yt)
+    ! SUB TC_SetRectUsers (cid, xl, xr, yb, yt)
+    ! SUB TC_SetRectPixels (cid, xl, xr, yb, yt)
+    ! SUB ConvertUsersToPixels (xl, xr, yb, yt, v())
+    ! SUB TC_Get (cid, attr$, r$, r())
+    ! SUB TC_Set (cid, attr$, r$, r())
+    ! SUB TC_SetText (cid, text$)
+    ! SUB TC_GetText (cid, text$)
+    ! SUB TC_SetList (cid, text$())
+    ! SUB TC_Select (cid)
+    ! SUB TC_Sensitize (cid, flag)
+    ! SUB TC_Event (timer, type$, window, x1, x2)
+    ! SUB TC_Free (cid)
+    ! SUB TC_GetScreenSize (l, r, b, t)
+    ! SUB TC_FontsAvailable (fonts$())
+    ! SUB TC_GetSysInfo (attr$, r$, r())
+    ! SUB TC_Env_Set (n$, to$)
+    ! SUB Normalize_Rect (xl, xr, yb, yt, xspace, yspace)
+    ! SUB SetRect (id, xl, xr, yb, yt)
+    !
+    ! Window routines.
+    !
+    ! SUB TC_Win_Create (wid, options$, xl, xr, yb, yt)
+    ! SUB TC_Win_ChildCreate (wid, options$, parent, xxl, xxr, yyb, yyt)
+    ! SUB TC_Win_NoHide (win, flag)
+    ! SUB TC_Win_Target (wid)
+    ! SUB TC_Win_Active (wid)
+    ! SUB TC_Win_Switch (wid)
+    ! SUB TC_Win_SwitchCurrent
+    ! SUB TC_Win_Update (wid)
+    ! SUB TC_Win_Print (wid)
+    ! SUB TC_Win_PageSetup (wid)
+    ! SUB TC_Win_Valid (wid)
+    ! SUB TC_Win_SetTitle (wid, t$)
+    ! SUB TC_Win_GetTitle (wid, t$)
+    ! SUB TC_Win_SetCursor (wid, shape$)
+    ! SUB TC_Win_SetPen (wid, width, color, style$, pattern$)
+    ! SUB TC_Win_SetBrush (wid, backcolor, color, pattern$)
+    ! SUB TC_Win_RealizePalette (win)
+    ! SUB TC_Win_SetDrawmode (wid, mode$)
+    ! SUB TC_Win_SetFont (wid, fontname$, fontsize, fontstyle$)
+    ! SUB TC_Win_PageSetup (wid)
+    ! SUB TC_WinHSbar_GetPosition (wid, position)
+    ! SUB TC_WinVSbar_GetPosition (wid, position)
+    ! SUB TC_WinHSbar_GetRange (wid, srange, erange, prop)
+    ! SUB TC_WinVSbar_GetRange (wid, srange, erange, prop)
+    ! SUB TC_WinHSbar_GetIncrements (wid, single, page)
+    ! SUB TC_WinVSbar_GetIncrements (wid, single, page)
+    ! SUB TC_WinHSbar_SetPosition (wid, position)
+    ! SUB TC_WinVSbar_SetPosition (wid, position)
+    ! SUB TC_WinHSbar_SetRange (wid, srange, erange, prop)
+    ! SUB TC_WinVSbar_SetRange (wid, srange, erange, prop)
+    ! SUB TC_WinHSbar_SetIncrements (wid, single, page)
+    ! SUB TC_WinVSbar_SetIncrements (wid, single, page)
+    ! DEF TBwindow (wid)
+    ! SUB AddWindow (wid)
+    ! SUB RemoveWindow (wid)
+    !
+    ! Menu manipulation routines
+    !
+    ! SUB TC_Menu_Set (wid, menu$(,))
+    ! SUB TC_Menu_AddMenu (window, menu$())
+    ! SUB TC_Menu_DelMenu (window)
+    ! SUB TC_Menu_AddItem (wid, menu, text$)
+    ! SUB TC_Menu_DelItem (wid, menu, item)
+    ! SUB TC_Menu_SetText (wid, menu, item, t$)
+    ! SUB TC_Menu_GetText (wid, menu, item, t$)
+    ! SUB TC_Menu_SetCheck (wid, menu, item, flag)
+    ! SUB TC_Menu_GetCheck (wid, menu, item, flag)
+    ! SUB TC_Menu_SetEnable (wid, menu, item, flag)
+    ! SUB TC_Menu_GetEnable (wid, menu, item, flag)
+    ! SUB TC_Menu_Free (wid)
+    ! SUB Menu_Map (menuid, wptr, menu, item, found)
+    ! SUB DecodeItem (v$, v1$, sep, hot, hier)
+    ! SUB SelectItemForPlatform (v$)
+    ! SUB SearchForParent (v1$, menu$(,), menu, item)
+    ! SUB ExpandMenuArray (wid, ub1, ub2)
+    !
+    ! Checkbox routines.
+    !
+    ! SUB TC_Checkbox_Create (cid, text$, xl, xr, yb, yt)
+    ! SUB TC_CheckBox_Set (cid, state)
+    ! SUB TC_CheckBox_Get (cid, state)
+    !     SUB JustifyText (cid, s$)
+    !
+    ! Edit field routines.
+    !
+    ! SUB TC_Edit_Create (cid, t$, xl, xr, yb, yt)
+    ! SUB TC_Edit_SetText (cid, t$)
+    ! SUB TC_Edit_GetText (cid, t$)
+    ! SUB TC_Edit_SetFormat (cid, fmt$)
+    ! SUB TC_Edit_CheckField (cid, errormess$)
+    ! SUB Edit_FocusShift (wid, cid)
+    ! SUB CheckField (fmt1$, s$)
+    ! SUB CheckAlpha (s$)
+    ! SUB CheckAlphaNum (s$)
+    ! SUB CheckNumber (s$, n)
+    ! SUB CheckInteger (s$, n)
+    ! SUB CheckRange (s$, low, hi, n)
+    ! SUB CheckFRange (s$, low, hi, n)
+    ! SUB CheckDate (fmt$, d$, year, month, day)
+    ! SUB CheckPhone (s$)
+    ! SUB CheckZip (s$, zip, plusfour)
+    ! SUB CheckSS (s$)
+    ! SUB CheckList (listp$, sp$)
+    ! SUB CheckLength (fmt$, s$)
+    ! SUB CheckFormat (fmt$, s$)
+    ! DEF Intval (s$)
+    ! DEF Message$ (s$, f$)
+    !
+    ! Graphic object routines.
+    !
+    ! SUB TC_Graph_Create (cid, type$, xl, xr, yb, yt)
+    ! SUB TC_Graph_Shift (cid, deltax, deltay)
+    ! SUB TC_Graph_Scale (cid, scalex, scaley)
+    ! SUB TC_Graph_SetPoly (cid, pts(,))
+    ! SUB TC_Graph_SetArc (cid, startx, starty, stopx, stopy)
+    ! SUB TC_Graph_SetRoundRect (cid, owidth, oheight)
+    ! SUB TC_Graph_SetALine (cid, sarrow, earrow)
+    ! SUB TC_Graph_SetImage (cid, filename$, adjustflag)
+    ! SUB TC_Graph_SetImageFromFile (cid, filename$, filetype$, adjustflag)
+    ! SUB TC_Graph_SetImageFromBox (cid, boxstring$, adjustflag)
+    ! SUB TC_Graph_GetImageToBox (cid, boxstring$)
+    ! SUB TC_Graph_SetPen (cid, width, color, style$, pattern$)
+    ! SUB TC_Graph_SetBrush (cid, backcolor, color, pattern$)
+    ! SUB TC_Graph_SetDrawmode (cid, mode$)
+    ! SUB Graph_SetPattern (cid, attr$, pattern1$)
+    !
+    ! Groupbox routine.
+    !
+    ! SUB TC_Groupbox_Create (cid, title$, xl, xr, yb, yt)
+    !
+    ! List button routines.
+    !
+    ! SUB TC_ListBtn_Create (cid, list$(), xl, xr, yb, yt)
+    ! SUB TC_ListBtn_Get (cid, selection)
+    ! SUB TC_ListBtn_Set (cid, selection)
+    !
+    ! List Edit button routines.
+    !
+    ! SUB TC_ListEdit_Create (cid, list$(), xl, xr, yb, yt)
+    ! SUB TC_ListEdit_Get (cid, text$)
+    ! SUB TC_ListEdit_Set (cid, text$)
+    !
+    ! List box routines.
+    !
+    ! SUB TC_ListBox_Create (cid, slist$(), xl, xr, yb, yt)
+    ! SUB TC_ListBox_Get (cid, sel())
+    ! SUB TC_ListBox_Set (cid, sel)
+    !
+    ! Push button routine.
+    !
+    ! SUB TC_PushBtn_Create (cid, text$, xl, xr, yb, yt)
+    !
+    ! Radio group routines.
+    !
+    ! SUB TC_RadioGroup_Create (rid, text$(), xl, xr, yb, yt)
+    ! SUB TC_RadioGroup_On (rid, button)
+    ! SUB TC_RadioGroup_Set (rid, button)
+    ! SUB TC_RadioGroup_SetText (rid, button, newtext$)
+    ! SUB RadioGroupButtonId (rid, button, id)
+    ! SUB RadioCreate (rid, t$, xl, xr, yb, yt)
+    !
+    ! Scroll bar routines.
+    !
+    ! SUB TC_Sbar_Create (cid, type$, xl, xr, yb, yt)
+    ! SUB TC_Sbar_GetPosition (cid, position)
+    ! SUB TC_Sbar_GetRange (cid, srange, erange, prop)
+    ! SUB TC_Sbar_SetPosition (cid, position)
+    ! SUB TC_Sbar_SetRange (cid, srange, erange, prop)
+    ! SUB TC_Sbar_SetIncrements (cid, single, page)
+    ! SUB TC_Sbar_GetIncrements (cid, single, page)
+    !
+    ! Static text routines.
+    !
+    ! SUB TC_SText_Create (cid, text$, xl, xr, yb, yt)
+    !
+    ! Text Edit routines.
+    !
+    ! SUB TC_Txed_Create (txid, options$, xl, xr, yb, yt)
+    ! SUB TC_Txed_Cut (txed)
+    ! SUB TC_Txed_Copy (txed)
+    ! SUB TC_Txed_Paste (txed)
+    ! SUB TC_Txed_SetCutCopyPaste (wid, cutmenu, cutitem, copymenu, copyitem, pastemenu, pasteitem)
+    ! SUB TC_Txed_SetText (txid, text$)
+    ! SUB TC_Txed_GetText (txid, text$)
+    ! SUB TC_Txed_ReadTextFromFile (txid, filename$)
+    ! SUB TC_Txed_WriteTextToFile (txid, filename$)
+    ! SUB TC_Txed_ReadTextFromArray (txid, a$())
+    ! SUB TC_Txed_WriteTextToArray (txid, a$())
+    ! SUB TC_Txed_Append (txid, text$, reveal)
+    ! SUB TC_Txed_SetMargin (txid, margin)
+    ! SUB TC_Txed_SetFont (txid, fontname$, fontsize, fontstyle$)
+    ! SUB TC_Txed_SetColor (txid, forecolor, backcolor, bordercolor)
+    ! SUB TC_Txed_SetTrapChar (txid, char, action)
+    ! SUB TC_Txed_Suspend (txid)
+    ! SUB TC_Txed_Resume (txid)
+    ! SUB TC_Txed_Find (txed, case_sense, whole_word, key$, par, ln1, ch1, ln2, ch2, found)
+    !   SUB GetParagraph (p, par$, there)
+    !   SUB FindLineNumber (c, ln, ch)
+    ! SUB TC_Txed_SetSelection (txid, pr1, ln1, ch1, pr2, ln2, ch2)
+    ! SUB TC_Txed_GetSelection (txid, pr1, ln1, ch1, pr2, ln2, ch2)
+    ! SUB TC_Txed_SetCursor (txid, p, l, c)
+    ! SUB TC_Txed_GetCursor (txid, p, l, c)
+    ! SUB Txed_SetScrollBars (txid)
+    ! SUB RemoveCtrlZ (text$)
+    ! SUB AttachEOL (text$)
+    ! SUB Txed_CutText (txed, startp, startln, startch, endp, endln, endch)
+    ! SUB Txed_CopyText (txed, startp, startln, startch, endp, endln, endch, clip$)
+    ! SUB Txed_AdjustVSBarToText (txid)
+    ! SUB Txed_AdjustHSBarToText (txid)
+    ! SUB Txed_AdjustTextToSBar (txid, sbtype, position)
+    ! SUB Txed_Set_Attr (txed, op$, attr$)
+    ! SUB Txed_AdjustScrollBarParameters (txid)
+    ! SUB Txed_SetRectAuto (win, txid)
+    !
+    ! SUB GetLines (txed, par, lines$())
+    ! SUB DeleteLines (lines$(), from, to)
+    ! SUB InsertCursor (txed, par, at)
+    ! SUB SplitLines (lines$(), insln, insch, before$, after$)
+    ! SUB Concat (lines$(), from, to, par$)
+    ! SUB NextLine (flat$, out$, p, delimitflag)
+    !
+    ! General conversion routines
+    !
+    ! SUB TC_PixToUser (px, py, wx, wy)
+    ! SUB TC_UserToPix (wx, wy, px, py)
+    ! SUB PixelsToUsers (px, ux, py, uy)
+    !
+    ! Other routines
+    !
+    ! SUB PrintMenuIds
+    ! SUB Log (line$)
+
+    OPTION TYPO
+    OPTION NOLET
+    OPTION ANGLE Degrees          !  For Graphics objects
+
+    PRIVATE Init_Objutil, ConvertUsersToPixels
+    PRIVATE Normalize_Rect, SetRect
+    PRIVATE TBwindow, AddWindow, RemoveWindow
+    PRIVATE Menu_Map, DecodeItem, SelectItemForPlatform, SearchForParent, ExpandMenuArray
+    PRIVATE Edit_CheckField, Edit_FocusShift
+    PRIVATE CheckField, CheckAlpha, CheckAlphaNum, CheckNumber, CheckInteger
+    PRIVATE CheckRange, CheckFRange, CheckDate, CheckPhone, CheckZip
+    PRIVATE CheckSS, CheckList, CheckLength, CheckFormat
+    PRIVATE Intval, message$
+    PRIVATE Graph_SetPattern
+    PRIVATE RadioCreate, RadioGroupButtonId
+    PRIVATE Txed_SetScrollBars, RemoveCtrlZ, AttachEOL
+    PRIVATE Txed_CutText, Txed_CopyText, Txed_AdjustVSBarToText
+    PRIVATE Txed_AdjustHSBarToText, Txed_AdjustTextToSBar, Txed_Set_Attr
+    PRIVATE Txed_AdjustScrollBarParameters, Txed_SetRectAuto
+    PRIVATE GetLines, DeleteLines, InsertCursor
+    PRIVATE SplitLines, Concat, NextLine, PixelsToUsers
+    PRIVATE JustifyText
+
+    PUBLIC SBar_Width             ! width of scrollbars
+    PUBLIC SBar_Height            ! height of scrollbars
+    PUBLIC PushBtn_Height         ! height of pushbuttons
+    PUBLIC Radio_Height           ! height of radiobuttons
+    PUBLIC CheckBox_Height        ! height of checkboxes
+    PUBLIC SText_Height           ! height of static text
+    PUBLIC Edit_Height            ! height of edit fields
+    PUBLIC MenuBar_Height         ! height of the menu bar
+    PUBLIC TitleBar_Height        ! height of window title bar
+    PUBLIC Border_Height          ! height of a window border
+    PUBLIC Border_Width           ! width of a window border
+
+    SHARE hinc                    ! pix increment for single scroll events
+
+    ! The following are initialized in Constant.tru
+
+    DECLARE PUBLIC machine$       ! machine type (os2, windows, unix, mac)
+    DECLARE PUBLIC sys_eol        ! system-specific eol code from KEYPRESS
+    DECLARE PUBLIC eol$           ! platform-specific eol sequence for files
+    DECLARE PUBLIC leneol         ! Its length
+    DECLARE PUBLIC language$      ! primary language of True BASIC version
+
+    DECLARE PUBLIC OBJM_CREATE, OBJM_COPY, OBJM_SET, OBJM_GET, OBJM_SHOW, OBJM_ERASE
+    DECLARE PUBLIC OBJM_FREE, OBJM_SELECT, OBJM_UPDATE, OBJM_SYSINFO, OBJM_PRINT
+    DECLARE PUBLIC OBJM_PAGESETUP, OBJM_REALIZE, OBJM_SCROLL
+
+    DECLARE PUBLIC OBJT_WINDOW, CTLT_PUSHBUTTON, OBJM_TXE_SUSPEND
+    DECLARE PUBLIC CTLT_EDIT, OBJT_GROUP
+    DECLARE PUBLIC CTLT_HSCROLL, CTLT_VSCROLL, CTLT_LISTBUTTON
+    DECLARE PUBLIC OBJT_GRAPHIC, CTLT_ListEdit, OBJT_MENU, MENT_BAR, MENT_ITEM
+    DECLARE PUBLIC OBJT_CONTROL, CTLT_TXED, CTLT_TEXT, CTLT_GROUPBOX
+    DECLARE PUBLIC OBJM_TXE_HSCROLL, OBJM_TXE_VSCROLL, OBJM_TXE_RESUME
+    DECLARE PUBLIC OBJM_TXE_APPEND_PAR, OBJM_TXE_ADD_PAR, OBJM_TXE_DEL_PAR
+    DECLARE PUBLIC CTLT_LBOX, CTLT_CHECKBOX, CTLT_RADIOBUTTON
+
+    DECLARE PUBLIC GRFT_CIRCLE, GRFT_LINE, GRFT_RECTANGLE, GRFT_ARC, GRFT_PIE
+    DECLARE PUBLIC GRFT_ALINE, GRFT_ROUNDRECT, GRFT_POLYGON, GRFT_POLYLINE, GRFT_IMAGE
+
+    DECLARE PUBLIC PENS_SOLID, PENS_DOT, PENS_DASH
+    DECLARE PUBLIC PBP_NONE, PBP_HOLLOW, PBP_SOLID, PBP_HORZ, PBP_VERT, PBP_FDIAG, PBP_BDIAG
+    DECLARE PUBLIC PBP_CROSS, PBP_DIAGCROSS, PBP_RUBBER, PBP_SPECIAL
+    DECLARE PUBLIC DM_COPY, DM_OR, DM_XOR, DM_CLEAR, DM_NOT_COPY, DM_NOT_OR
+    DECLARE PUBLIC DM_NOT_XOR, DM_NOT_CLEAR
+    DECLARE PUBLIC WINT_DOC, WINT_PLAIN, WINT_DOUBLE, WINT_NO_BORDER
+
+    DECLARE PUBLIC SYS_ASKDIR, SYS_CHDIR, SYS_CLIMB_DIR, SYS_MKDIR, SYS_READ_DIR
+    DECLARE PUBLIC SYS_RENAME, SYS_RMDIR
+
+    DECLARE DEF message$
+
+    SHARE v(1), v$, msg$
+    SHARE punct$                  ! Punctuation for whole word test in TC_Txed_Find
+    SHARE letters$, digits$, alphas$
+    SHARE vertical, horizontal
+    SHARE module_startup_has_occurred, init_has_occurred
+
+    SHARE cutmenuitem(0:0)        ! Used to hold Cut, Copy, and Paste menu id
+    SHARE copymenuitem(0:0)       ! for automatic action by TC_Event
+    SHARE pastemenuitem(0:0)      ! when dealing with Txed controls.
+
+    SHARE rg_ids(0, 0), nrg_ids
+    LET nrg_ids = 0
+
+    LET punct$ = " ?!;:, .'}{][\| = +-_)""(*&^%$#~`@"
+    LET letters$ = " abcdefghijklmnopqrstuvwxyz"      ! Allow also spaces
+    LET digits$ = "0123456789"
+    LET alphas$ = letters$ & digits$
+    LET vertical = 1
+    LET horizontal = 0
+
+    ! These values guard against calling TC_Init twice,
+    ! or calling TC_Init from the startup section of some module.
+
+    LET module_startup_has_occurred = 1
+    LET init_has_occurred = 0
+
+    SHARE monthname$(12)          ! Used in CheckDate
+
+    MAT READ monthname$
+    DATA january,  february,  march,  april,  may,  june,  july
+    DATA august, september, october,  november,  december
+
+    ! wid, menu, item
+    PUBLIC menu_ids(0:0, 0:0, 0:0)     ! menu ids and indexes
+    LET menu_ids(0,0,0) = -1
+
+    SHARE #1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12, #17
+    SHARE MAX_WINS
+
+    SHARE winlist(0:12)           ! TB window # to TC wid
+    MAT winlist = zer
+
+    SHARE txedwinattached (0:12)  ! Window to attached Txed control list
+    MAT txedwinattached = zer
+
+    SHARE show_default_flag
+    LET show_default_flag = 1     ! Default is to show all controls (not windows.)
+    SHARE units_default_flag
+    LET units_default_flag = 1    ! Default is to use user coordinates
+
+    ! When a scroll bar event has been processed, and the cursor
+    ! been set to a pointer, txed_flag is set to the id of the text edit
+    ! control and txed_wid to its containing window.
+    ! When the scroll bar event is completed, set the cursor
+    ! back to an ibeam.
+
+    SHARE txed_flag
+    SHARE txed_wid
+    SHARE sentinel
+
+    LET sentinel = -99999
+
+    LET MAX_WINS = 12
+
+    MAT Redim cutmenuitem(0:MAX_WINS), copymenuitem(0:MAX_WINS), pastemenuitem(0:MAX_WINS)
+
+    CALL Init_Objutil             ! Init constants in objutil.tru
+
+    ! General startup and shutdown routines
+
+    !---------------------------------------------------------------
+    ! Initialize system constants, event handler
+    SUB TC_Init
+
+        LOCAL type$, wid, x1, x2
+
+        IF module_startup_has_occurred = 0 then
+           CAUSE EXCEPTION 800, "Can't call TC_Init during module startup."
+        END IF
+
+        ! Okay to see if initiation has occurred.
+
+        IF init_has_occurred = 1 then EXIT SUB
+
+        CALL Sys_Event (-1, type$, wid, x1, x2)  ! init event system
+        LET init_has_occurred = 1
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Cleanup
+    SUB TC_Cleanup
+
+        LOCAL type$, wid, x1, x2
+
+        IF module_startup_has_occurred = 0 then
+           CAUSE EXCEPTION 800, "Can't call TC_Cleanup during module startup."
+        END IF
+
+        IF init_has_occurred = 0 then EXIT SUB
+
+        CALL sys_event (-1, type$, wid, x1, x2)
+        LET init_has_occurred = 0
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Get system-specific control dimensions
+    SUB Init_Objutil
+
+        LOCAL OBJM_SYSINFO
+
+        LET OBJM_SYSINFO = 9      ! Beware this constant *****
+
+        CALL Object (OBJM_SYSINFO, 0, "VERT SBAR WIDTH", v$, v)
+        LET SBar_Width = v(1)
+
+        CALL Object (OBJM_SYSINFO, 0, "HORZ SBAR HEIGHT", v$, v)
+        LET SBar_Height = v(1)
+
+        CALL Object (OBJM_SYSINFO, 0, "CHECK BOX HEIGHT", v$, v)
+        LET CheckBox_Height = v(1)
+
+        CALL Object (OBJM_SYSINFO, 0, "BUTTON HEIGHT", v$, v)
+        LET PushBtn_Height = v(1)
+
+        CALL Object (OBJM_SYSINFO, 0, "EDIT TEXT HEIGHT", v$, v)
+        LET Edit_Height = v(1)
+
+        CALL Object (OBJM_SYSINFO, 0, "STATIC TEXT HEIGHT", v$, v)
+        LET SText_Height = v(1)
+
+        CALL Object (OBJM_SYSINFO, 0, "RADIOBUTTON HEIGHT", v$, v)
+        LET Radio_Height = v(1)
+
+        CALL Object (OBJM_SYSINFO, 0, "MENU HEIGHT", v$, v)
+        LET MenuBar_Height = v(1)
+
+    END SUB
+
+
+    ! General routines
+
+    !-----------------------------------------------------------------------
+    ! Erase but do not free object
+    SUB TC_Erase (cid)
+
+        CALL Object (OBJM_ERASE, cid, "", "", v())
+
+        ! The next portion is needed only if the item is a text edit
+        ! control with associated scroll bars.
+
+        ! First, it is necessary to eliminate windows and menus
+
+        IF cid > 99 and cid < 10000 then
+
+           ! Next, we have to eliminate graphics objects.
+
+           CALL Object (OBJM_GET, cid, "TYPE", "", v)
+           IF v(1) = OBJT_CONTROL then
+
+              ! Finally, we have to see if it is a text edit control
+
+              CALL Object (OBJM_GET, cid, "CONTROL TYPE", "", v)
+              IF v(1) = CTLT_TXED then      ! Text edit control, check for scroll bars
+                 CALL Object (OBJM_GET, cid, "HSCROLL", "", v)
+                 IF v(1) > 0 then CALL Object (OBJM_ERASE, v(1), "", "", v)
+                 CALL Object (OBJM_GET, cid, "VSCROLL", "", v)
+                 IF v(1) > 0 then CALL Object (OBJM_ERASE, v(1), "", "", v)
+
+              END IF
+
+           END IF
+
+        END IF
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Show (cid)
+
+        CALL Object (OBJM_SHOW, cid, "", "", v)
+
+        ! The next portion is needed only if the item is a text edit
+        ! control with associated scroll bars.
+
+        ! First, it is necessary to eliminate windows and menus
+
+        IF cid > 99 and cid < 10000 then
+
+           ! Next, we have to eliminate graphics objects.
+
+           CALL Object (OBJM_GET, cid, "TYPE", "", v)
+           IF v(1) = OBJT_CONTROL then
+
+              ! Finally, we have to see if it is a text edit control
+
+              CALL Object (OBJM_GET, cid, "CONTROL TYPE", "", v)
+              IF v(1) = CTLT_TXED then      ! Text edit control, check for scroll bars
+
+                 ! Note: There could be a problem is the text edit control
+                 ! was made invisible, then shown.  In that case, it would
+                 ! need to be reshown.  Let's avoid this in True Controls.
+
+                 CALL Object (OBJM_GET, cid, "VISIBLE", "", v)
+                 IF v(1) = 1 then EXIT SUB  ! Already visible
+
+                 CALL Object (OBJM_GET, cid, "HSCROLL", "", v)
+                 IF v(1) > 0 then CALL Object (OBJM_SHOW, v(1), "", "", v)
+                 CALL Object (OBJM_GET, cid, "VSCROLL", "", v)
+                 IF v(1) > 0 then CALL Object (OBJM_SHOW, v(1), "", "", v)
+
+              END IF
+
+           END IF
+
+        END IF
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Show_Default (default)
+
+        IF default = 0 then
+           LET show_default_flag = 0
+        ELSE
+           LET show_default_flag = 1
+        END IF
+
+    END SUB
+
+    SUB TC_SetUnitsToUsers
+
+        LET units_default_flag = 1
+
+    END SUB
+
+    SUB TC_SetUnitsToPixels
+
+        LET units_default_flag = 0
+
+    END SUB
+
+    SUB TC_SetTextJustify (cid, justify$)
+
+        SELECT CASE lcase$(justify$)
+        CASE "left"
+             LET v(1) = 0
+        CASE "center"
+             LET v(1) = 1
+        CASE "right"
+             LET v(1) = 2
+        CASE else
+             CAUSE ERROR 801, "Invalid text justify option: " & justify$
+        END SELECT
+        CALL Object (OBJM_SET, cid, "TEXT JUSTIFY", "", v)
+
+    END SUB
+
+    SUB TC_GetRect (cid, xl, xr, yb, yt)
+
+        CALL Object (OBJM_GET, cid, "RECTANGLE", "", v)
+        LET xl = v(1)
+        LET xr = v(2)
+        LET yb = v(3)
+        LET yt = v(4)
+
+    END SUB
+
+    SUB TC_SetRect (cid, xl, xr, yb, yt)
+
+        MAT Redim v(4)
+        LET v(1) = xl
+        LET v(2) = xr
+        LET v(3) = yb
+        LET v(4) = yt
+
+        CALL Object (OBJM_SET, cid, "RECTANGLE", "", v)
+
+    END SUB
+
+    SUB TC_SetRectUsers (cid, xl, xr, yb, yt)
+
+        LOCAL units
+
+        IF cid >= 100 then
+           CALL Object (OBJM_GET, cid, "UNITS", "", v)
+           LET units = v(1)
+           IF units = 0 then      ! Change UNITS to users
+              LET v(1) = 1        ! Convert to user coordinates
+              CALL Object (OBJM_SET, cid, "UNITS", "", v)
+
+           END IF
+
+           MAT redim v(4)
+           LET v(1) = xl
+           LET v(2) = xr
+           LET v(3) = yb
+           LET v(4) = yt
+
+        ELSE                      ! Must be a window, so do the best we can
+           CALL ConvertUsersToPixels (xl, xr, yb, yt, v())
+
+        END IF
+
+        CALL Object (OBJM_SET, cid, "RECTANGLE", "", v)
+
+        IF cid >= 100 and units = 0 then    ! Restore UNITS to pixels
+           LET v(1) = 0
+           CALL Object (OBJM_SET, cid, "UNITS", "", v)
+
+        END IF
+
+    END SUB
+
+    SUB TC_SetRectPixels (cid, xl, xr, yb, yt)
+
+        LOCAL units
+
+        IF cid >= 100 then        ! Windows don't have UNITS attribute
+           CALL Object (OBJM_GET, cid, "UNITS", "", v)
+           LET units = v(1)
+
+           IF units = 1 then      ! Set UNITS to pixels
+              LET v(1) = 0
+              CALL Object (OBJM_SET, cid, "UNITS", "", v)
+
+           END IF
+
+        END IF
+
+        MAT redim v(4)
+        LET v(1) = xl
+        LET v(2) = xr
+        LET v(3) = yb
+        LET v(4) = yt
+        CALL Object (OBJM_SET, cid, "RECTANGLE", "", v)
+
+        IF cid >= 100 and units = 1 then    ! Restore UNITS attribute
+           LET v(1) = 1
+           CALL Object (OBJM_SET, cid, "UNITS", "", v)
+
+        END IF
+
+    END SUB
+
+    SUB ConvertUsersToPixels (xl, xr, yb, yt, v())
+
+        ! This needs to be made more sophisticated.
+
+        LOCAL w(0)
+
+        CALL Object (OBJM_SYSINFO, 0, "DISPLAY SIZE", "", w())
+        MAT Redim v(4)
+        LET v(1) = round(xl*(w(2)-w(1) + 1))
+        LET v(2) = round(xr*(w(2)-w(1) + 1))
+        LET v(3) = round((1-yb)*(w(3)-w(4) + 1))
+        LET v(4) = round((1-yt)*(w(3)-w(4) + 1))
+
+    END SUB
+
+    !-----------------------------------------------------------------------
+    ! Get an attribute
+    SUB TC_Get (cid, attr$, r$, r())
+
+        CALL Object (OBJM_GET, cid, attr$, r$, r)
+
+    END SUB
+
+    !-----------------------------------------------------------------------
+    ! Set an attribute
+    SUB TC_Set (cid, attr$, r$, r())
+
+        CALL Object (OBJM_SET, cid, attr$, r$, r)
+
+    END SUB
+
+    SUB TC_SetText (cid, text$)
+
+        CALL Object (OBJM_SET, cid, "TEXT", text$, v)
+
+    END SUB
+
+    SUB TC_GetText (cid, text$)
+
+        CALL Object (OBJM_GET, cid, "TEXT", text$, v)
+
+    END SUB
+
+    !----------------------------------------
+    ! Set list for selection list given array.
+    SUB TC_SetList (cid, slist$())
+
+        ! This routine is used to set the list for an Edit List Button,
+        ! and for a List Box.  For an Edit List Button, the 0-th element
+        ! will be the initial value in the editable text field.
+
+        LOCAL i, s$, n
+
+        LET n = ubound(slist$)    ! Can be 0
+
+        LET s$ = ""               ! Make into a single string; ends with a "|".
+        FOR i = 1 to n            ! Ignore 0-th element
+            LET s$ = s$ & slist$(i) & "|"
+        NEXT i
+
+        LET v(1) = n
+        CALL Object (OBJM_SET, cid, "LIST", s$, v)
+
+        ! This part is for list edit buttons only.
+        ! Note: will not work for title fields in list boxes.
+
+        WHEN EXCEPTION IN
+             IF lbound(slist$) <= 0 then
+                CALL Object (OBJM_SET, cid, "TEXT", slist$(0), v)
+             END IF
+        USE
+        END WHEN
+
+    END SUB
+
+    SUB TC_Select (cid)
+
+        CALL Object (OBJM_SELECT, cid, "", "", v)
+
+    END SUB
+
+    SUB TC_Sensitize (cid, flag)
+
+        LET v(1) = sgn(abs(flag))
+        WHEN EXCEPTION IN
+             CALL Object (OBJM_SET, cid, "SENSITIVE", "", v)
+        USE
+        END WHEN
+
+    END SUB
+
+    !
+    ! TC_Event
+    !
+    SUB TC_Event (timer, type$, window, x1, x2)
+
+        LOCAL i, j, incr$, pos$, newp
+        LOCAL txed, cid, p, incr, sbtype
+        LOCAL txed_scr_x2, txed_scr_type$, loop
+
+        LET timer = max(timer, 0)
+        DO
+           LET loop = 0           ! loop = 1 keeps here while auto scrolling
+           CALL Sys_Event (timer, type$, window, x1, x2)
+
+           IF type$ = "" then
+              !--------------------------------------------
+              ! End of TXE SCROLL events? update scrollbar.
+              IF txed_scr_x2 > 0 then
+                 CALL Object (OBJM_GET, txed_scr_x2, txed_scr_type$[5:1000], v$, v)
+                 IF v(1) > 0 then
+
+                    IF txed_scr_type$ = "TXE VSCROLL" then
+                       CALL Txed_AdjustVSBarToText (txed_scr_x2)
+
+                    ELSE
+                       CALL Txed_AdjustHSBarToText (txed_scr_x2)
+
+                    END IF
+
+                 END IF
+
+                 LET x2 = -1      ! We are about to exit
+
+              END IF
+
+              EXIT SUB
+
+           END IF
+
+           ! If menu selected was set by TC_Menu_Set, then
+           ! try to return X1 and X2 as indexes into menu$(,)
+
+           !--------------------------------------------------------
+           ! menu_ids, dim 1 = indexed by the window value (0-12)
+           ! menu_ids, dim 2 = indexed by menu header
+           ! menu_ids, dim 3 = indexed by menu item
+           !--------------------------------------------------------
+
+           SELECT CASE type$
+           CASE "MENU"
+
+                IF window <= ubound(menu_ids, 1) then
+
+                   ! First, we check for Cut, Copy, and Paste
+
+                   IF x2 = cutmenuitem(window) then
+                      LET txed = txedwinattached(TBwindow(window))
+                      IF txed > 0 then
+                         CALL TC_Txed_Cut (txed)
+                         CALL Txed_AdjustScrollBarParameters (txed)
+                      END IF
+
+                   ELSE IF x2 = copymenuitem(window) then
+                      LET txed = txedwinattached(TBwindow(window))
+                      IF txed > 0 then CALL TC_Txed_Copy (txed)
+
+                   ELSE IF x2 = pastemenuitem(window) then
+                      LET txed = txedwinattached(TBwindow(window))
+                      IF txed > 0 then
+                         CALL TC_Txed_Paste (txed)
+                         CALL Txed_AdjustScrollBarParameters (txed)
+                      END IF
+
+                   END IF
+
+                   FOR i = 1 to ubound(menu_ids, 2)
+                       FOR j = 1 to ubound(menu_ids, 3)
+                           IF menu_ids(window, i, j) = x2 then
+                              LET x1 = i
+                              LET x2 = j
+                              EXIT SUB
+
+                           END IF
+
+                       NEXT j
+
+                   NEXT i
+                   EXIT SUB       ! Return to use
+
+                END IF
+
+           CASE "TXE KEYPRESS"
+                ! Update sbar range for end-of-line.
+                ! Could update range for backspace at left margin as well
+                IF x2 > 0 and x1 = sys_eol then
+                   CALL Txed_AdjustVSBarToText (x2)   ! Update scroll bar
+                END IF
+
+           CASE "TXE HSCROLL", "TXE VSCROLL"
+                !------------------------------------------------
+                ! Scrolling of textedit object
+                LET txed_scr_type$ = type$
+                LET txed_scr_x2 = x2   ! x1 not used here.
+                LET loop = 1
+                ! CALL Txed_AdjustScrollBars (x2)   ???
+
+           CASE "DOWN", "UP", "PAGEDOWN", "PAGEUP", "VSCROLL", "END VSCROLL", "HSCROLL", "END HSCROLL", "LEFT", "RIGHT", "PAGELEFT", "PAGERIGHT"
+
+                !--------------------------------------------------------
+                ! We update the position if the increment does not match the
+                ! default increment.  For non-Unix systems, we always update
+                ! the scrollbar position, since the system doesn't do it except
+                ! for vscroll and hscroll events.  Unix systems update the
+                ! scrollbar and return the new position in x1.  Non-Unix systems
+                ! only return the position in x1 for vscroll and hscroll events.
+                !--------------------------------------------------------
+                IF x2 > 100 then  ! Scrollbar control
+                   LET pos$ = "POSITION"
+                   IF type$ = "DOWN" or type$ = "UP" or type$ = "LEFT" or type$ = "RIGHT" then
+                      LET incr$ = "SINGLE INCREMENT"
+
+                   ELSEIF type$ = "PAGEDOWN" or type$ = "PAGEUP" or type$ = "PAGELEFT" or type$ = "PAGERIGHT" then
+                      LET incr$ = "PAGE INCREMENT"
+
+                   END IF
+
+                ELSE              ! Scrollbar attached to window
+                   LET x2 = window
+                   IF type$ = "DOWN" or type$ = "UP" then
+                      LET pos$ = "POSITION VERTICAL"
+                      LET incr$ = "SINGLE VERTICAL"
+
+                   ELSEIF type$ = "RIGHT" or type$ = "LEFT" then
+                      LET pos$ = "POSITION HORIZONTAL"
+                      LET incr$ = "SINGLE HORIZONTAL"
+
+                   ELSEIF type$ = "PAGEDOWN" or type$ = "PAGEUP" then
+                      LET pos$ = "POSITION VERTICAL"
+                      LET incr$ = "PAGE VERTICAL"
+
+                   ELSEIF type$ = "PAGERIGHT" or type$ = "PAGELEFT" then
+                      LET pos$ = "POSITION HORIZONTAL"
+                      LET incr$ = "PAGE HORIZONTAL"
+
+                   ELSEIF type$ = "END VSCROLL" then
+                      LET pos$ = "POSITION VERTICAL"
+
+                   ELSEIF type$ = "END HSCROLL" then
+                      LET pos$ = "POSITION HORIZONTAL"
+
+                   END IF
+
+                END IF
+
+                !------------------------------------------
+                ! Get scrollbar position.
+                ! This will be the update position on Unix
+                ! and the old position on OS2 and Windows (nice huh?)
+                !
+                ! For Unix, we set the proper Unix values into
+                ! the PAGE INCREMENT ahead of time.
+                CALL Object (OBJM_GET, x2, pos$, "", v)
+                LET newp, p = v(1)     ! newp is already correct for Unix
+
+                CALL Object (OBJM_GET, x2, incr$, "", v)
+                LET incr = v(1)
+
+                SELECT CASE type$
+                CASE "LEFT", "PAGELEFT"
+                     IF machine$ <> "UNIX" then LET newp = p - incr
+                     LET sbtype = horizontal
+
+                CASE "RIGHT", "PAGERIGHT"
+                     IF machine$ <> "UNIX" then LET newp = p + incr
+                     LET sbtype = horizontal
+
+                CASE "DOWN", "PAGEDOWN"
+                     IF machine$ <> "UNIX" then LET newp = p + incr
+                     LET sbtype = vertical
+
+                CASE "UP", "PAGEUP"
+                     IF machine$ <> "UNIX" then LET newp = p - incr
+                     LET sbtype = vertical
+
+                CASE "HSCROLL", "END HSCROLL"
+                     LET newp = x1
+                     LET sbtype = horizontal
+
+                CASE "VSCROLL", "END VSCROLL"
+                     LET newp = x1
+                     LET sbtype = vertical
+
+                     ! Note: no other cases are possible...
+
+                END SELECT
+
+                ! Move the thumb of the scroll bar.
+                ! Note: this is not necessary for Unix.
+
+                IF machine$ <> "UNIX" then
+                   LET v(1) = newp
+                   CALL Object (OBJM_SET, x2, pos$, "", v)
+
+                END IF
+
+                !------------------------------------------
+                ! Move the associated text, if any
+                !
+                ! Note: if x2 is a window, then v(1) is the txed of
+                ! an attached text edit control.  If x2 is a scroll
+                ! bar, then v(1) is also the txed of a text edit control.
+                ! In either case, v(1) is the TextEdit control that
+                ! need adjustment.
+                !
+                CALL Object (OBJM_GET, x2, "TEXTEDIT", v$, v)
+                IF v(1) > 0 then
+                   LET txed = v(1)
+
+                   ! newp is the new sbar position
+                   ! sbtype = 0 for horizontal, sbtype = 1 for vertical
+
+                   CALL Txed_AdjustTextToSBar (txed, sbtype, newp)
+
+                   ! Reactivate textedit on next non-scroll-bar event
+
+                   LET txed_flag = txed
+                   LET txed_wid = window
+
+                END IF
+
+           CASE "SELECT"
+                LET txed_wid, txed_flag = -1
+
+           CASE "CONTROL SELECT"
+                LET txed_wid, txed_flag = -1
+
+                ! The following logic is not correct.
+
+                ! CALL Object (OBJM_GET, x2, "CONTROL TYPE", "", v)
+                ! IF v(1) = CTLT_TXED then
+                !    CALL TC_Win_SetCursor (window, "IBEAM")
+                !
+                ! ELSE
+                !    CALL TC_Win_SetCursor (window, "ARROW")
+                !
+                ! END IF
+
+           CASE "CONTROL DESELECTED"
+                CALL Object (OBJM_GET, x2, "CONTROL TYPE", "", v)
+
+                IF v(1) = CTLT_EDIT then
+
+                   ! Since CONTROL DESELECTED caused by a trap characters
+                   ! generates a   CONTROL DESELECTED -1  id
+                   ! followed by a CONTROL DESELECTED x1, id
+                   ! we must here check for x1 > 0, and just force a focus shift.
+
+                   IF x1 > 0 then CALL Edit_FocusShift (window, x2)
+
+                ELSE IF v(1) = CTLT_CHECKBOX then
+
+                   ! Need to flip-flop the state.
+
+                   CALL Object (OBJM_GET, x2, "STATE", v$, v)
+                   IF v(1) = 0 then LET v(1) = 1 ELSE LET v(1) = 0
+                   CALL Object (OBJM_SET, x2, "STATE", v$, v)
+
+                ELSE IF v(1) = CTLT_RADIOBUTTON then
+
+                   ! Always turn on the button; the system turns off the others.
+
+                   LET v(1) = 1
+                   CALL Object (OBJM_SET, x2, "STATE", v$, v)
+
+                END IF
+
+           CASE "TXE MOUSE"
+
+           CASE "SIZE"
+                ! Need to determine if a txed control is attached to
+                ! the window.  If it is, then should resize the txed
+                ! control, any associated scroll bars, and reset the
+                ! scroll bar parameters.
+
+                CALL Object (OBJM_GET, window, "TEXTEDIT", "", v)
+                LET txed = v(1)
+                IF txed >= 100 then
+                   CALL Txed_SetRectAuto (window, txed)
+                   CALL Txed_AdjustScrollBarParameters (txed)
+
+                END IF
+
+           CASE else              ! no default handling for other types
+           END SELECT
+
+        LOOP while loop = 1       ! Keep going if in the midst of auto-scrolling
+
+    END SUB                       ! TC_Event
+
+    SUB TC_Free (cid)
+
+        ! This frees both windows and other objects or controls.
+
+        ! Still need to free the scroll bars that may be
+        ! attached to a text-edit control
+
+        IF cid >= 100 then        ! Must NOT be a window.
+           WHEN error in
+                CALL Object (OBJM_FREE, cid, "", "", v)
+
+           USE
+           END WHEN
+
+        ELSE IF cid > 0 then      ! Must be a window other than the default
+           WHEN error in
+                CALL TC_Menu_Free (cid)
+                CLOSE #TBWindow (cid)
+                CALL RemoveWindow (cid)
+                LET cutmenuitem(cid), copymenuitem(cid), pastemenuitem(cid) = -1
+                LET txedwinattached(tbwindow(cid)) = 0     ! Remove attached txed
+                CALL Object (OBJM_FREE, cid, "", "", v)
+           USE
+           END WHEN
+
+           ! Note: cannot ever free the default window.
+
+        END IF
+
+    END SUB
+
+    ! Environment setting and getting routines
+
+    !---------------------------------------------------------------
+    SUB TC_GetScreenSize (l, r, b, t)
+
+        ! Two lines need to be changed.
+
+        CALL Object (OBJM_SYSINFO, 0, "DISPLAY SIZE", "", v)
+        LET l = v(1)
+        LET r = v(2)
+        LET b = v(3)
+        LET t = v(4)
+
+    END SUB                       ! Screen_Size
+
+    !---------------------------------------------------------------
+    SUB TC_FontsAvailable (fonts$())
+
+        LOCAL f$, i, p
+
+        CALL Object (OBJM_SYSINFO, 0, "FONTS AVAILABLE", f$, v)
+
+        MAT Redim fonts$(v(1))
+        FOR i = 1 to v(1)
+            LET p = pos(f$, "|")
+            IF p = 0 then LET p = len(f$) + 1
+            LET fonts$(i) = f$[1:p-1]
+            LET f$ = f$[p+1:10000]
+        NEXT i
+
+    END SUB
+
+    !-----------------------------------------------------------------------
+    ! Get system-wide value
+    SUB TC_GetSysInfo (attr$, r$, r())
+
+        CALL Object (OBJM_SYSINFO, 0, attr$, r$, r)
+
+    END SUB
+
+    !-----------------------------------------------------------------------
+    SUB TC_Env_Set (n$, to$)
+
+        ! Works only for Unix at the moment.
+        ! Incorrect parameters, or non-Unix machines, will cause an error.
+
+        IF machine$ = "UNIX" then
+           LET v$ = trim$(n$) & " = " & trim$(to$)
+        ELSE
+           LET v$ = trim$(n$) & " = " & trim$(to$)    ! ???
+        END IF
+
+        LET v(1) = 1              ! Set
+        CALL Object (OBJM_SYSINFO, 0, "ENV", v$, v)
+
+    END SUB
+
+    ! Normalize_Rect is used by most, but not all, objects and controls.
+
+    !---------------------------------------------------------------
+    ! order: left, right, bottom, top
+    ! Allow default settings
+    SUB Normalize_Rect (xl, xr, yb, yt, xspace, yspace)
+
+        ! This routine does NOT reorder coordinates that are "out of order,"
+        ! the Object routine does that, except for LINE and ALINE.
+        ! This routine only calculates default coordinates if one or
+        ! more arguments are < 0 AND values for xspace and yspace are given.
+
+        LOCAL xpix, ypix, xxl, xxr, yyb, yyt, uxspace, uyspace
+
+        IF units_default_flag = 0 then
+           ! For pixel coordinates
+
+           IF xspace > 0 then
+              IF xl < 0 then
+                 IF xr < 0 then   ! Both negative; create values for both
+                    LET xl = 0
+                    LET xr = xspace - 1
+
+                 ELSE             ! Compute default value for xl
+                    LET xl = xr - xspace + 1
+
+                 END IF
+
+              ELSE
+                 IF xr < 0 then   ! Create default value for xr
+                    LET xr = xl + xspace - 1
+
+                 END IF
+
+              END IF
+
+           END IF
+
+           IF yspace > 0 then
+              IF yb < 0 then
+                 IF yt < 0 then LET yt = 0
+                 LET yb = yt + yspace - 1
+
+              ELSE
+                 IF yt < 0 then   ! Compute default value for yt
+                    LET yt = yb - yspace + 1
+
+                 END IF
+
+              END IF
+
+           END IF
+
+        ELSE                      ! For users coordinates
+
+           ! First, convert default lengths into user coordinates
+
+           ASK PIXELS xpix, ypix
+           ASK WINDOW xxl, xxr, yyb, yyt
+
+           LET uxspace = (xspace-1)*ABS(xxr-xxl)/xpix
+           LET uyspace = (yspace-1)*ABS(yyt-yyb)/ypix
+
+           ! Next, check for sentinel values to insert default sizes
+
+           IF uxspace > 0 then
+              IF xl = sentinel then
+                 IF xr = sentinel then      ! Both negative; create values for both
+                    LET xl = xxl
+                    LET xr = uxspace
+
+                 ELSE             ! Compute default value for xl
+                    LET xl = xr - uxspace
+
+                 END IF
+
+              ELSE
+                 IF xr = sentinel then      ! Create default value for xr
+                    LET xr = xl + uxspace
+
+                 END IF
+
+              END IF
+
+           END IF
+
+           IF uyspace > 0 then
+              IF yb = sentinel then
+                 IF yt = sentinel then LET yt = yyb + uyspace
+                 LET yb = yt - uyspace
+
+              ELSE
+                 IF yt = sentinel then      ! Compute default value for yt
+                    LET yt = yb + uyspace
+
+                 END IF
+
+              END IF
+
+           END IF
+
+        END IF
+
+    END SUB
+
+    SUB SetRect (id, xl, xr, yb, yt)
+
+        ! This routine sets the rectangle.
+        ! When called from TC_Win_Create, the units are always pixels.
+
+        IF id >= 100 then         ! Set units only for non-windows
+           LET v(1) = units_default_flag
+           CALL Object (OBJM_SET, id, "UNITS", "", v)
+        END IF
+
+        MAT redim v(4)
+        LET v(1) = xl
+        LET v(2) = xr
+        LET v(3) = yb
+        LET v(4) = yt
+        CALL Object (OBJM_SET, id, "RECTANGLE", "", v)
+
+    END SUB
+
+    ! Object and Control routines.
+
+    ! Window routines.
+
+    !---------------------------------------------------------------
+    ! The rectangle is always set.
+    SUB TC_Win_Create (wid, options$, xxl, xxr, yyb, yyt)
+
+        LOCAL op$, ub
+        LOCAL type, hscroll, vscroll, title_bar, resize_box, close_box
+        LOCAL nonimmune, border_full, border_single, border_double, border_none
+        LOCAL iconize
+        LOCAL borders, xpix, ypix, atts$
+        LOCAL titlebarheight, menuheight, verscrollbarwidth, horscrollbarheight
+        LOCAL borderwidth, borderheight, resizeborderwidth, resizeborderheight
+        LOCAL xl, xr, yb, yt, show
+
+        DEF lim(x) = max(min(x,1),0)   ! For user coordinates
+
+        LET xl = xxl              ! Protect the parameters
+        LET xr = xxr
+        LET yb = yyb
+        LET yt = yyt
+
+        LET hscroll, vscroll, title_bar, resize_box, close_box, show, iconize = 0
+        LET nonimmune, border_full, border_single, border_double, border_none = 0
+        LET op$ = ucase$(options$)
+
+        IF pos(op$, "CHILD") > 0 then
+           CAUSE ERROR 803, "Can't create a child window with this routine."
+        END IF
+
+        IF pos(op$, "VSCROLL") > 0 then LET vscroll = 1
+        IF pos(op$, "HSCROLL") > 0 then LET hscroll = 1
+        IF pos(op$, "TITLE") > 0 then LET title_bar = 1
+        IF pos(op$, "SIZE") > 0 then LET resize_box = 1
+        IF pos(op$, "CLOSE") > 0 then LET close_box = 1
+        IF pos(op$, "SHOW") > 0 then LET show = 1
+        IF pos(op$, "ICONIZABLE") > 0 then LET iconize = 1
+        IF pos(op$, "NONIMMUNE") > 0 then LET nonimmune = 1
+        IF pos(op$, "BORDER FULL") > 0 then LET border_full = 1
+        IF pos(op$, "BORDER SINGLE") > 0 then LET border_single = 1
+        IF pos(op$, "BORDER DOUBLE") > 0 then LET border_double = 1
+        IF pos(op$, "BORDER NONE") > 0 then LET border_none = 1
+        LET type = 1              ! default
+
+        LET borders = border_full + border_single + border_double + border_none
+
+        ! If borders = 0, then type = 1 by default.
+
+        IF borders = 1 then
+           IF border_single = 1 then
+              LET type = 2
+           ELSE IF border_double = 1 then
+              LET type = 3
+           ELSE IF border_none = 1 then
+              CAUSE ERROR 802, "Can't have BORDER NONE for a regular window."
+           END IF
+
+        ELSE IF borders > 1 then
+           CAUSE ERROR 802, "Can't specify two or more border types."
+
+        END IF
+
+        IF type <> 1 then         ! Look for features
+           IF vscroll + hscroll + title_bar + close_box + resize_box > 0 then
+              CAUSE ERROR 802, "Can't have features in non-document windows."
+           END IF
+
+        END IF
+
+        ! Now, let's create the window.
+
+        LET v(1) = OBJT_WINDOW
+        CALL Object (OBJM_CREATE, wid, "", "", v)
+
+        ! Now let's set the attributes.
+
+        LET v(1) = 1
+        IF resize_box = 1 then CALL Object (OBJM_SET, wid, "RESIZE BOX", "", v)
+        IF close_box = 1 then CALL Object (OBJM_SET, wid, "CLOSE BOX", "", v)
+        IF vscroll = 1 then
+           CALL Object (OBJM_SET, wid, "VSCROLL", "", v)
+           CALL Object (OBJM_SET, wid, "END RANGE VERTICAL", "", v)
+        END IF
+        IF hscroll = 1 then
+           CALL Object (OBJM_SET, wid, "HSCROLL", "", v)
+           CALL Object (OBJM_SET, wid, "END RANGE HORIZONTAL", "", v)
+        END IF
+        IF title_bar = 1 then CALL Object (OBJM_SET, wid, "TITLE", "No Title Supplied", v)
+
+        LET v(1) = 0              ! Immune is the default, so turn it off
+        IF nonimmune = 1 then CALL Object (OBJM_SET, wid, "IMMUNE", "", v)
+
+        LET v(1) = type
+        CALL Object (OBJM_SET, wid, "TYPE", "", v)
+
+        ! Next, make sure that the Cut, Copy, and Paste entries are removed.
+
+        LET cutmenuitem(wid), copymenuitem(wid), pastemenuitem(wid) = 0
+
+        IF units_default_flag = 1 then
+           CALL TC_GetScreenSize (0, xpix, ypix, 0)
+           LET xl = round(lim(xl)*xpix)
+           LET xr = round(lim(xr)*xpix)
+           LET yb = round(lim(1-yb)*ypix)
+           LET yt = round(lim(1-yt)*ypix)
+
+           LET atts$ = "VERT SBAR WIDTH|HORZ SBAR HEIGHT|MENU HEIGHT|TITLE BAR HEIGHT"
+           LET atts$ = atts$ & "|BORDER WIDTH|BORDER HEIGHT|DOUBLE BORDER WIDTH"
+           LET atts$ = atts$ & "|DOUBLE BORDER HEIGHT|RESIZE BORDER WIDTH|RESIZE BORDER HEIGHT"
+
+           CALL Object (OBJM_SYSINFO, 0, atts$, "", v)
+           IF type = 1 then
+              LET titlebarheight = v(4)
+              IF machine$ = "MAC" then
+                 LET menuheight = 0    ! Ignore on the Mac
+              ELSE
+                 LET menuheight = v(3)
+              END IF
+              LET borderwidth, resizeborderwidth = v(5)
+              LET borderheight, resizeborderheight = v(6)
+              LET verscrollbarwidth  = v(1)*vscroll
+              LET horscrollbarheight = v(2)*hscroll
+              IF resize_box = 1 then
+                 IF machine$ = "MAC" then   ! Resize box requires scroll bar space
+
+                    ! The same space is required by the resize box as the scroll bar.
+
+                    IF vscroll = 1 then
+                       LET resizeborderwidth = 0
+                    ELSE
+
+                       LET resizeborderwidth = v(1)
+                    END IF
+
+                    IF hscroll = 1 then
+                       LET resizeborderheight = 0
+                    ELSE
+                       LET resizeborderheight = v(2)
+                    END IF
+
+                 ELSE
+                    LET resizeborderwidth = v(9)
+                    LET resizeborderheight = v(10)
+
+                 END IF
+
+              END IF
+
+           ELSE IF type = 2 then
+              LET titlebarheight = 0
+              LET menuheight = 0
+              LET borderwidth, resizeborderwidth = 1
+              LET borderheight, resizeborderheight = 1
+              LET verscrollbarwidth = 0
+              LET horscrollbarheight = 0
+
+           ELSE IF type = 3 then
+              LET titlebarheight = 0
+              LET menuheight = 0
+              LET borderwidth, resizeborderwidth = v(7)
+              LET borderheight, resizeborderheight = v(8)
+              LET verscrollbarwidth = 0
+              LET horscrollbarheight = 0
+
+           END IF
+
+           LET yt = max(yt, titlebarheight + menuheight)
+           LET yb = min(yb, ypix - (resizeborderheight + horscrollbarheight) )
+           LET xl = max(xl, borderwidth)
+           LET xr = min(xr, xpix - (resizeborderwidth + verscrollbarwidth) )
+
+        ELSE
+           ! Check for "reasonable" pixel coordinates
+           IF xr < xl + 10 or yb < yt + 10 then
+              CAUSE ERROR 816, "Window too small in pixel coordinates."
+           END IF
+
+        END IF
+
+        CALL SetRect (wid, xl, xr, yb, yt)
+
+        ! We need to associate a True BASIC window with the XVT window.
+        ! To do that, we need to use OPEN #n: SCREEN.
+        ! To do that, the XVT window must be SHOWn.
+        ! But we can do that invisibly as follows
+
+        LET v(1) = 0
+        CALL Object (OBJM_SET, wid, "VISIBLE", "", v)
+        CALL Object (OBJM_SHOW, wid, "", "", v)
+        CALL AddWindow (wid)
+        OPEN #TBwindow(wid): screen 0, 1, 0, 1
+
+        ! Also, a window must have been "shown" the first time in order
+        ! to allow the user to install controls in it.
+
+        ! Finally, if the user wants it show, do it now.
+
+        IF show = 1 then CALL Object (OBJM_SHOW, wid, "", "", v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! The rectangle is always set.
+    SUB TC_Win_ChildCreate (wid, options$, parent, xxl, xxr, yyb, yyt)
+
+        LOCAL op$, ub
+        LOCAL type, hscroll, vscroll, title_bar, resize_box, close_box
+        LOCAL nonimmune, border_full, border_single, border_double, border_none
+        LOCAL borders, xpix, ypix, atts$
+        LOCAL borderwidth, borderheight, show
+        LOCAL xl, xr, yb, yt, pl, pr, pb, pt
+
+        DEF lim(x) = max(min(x,1),0)   ! For user coordinates
+
+        LET xl = xxl              ! Protect the parameters
+        LET xr = xxr
+        LET yb = yyb
+        LET yt = yyt
+
+        LET vscroll, hscroll, title_bar, resize_box, close_box = 0
+        LET nonimmune, border_full, border_single, border_double, border_none = 0
+        LET op$ = ucase$(options$)
+
+        IF pos(op$, "VSCROLL") > 0 then LET vscroll = 1
+        IF pos(op$, "HSCROLL") > 0 then LET hscroll = 1
+        IF pos(op$, "TITLE") > 0 then LET title_bar = 1
+        IF pos(op$, "SIZE") > 0 then LET resize_box = 1
+        IF pos(op$, "CLOSE") > 0 then LET close_box = 1
+        IF pos(op$, "SHOW") > 0 then LET show = 1
+        IF pos(op$, "NONIMMUNE") > 0 then LET nonimmune = 1
+        IF pos(op$, "BORDER FULL") > 0 then LET border_full = 1
+        IF pos(op$, "BORDER SINGLE") > 0 then LET border_single = 1
+        IF pos(op$, "BORDER DOUBLE") > 0 then LET border_double = 1
+        IF pos(op$, "BORDER NONE") > 0 then LET border_none = 1
+
+        IF vscroll + hscroll + title_bar + resize_box + close_box > 0 then
+           CAUSE ERROR 804, "Can't have embellishments on child windows."
+        END IF
+
+        LET borders = border_full + border_single + border_double + border_none
+
+        IF borders = 1 then
+           IF border_single = 1 then
+              LET type = 2
+           ELSE IF border_none = 1 then
+              LET type = 7
+           ELSE
+              CAUSE ERROR 804, "Child window must have BORDER SINGLE or BORDER NONE."
+
+           END IF
+
+        ELSE IF borders > 1 then
+           CAUSE ERROR 802, "Can't specify two or more border types."
+
+        ELSE
+           CAUSE ERROR 804, "Must specify type of border."
+
+        END IF
+
+        ! Now, let's create the window.
+
+        LET v(1) = OBJT_WINDOW
+        CALL Object (OBJM_CREATE, wid, "", "", v)
+
+        ! Now let's set the attributes.
+
+        LET v(1) = 0              ! Immune is the default, so turn it off
+        IF nonimmune = 1 then CALL Object (OBJM_SET, wid, "IMMUNE", "", v)
+
+        LET v(1) = type
+        CALL Object (OBJM_SET, wid, "TYPE", "", v)
+        LET v(1) = parent
+        CALL Object (OBJM_SET, wid, "PARENT", "", v)
+
+        ! Next, make sure that the Cut, Copy, and Paste entries are removed,
+        ! possibly from a prior use of the same window number.
+
+        LET cutmenuitem(wid), copymenuitem(wid), pastemenuitem(wid) = 0
+
+        IF units_default_flag = 1 then
+           CALL TC_GetRect (parent, pl, pr, pb, pt)
+           LET xpix = pr - pl
+           LET ypix = pb - pt
+           LET xl = round(lim(xl)*xpix)
+           LET xr = round(lim(xr)*xpix)
+           LET yb = round(lim(1-yb)*ypix)
+           LET yt = round(lim(1-yt)*ypix)
+
+           LET atts$ = atts$ & "BORDER WIDTH|BORDER HEIGHT"
+
+           CALL Object (OBJM_SYSINFO, 0, atts$, "", v)
+           IF type = 2 then
+              LET borderwidth = v(1)
+              LET borderheight = v(2)
+
+           ELSE                   ! type must be 7
+              LET borderwidth = 0
+              LET borderheight = 0
+
+           END IF
+
+           LET yt = max(yt, borderheight)
+           LET yb = min(yb, ypix - borderheight)
+           LET xl = max(xl, borderwidth)
+           LET xr = min(xr, xpix - borderwidth)
+
+        ELSE
+           ! Check for "reasonable" pixel coordinates
+           IF xr < xl + 10 or yb < yt + 10 then
+              CAUSE ERROR 816, "Window too small in pixel coordinates."
+           END IF
+
+        END IF
+
+        CALL SetRect (wid, xl, xr, yb, yt)
+
+        ! We need to associate a True BASIC window with the XVT window.
+        ! To do that, we need to use OPEN #n: SCREEN.
+        ! To do that, the XVT window must be SHOWn.
+        ! But we can do that invisibly as follows
+
+        LET v(1) = 0
+        CALL Object (OBJM_SET, wid, "VISIBLE", "", v)
+        CALL Object (OBJM_SHOW, wid, "", "", v)
+        CALL AddWindow (wid)
+        OPEN #TBwindow(wid): screen 0, 1, 0, 1
+
+        ! Also, a window must have been "shown" the first time in order
+        ! to allow the user to install controls in it.
+
+        ! Finally, if the user wants the window shown, show it now.
+
+        IF show = 1 then CALL Object (OBJM_SHOW, wid, "", "", v)
+
+    END SUB
+
+    ! Window support routines.
+
+    SUB TC_Win_NoHide (win, flag)
+
+        ! This routine can be used to override automatic hiding
+        ! of a window when the close box is clicked.
+
+        LET v(1) = flag
+        CALL Object (OBJM_SET, win, "NO HIDE", "", v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Retarget the output, do not make window active.
+    SUB TC_Win_Target (wid)
+
+        CALL TC_Win_Valid (wid)
+
+        WHEN ERROR IN
+             WINDOW #TBWindow (wid)    ! This does the TB Switch part
+
+             ! Should be parameterized: 1 = target
+             !                          2 = make active
+             !                          3 = switch (target and make active)
+             LET v(1) = 1
+             CALL Object (OBJM_SELECT, wid, "", "", v)     ! This does the Active part
+
+        USE
+             CAUSE ERROR 805, "Can't make this window the target: " & str$(wid)
+
+        END WHEN
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Make window active; i.e., bring it to the fore.
+    SUB TC_Win_Active (wid)
+
+        CALL TC_Win_Valid (wid)
+
+        WHEN ERROR IN
+             ! Should be parameterized: 1 = target
+             !                          2 = make active
+             !                          3 = switch (target and make active)
+             CALL Object (OBJM_GET, wid, "VISIBLE", "", v)
+             IF v(1) = 0 then EXIT SUB      ! Ignore if not visible
+
+             LET v(1) = 2
+             CALL Object (OBJM_SELECT, wid, "", "", v)
+
+        USE
+             CAUSE ERROR 806, "Can't make this window active: " & str$(wid)
+
+        END WHEN
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Switch output, make window active.
+    SUB TC_Win_Switch (wid)
+
+        CALL TC_Win_Valid (wid)
+
+        WHEN ERROR IN
+             WINDOW #TBWindow (wid)    ! This does the TB Switch part
+
+             ! Should be parameterized: 1 = target
+             !                          2 = make active
+             !                          3 = switch (target and make active)
+             CALL Object (OBJM_GET, wid, "VISIBLE", "", v)
+             IF v(1) = 0 then
+                LET v(1) = 1      ! Target only, if not visible
+             ELSE
+                LET v(1) = 3
+             END IF
+             CALL Object (OBJM_SELECT, wid, "", "", v)     ! This does the Active part
+
+        USE
+             CAUSE ERROR 807, "Can't switch to this target window: " & str$(wid)
+
+        END WHEN
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Switch to current window.  The purpose is actually to switch
+    ! to the full logical window in the current window.
+    SUB TC_Win_SwitchCurrent
+
+        LOCAL n$
+
+        CALL Winfo ("ask active", n$)
+        CALL TC_Win_Switch (val(n$))
+
+    END SUB
+
+    SUB TC_Win_MouseMove (wid, flag)
+
+        LET v(1) = flag
+        CALL Object (OBJM_SET, wid, "MOUSE MOVE", "", v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Update a window.
+    SUB TC_Win_Update (wid, xl, xr, yb, yt)
+
+        MAT REDIM v(5)
+        LET v(1) = 0              ! For pixels, or 1 for a logical window within
+        LET v(2) = xl
+        LET v(3) = xr
+        LET v(4) = yb
+        LET v(5) = yt
+        CALL Object (OBJM_UPDATE, wid, "", "", v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Print a window.
+    SUB TC_Win_Print (wid)
+
+        CALL TC_Win_Valid (wid)
+        CALL Object (OBJM_PRINT, wid, "", "", v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Display a page setup dialog box for a window.
+    SUB TC_Win_PageSetup (wid)
+
+        CALL TC_Win_Valid (wid)
+        CALL Object (OBJM_PAGESETUP, wid, "", "", v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Win_Valid (wid)
+
+        LOCAL name$, TBwid
+
+        IF wid = 0 then EXIT SUB  ! The startup window is always legal
+
+        LET TBwid = TBWindow (wid)     ! But here, 0 means simply undefined.
+        IF TBwid = 0 then CAUSE ERROR 808, "Illegal window number: " & str$(wid)
+
+        WHEN ERROR IN
+             ASK #TBwid: NAME name$    ! Should force a "channel not open" error
+
+        USE
+             CAUSE ERROR 808, "Illegal window number: " & str$(wid)
+
+        END WHEN
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Set title for window.
+    SUB TC_Win_SetTitle (wid, t$)
+
+        IF t$ = "" then LET t$ = " "   ! null title not permitted
+
+        CALL Object (OBJM_SET, wid, "TITLE", t$, v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Get title for window.
+    SUB TC_Win_GetTitle (wid, t$)
+
+        CALL Object (OBJM_GET, wid, "TITLE", t$, v)
+
+    END SUB
+
+    !-----------------------------------------------------------------------
+    ! Set cursor shape
+    SUB TC_Win_SetCursor (wid, shape$)
+
+        CALL TC_Win_Valid (wid)
+        WHEN error in
+             CALL Object (OBJM_GET, wid, "CURSOR", v$, v)
+             IF v$ <> shape$ then
+                CALL Object (OBJM_SET, wid, "CURSOR", shape$, v)
+             END IF
+
+        USE
+             CAUSE ERROR 809, "Invalid cursor shape: " & shape$
+
+        END WHEN
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Win_SetPen (wid, width, color, style$, pattern$)
+
+        CALL TC_Win_Valid (wid)
+        WHEN ERROR IN
+             CALL TC_Graph_SetPen (wid, width, color, style$, pattern$)
+        USE
+             CAUSE ERROR 810, "Invalid window pen setting."
+        END WHEN
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Win_SetBrush (wid, backcolor, color, pattern$)
+
+        CALL TC_Win_Valid (wid)
+
+        WHEN ERROR IN
+             CALL TC_Graph_SetBrush (wid, backcolor, color, pattern$)
+        USE
+             CAUSE ERROR 811, "Invalid window brush setting."
+        END WHEN
+
+    END SUB
+
+    SUB TC_Win_RealizePalette (win)
+
+        CALL Object (OBJM_REALIZE, win, "", "", v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Win_SetDrawmode (wid, mode$)
+
+        CALL TC_Win_Valid (wid)
+
+        WHEN ERROR IN
+             CALL TC_Graph_SetDrawmode (wid, mode$)
+        USE
+             CAUSE ERROR 812, "Invalid window draw mode setting: " & mode$
+        END WHEN
+
+    END SUB
+
+    SUB TC_Win_SetFont (wid, fontname$, fontsize, fontstyle$)
+
+        ! Sets the font information for a window.
+        ! Changes only if non-null or non-zero.
+
+        CALL TC_Win_Valid (wid)
+
+        WHEN ERROR IN
+             IF fontname$ <> "" then
+                CALL Object (OBJM_SET, wid, "FONT NAME", lcase$(fontname$), v)
+             END IF
+        USE
+             CAUSE ERROR 813, "Invalid window font name: " & fontname$
+        END WHEN
+
+        WHEN ERROR IN
+             IF fontsize > 0 then
+                LET v(1) = fontsize
+                CALL Object (OBJM_SET, wid, "FONT SIZE", "", v)
+             END IF
+        USE
+             CAUSE ERROR 814, "Invalid window font size: " & str$(fontsize)
+        END WHEN
+
+        WHEN ERROR IN
+             IF fontstyle$ <> "" then
+                CALL Object (OBJM_SET, wid, "FONT STYLE", lcase$(fontstyle$), v)
+             END IF
+        USE
+             CAUSE ERROR 815, "Invalid window font style: " & fontstyle$
+        END WHEN
+
+    END SUB
+
+    SUB TC_WinHSbar_GetPosition (wid, position)
+
+        CALL Object (OBJM_GET, wid, "POSITION HORIZONTAL", "", v)
+        LET position = v(1)
+
+    END SUB
+
+    SUB TC_WinVSbar_GetPosition (wid, position)
+
+        CALL Object (OBJM_GET, wid, "POSITION VERTICAL", "", v)
+        LET position = v(1)
+
+    END SUB
+
+    SUB TC_WinHSbar_GetRange (wid, srange, erange, prop)
+
+        LOCAL msg$
+
+        LET msg$ = "START RANGE HORIZONTAL|END RANGE HORIZONTAL|PROPORTION HORIZONTAL"
+
+        CALL Object (OBJM_GET, wid, msg$, "", v)
+        LET srange = v(1)
+        LET erange = v(2)
+        LET prop   = v(3)
+
+    END SUB
+
+    SUB TC_WinVSbar_GetRange (wid, srange, erange, prop)
+
+        LOCAL msg$
+
+        LET msg$ = "START RANGE VERTICAL|END RANGE VERTICAL|PROPORTION VERTICAL"
+
+        CALL Object (OBJM_GET, wid, msg$, "", v)
+        LET srange = v(1)
+        LET erange = v(2)
+        LET prop   = v(3)
+
+    END SUB
+
+    SUB TC_WinHSbar_GetIncrements (wid, single, page)
+
+        CALL Object (OBJM_GET, wid, "SINGLE HORIZONTAL|PAGE HORIZONTAL", "", v)
+        LET single = v(1)
+        LET page   = v(2)
+
+    END SUB
+
+    SUB TC_WinVSbar_GetIncrements (wid, single, page)
+
+        CALL Object (OBJM_GET, wid, "SINGLE VERTICAL|PAGE VERTICAL", "", v)
+        LET single = v(1)
+        LET page   = v(2)
+
+    END SUB
+
+    SUB TC_WinHSbar_SetPosition (wid, position)
+
+        LET v(1) = position
+        CALL Object (OBJM_SET, wid, "POSITION HORIZONTAL", "", v)
+
+    END SUB
+
+    SUB TC_WinVSbar_SetPosition (wid, position)
+
+        LET v(1) = position
+        CALL Object (OBJM_SET, wid, "POSITION VERTICAL", "", v)
+
+    END SUB
+
+    SUB TC_WinHSbar_SetRange (wid, srange, erange, prop)
+
+        LOCAL msg$
+
+        LET msg$ = "PROPORTION HORIZONTAL|START RANGE HORIZONTAL|END RANGE HORIZONTAL"
+
+        MAT REDIM v(3)
+
+        LET v(1) = min(prop, erange - srange)
+        LET v(2) = srange
+        LET v(3) = erange
+        CALL Object (OBJM_SET, wid, msg$, "", v)
+
+    END SUB
+
+    SUB TC_WinVSbar_SetRange (wid, srange, erange, prop)
+
+        LOCAL msg$
+
+        LET msg$ = "PROPORTION VERTICAL|START RANGE VERTICAL|END RANGE VERTICAL"
+
+        MAT REDIM v(3)
+
+        LET v(1) = min(prop, erange - srange)
+        LET v(2) = srange
+        LET v(3) = erange
+        CALL Object (OBJM_SET, wid, msg$, "", v)
+
+    END SUB
+
+    SUB TC_WinHSbar_SetIncrements (wid, single, page)
+
+        MAT REDIM v(2)
+
+        LET v(1) = single
+        LET v(2) = page
+        CALL Object (OBJM_SET, wid, "SINGLE HORIZONTAL|PAGE HORIZONTAL", "", v)
+
+    END SUB
+
+    SUB TC_WinVSbar_SetIncrements (wid, single, page)
+
+        MAT REDIM v(2)
+
+        LET v(1) = single
+        LET v(2) = page
+        CALL Object (OBJM_SET, wid, "SINGLE VERTICAL|PAGE VERTICAL", "", v)
+
+    END SUB
+
+    ! Following are private routines for associating TC window numbers
+    ! with TB window numbers in the range 1..12 (MAX_WINS)
+    !
+    ! The subscript of winlist() is the TB number; the value is the
+    ! True Controls window number, which is what the user knows about.
+
+    DEF TBWindow (wid)
+
+        ! This routine always returns 0 if wid = 0
+        ! The array winlist has a 0-th element, which is 0.
+
+        LOCAL i
+
+        FOR i = 1 to MAX_WINS
+            IF winlist(i) = wid then
+               LET TBWindow = winlist(i)
+               EXIT DEF
+            END IF
+        NEXT i
+
+    END DEF
+
+    SUB AddWindow (wid)
+
+        LOCAL i
+
+        FOR i = 1 to MAX_WINS
+            IF winlist(i) = 0 then
+               LET winlist(i) = wid
+               EXIT SUB
+            END IF
+        NEXT i
+
+    END SUB
+
+    SUB RemoveWindow (wid)
+
+        LOCAL i
+
+        FOR i = 1 to MAX_WINS
+            IF winlist(i) = wid then
+               LET winlist(I) = 0
+               EXIT SUB
+            END IF
+        NEXT i
+
+    END SUB
+
+    ! Menu manipulation routines
+
+    !--------------------------------------------------
+    ! TC_Menu_Set
+    ! Note: ALWAYS show the menus, as menus go with windows.
+    ! Menus are shown if any menu item is shown.
+    ! Handles hierarchical menus, iteratively.
+    SUB TC_Menu_Set (wid, menu$(,))
+
+        LOCAL lb1, lb2, ub1, ub2, v1$
+        LOCAL m, i, j, separator, hierarchy, hotkey
+        LOCAL menuid, itemid, menu, item
+
+        CALL TC_Win_Valid (wid)
+
+        LET lb1 = lbound(menu$, 1)
+        IF lb1  = 0 then LET lb1 = 1   ! Forget menu number 0, if there.
+        IF lb1 <> 1 then
+           CAUSE ERROR 820, "Lower bound for menu$ rows must be 0 or 1."
+
+        END IF
+
+        LET lb2 = lbound(menu$, 2)     ! Must start at 0.
+        IF lb2 <> 0 then
+           CAUSE ERROR 821, "Lower bound for menu$ columns must be zero."
+
+        END IF
+
+        LET ub1 = ubound(menu$, 1)
+        LET ub2 = ubound(menu$, 2)
+
+        IF ub1 < 0 or ub2 < 0 then
+           CAUSE ERROR 822, "Menu$ array must have elements."
+
+        END IF
+
+        CALL ExpandMenuArray (wid, ub1, ub2)
+
+        ! For menus: v(1) = OBJT_MENU, v(2) = MENT_BAR, v(3) = wid
+        ! For items: v(1) = OBJT_MENU, v(2) = MENT_ITEM, v(3) = menuid
+        ! The text is provided in v$, or v1$
+        ! For both: v(4) >= 0 if an accelerator key; 0, otherwise.
+        !           v(5) = 1 is a separator; 0, otherwise.
+
+        MAT Redim v(5)
+
+        LET v(1) = OBJT_MENU
+
+        FOR m = 1 to ub1
+            LET v$ = menu$(m,0)
+            IF v$ = "" then LET v$ = " "
+            LET v(2) = MENT_BAR   ! Menubar id
+            LET v(3) = wid        ! Parent: window for menubar
+
+            CALL DecodeItem (v$, v1$, separator, hotkey, hierarchy)
+
+            IF hierarchy = 1 then
+
+               ! It is sufficient to keep track of the parent, in menuid.
+
+               CALL SearchForParent (v1$, menu$(,), menu, item)
+               LET menuid = menu_ids(wid, menu, item)
+               LET menu_ids(wid, m, 0) = menuid
+
+            ELSE                  ! Not a hierarchal menu start
+               LET v(4), v(5) = 0
+               IF separator = 1 then
+                  LET v(5) = 1
+
+               ELSE IF hotkey <> 0 then
+                  LET v(4) = hotkey
+
+               END IF             ! All other cases are normal
+
+               CALL Object (OBJM_CREATE, menuid, "TEXT|MKEY|SEPARATOR", v1$, v)
+               LET menu_ids(wid,m,0) = menuid
+
+            END IF
+
+            LET v(2) = MENT_ITEM
+            LET v(3) = menuid     ! Parent: menu for menu item
+            FOR i = 1 to ub2
+                LET v$ = menu$(m,i)
+                IF v$ = "" then
+
+                   ! Check to see if all subsequent items are null.
+
+                   FOR j = i+1 to ub2
+                       IF menu$(m,j) <> "" then EXIT FOR
+                   NEXT j
+                   IF j > ub2 then EXIT FOR      ! Done with this menu
+
+                   LET v$ = " "   ! Keep the null item
+
+                END IF
+
+                CALL DecodeItem (v$, v1$, separator, hotkey, hierarchy)
+
+                IF hierarchy = 1 then
+                   CALL SearchForParent (v1$, menu$(,), menu, item)
+                   LET v(3) = menu_ids(wid, menu, item)
+
+                ELSE
+                   LET v(4), v(5) = 0
+                   IF separator = 1 then
+                      LET v(5) = 1
+
+                   ELSE IF hotkey <> 0 then
+                      LET v(4) = hotkey
+
+                   END IF         ! All other cases are normal
+
+                   CALL Object (OBJM_CREATE, itemid, "TEXT|MKEY|SEPARATOR", v1$, v)
+                   LET menu_ids(wid,m,i) = itemid
+
+                END IF
+
+            NEXT i
+
+        NEXT m
+
+        ! Show the entire menu structure by showing the last item id used.
+        ! If the window is visible, then so will be the menus.
+        ! If the window is hidden, then so will be the menus.
+        ! In other words, as goes the window, so goes its menus.
+
+        CALL Object (OBJM_SHOW, itemid, "", "", v)
+
+    END SUB                       ! TC_Menu_Set
+
+    SUB TC_Menu_AddMenu (window, menu$())
+
+        ! This routine adds a new menu to the end of the menu
+        ! bar for the menu associated with the window specified.
+
+        ! It is an error if the menu$() array does not start with 0,
+        ! or does not end with a subscript 1 or more, or
+        ! if there is currently no menu associated with the window.
+
+        ! It is not possible, with this routine, to specify hierarchal
+        ! menus or hot key equivalants.  (Hot key equivalents can be
+        ! added fairly easily.)
+
+        ! Separators are allowed.
+
+        LOCAL newmenuno, ubm, ub2, ub3, i
+        LOCAL prevmenuid, newmenuid, itemid
+        LOCAL w(1)
+
+        CALL TC_Win_Valid (window)
+
+        ! Check for legal size of menu$()
+
+        LET ubm = ubound(menu$)
+        IF lbound(menu$) <> 0 then
+           CAUSE ERROR 821, "Lower bound for menu$ columns must be zero."
+        END IF
+
+        IF ubm < 1 then
+           CAUSE ERROR 822, "Menu$ vector must have elements."
+        END IF
+
+        ! Next, find the highest numbered menu in menu_ids
+
+        LET ub2 = ubound(menu_ids,2)
+        LET ub3 = ubound(menu_ids,3)
+
+        FOR i = ub2 to 0 step -1
+            IF menu_ids(window, i, 0) <> -1 then EXIT FOR
+        NEXT i
+
+        LET newmenuno = i + 1
+        IF newmenuno = 0 then
+           ! CAUSE ERROR         No menus in that window
+        END IF
+
+        IF newmenuno > ub2 or ubm > ub3 then
+           CALL ExpandMenuArray (window, newmenuno, ubm)
+        END IF
+
+        ! All is now okay.
+
+        LET prevmenuid = menu_ids (window, newmenuno-1, 0)
+
+        MAT Redim v(3)
+        LET v(1) = OBJT_MENU
+        LET v(2) = MENT_BAR
+        LET v(3) = window         ! Should be prevmenuid, according to the documentation
+        CALL Object (OBJM_CREATE, newmenuid, "", "", v)
+        CALL Object (OBJM_SET, newmenuid, "TEXT", menu$(0), v)
+        LET menu_ids (window, newmenuno, 0) = newmenuid
+
+        LET v(2) = MENT_ITEM
+        LET v(3) = newmenuid
+        FOR i = 1 to ubm
+            CALL Object (OBJM_CREATE, itemid, "", "", v)
+            LET menu_ids (window, newmenuno, i) = itemid
+            IF menu$(i) = "@" then
+               LET w(1) = 1
+               CALL Object (OBJM_SET, itemid, "SEPARATOR", "", w)
+            ELSE
+               CALL Object (OBJM_SET, itemid, "TEXT", menu$(i), v)
+            END IF
+
+        NEXT i
+
+        CALL Object (OBJM_SHOW, itemid, "", "", v)
+
+    END SUB
+
+    SUB TC_Menu_DelMenu (window)
+
+        ! This routine deletes the last menu, along with its items,
+        ! from the menu bar associated with the window specified.
+
+        ! It is an error if the highest menu number is less than 1.
+
+        ! Note: Cannot delete menu 0
+
+        LOCAL menuno, itemid, i
+
+        CALL TC_Win_Valid (window)
+
+        FOR menuno = ubound(menu_ids,2) to 0 step -1
+            IF menu_ids(window, menuno, 0) <> -1 then EXIT FOR
+        NEXT menuno
+
+        IF menuno < 1 then CAUSE ERROR 825, "Can't delete menu 0."
+
+        LET itemid = menu_ids(window, menuno, 0)
+        CALL Object (OBJM_FREE, itemid, "", "", v)    ! Frees menu bar and all...
+        FOR i = 0 to ubound(menu_ids,3)
+            LET menu_ids(window, menuno, i) = -1      ! Reset menu_ids array
+        NEXT i
+
+        ! It is necessary to reshow the menu
+
+        CALL Object (OBJM_SHOW, menu_ids(window, menuno-1,0), "", "", v)
+
+    END SUB
+
+    !--------------------------------------------------
+    ! Append menu item to the end of the given menu
+    SUB TC_Menu_AddItem (wid, menu, text$)
+
+        LOCAL p, j, ub2, ub3, itemid, item
+        LOCAL v1$, separator, hotkey, hierarchy
+
+        CALL TC_Win_Valid (wid)
+
+        IF menu < 0 then
+           CAUSE ERROR 825, "Menu or item number must not be negative."
+
+        END IF
+
+        LET ub2 = ubound(menu_ids,2)   ! First subscript is window number.
+        LET ub3 = ubound(menu_ids,3)
+
+        IF menu > ub2 then
+           CAUSE ERROR 826, "To add a menu item, menu must already exist."
+
+        END IF
+
+        ! Note: All items will be added to end of a menu.
+        ! First, find the first slot available after the last real entry.
+
+        FOR j = ub3 to 1 step -1
+            IF menu_ids(wid, menu, j) > 0 then EXIT FOR
+        NEXT j
+        LET item = j + 1
+
+        IF item > ub3 then
+           LET ub3 = item
+           CALL ExpandMenuArray (wid, ub2, ub3)
+
+        END IF
+
+        MAT Redim v(5)
+        LET v(1) = OBJT_MENU      ! Object Type
+        LET v(2) = MENT_ITEM      ! Menu type: Item
+        LET v(3) = menu_ids(wid, menu, 0)   ! Menubar id (parent)
+        LET v$ = text$
+        IF v$ = "" then LET v$ = " "
+
+        CALL DecodeItem (v$, v1$, separator, hotkey, hierarchy)
+
+        IF hierarchy = 1 then
+           CAUSE ERROR 827, "Added menu item cannot be hierarchical."
+
+        END IF
+
+        LET v(4), v(5) = 0
+        IF separator = 1 then
+           LET v(5) = 1
+
+        ELSE IF hotkey <> 0 then
+           LET v(4) = hotkey
+
+        END IF                    ! All other cases are normal
+
+        CALL Object (OBJM_CREATE, itemid, "TEXT|MKEY|SEPARATOR", v1$, v)
+
+        LET menu_ids(wid, menu, item) = itemid
+        CALL Object (OBJM_SHOW, itemid, "", "", v)    ! Must be done.
+
+    END SUB
+
+    !--------------------------------------------------
+    ! Delete menu item from menu.
+    SUB TC_Menu_DelItem (wid, menu, item)
+
+        ! To delete the entire menu structure, use the FREE
+        ! method with the negative of any of the menu or item ids.
+
+        LOCAL id, i
+
+        CALL TC_Win_Valid (wid)
+
+        LET id = menu_ids(wid, menu, item)
+
+        IF id > 0 then
+           ! Avoid, at all costs, attempting to free the default window.
+
+           CALL Object (OBJM_FREE, menu_ids(wid, menu, item), "", "", v)
+
+           ! We now close up the menu_ids array.
+
+           FOR i = item + 1 to ubound(menu_ids,3)
+               LET menu_ids(wid, menu, i-1) = menu_ids(wid, menu, i)
+           NEXT i
+           LET menu_ids (wid, menu, i-1) = -1
+
+           ! Need to ReSHOW.  Done by SHOWing any valid id.
+           ! For now, assume that menu_ids (wid, 1, 0) is still valid.
+
+           CALL Object (OBJM_SHOW, menu_ids(wid, 1, 0), "", "", v)
+
+        END IF
+
+    END SUB
+
+    !--------------------------------------------------
+    ! Set text for menu item
+    SUB TC_Menu_SetText (wid, menu, item, t$)
+
+        ! Restrictions: no hotkeys, separators, or hierarchical menus.
+
+        LOCAL id
+
+        CALL TC_Win_Valid (wid)
+
+        WHEN error in
+             LET id = menu_ids(wid, menu, item)
+             CALL Object (OBJM_SET, id, "TEXT", t$, v)
+
+        USE
+             CAUSE ERROR 828, "Invalid window id, menu, item combination."
+
+        END WHEN
+
+    END SUB
+
+    !--------------------------------------------------
+    ! Get text for menu item
+    SUB TC_Menu_GetText (wid, menu, item, t$)
+
+        ! Restrictions: no hotkeys, separators, or hierarchical menus.
+
+        LOCAL id
+
+        CALL TC_Win_Valid (wid)
+
+        WHEN error in
+             LET id = menu_ids(wid, menu, item)
+             CALL Object (OBJM_GET, id, "TEXT", t$, v)
+
+        USE
+             CAUSE ERROR 828, "Invalid window id, menu, item combination."
+
+        END WHEN
+
+    END SUB
+
+    !----------------------------------------------
+    !
+    SUB TC_Menu_SetCheck (wid, menu, item, flag)
+
+        LOCAL id
+
+        IF item = 0 then EXIT SUB      ! Not checkable
+
+        WHEN error in
+             LET id = menu_ids(wid, menu, item)  ! Check legality of arguments
+
+        USE
+             CAUSE ERROR 828, "Invalid window id, menu, item combination."
+
+        END WHEN
+
+        CALL Object (OBJM_GET, id, "CHECKABLE|SEPARATOR", v$, v)
+
+        IF v(1) = 0 or v(2) = 1 then EXIT SUB
+
+        LET v(1) = flag
+        CALL Object (OBJM_SET, id, "CHECKED", "", v)
+
+    END SUB
+
+    !----------------------------------------------
+    !
+    SUB TC_Menu_GetCheck (wid, menu, item, flag)
+
+        LOCAL id
+
+        LET flag = 0
+        IF item = 0 then EXIT SUB      ! Not checkable
+
+        WHEN error in
+             LET id = menu_ids(wid, menu, item)  ! Check legality of arguments
+
+        USE
+             CAUSE ERROR 828, "Invalid window id, menu, item combination."
+
+        END WHEN
+
+        CALL Object (OBJM_GET, id, "CHECKABLE|SEPARATOR", v$, v)
+
+        IF v(1) = 0 or v(2) = 1 then EXIT SUB
+
+        CALL Object (OBJM_GET, id, "CHECKED", "", v)
+        LET flag = v(1)
+
+    END SUB
+
+    !----------------------------------------------
+    !
+    SUB TC_Menu_SetEnable (wid, menu, item, flag)
+
+        LOCAL id
+
+        WHEN error in
+             LET id = menu_ids(wid, menu, item)
+
+        USE
+             CAUSE ERROR 828, "Invalid window id, menu, item combination."
+             EXIT SUB
+
+        END WHEN
+
+        LET v(1) = flag
+        CALL Object (OBJM_SET, id, "ENABLED", "", v)
+
+    END SUB
+
+    !----------------------------------------------
+    !
+    SUB TC_Menu_GetEnable (wid, menu, item, flag)
+
+        LOCAL id
+
+        LET flag = 0
+        WHEN error in
+             LET id = menu_ids(wid, menu, item)
+
+        USE
+             CAUSE ERROR 828, "Invalid window id, menu, item combination."
+             EXIT SUB
+
+        END WHEN
+
+        CALL Object (OBJM_GET, id, "ENABLED", "", v)
+        LET flag = v(1)
+
+    END SUB
+
+    !----------------------------------------------
+    ! Free menus for wid (similar to tw_menu_clear)
+    ! We need this only if the user wants to change the entire menu setup
+    ! for a window without first freeing the window.
+    SUB TC_Menu_Free (wid)
+
+        LOCAL m, i, item
+
+        ! To free the entire menu structure, merely FREE any particular
+        ! element of the menu using the negative of the id.
+
+        WHEN EXCEPTION IN
+             LET item = menu_ids(wid,1,0)
+             IF item = -1 then EXIT SUB
+             CALL Object (OBJM_FREE, -item, "", "", v)
+        USE
+             EXIT SUB             ! If an error, do nothing; might be no menus
+        END WHEN
+
+        FOR m = 0 to ubound(menu_ids, 2)
+            FOR i = 0 to ubound(menu_ids, 3)
+                WHEN ERROR IN
+                     LET menu_ids(wid, m, i) = -1
+
+                USE
+                     ! Catch and ignore subscript errors.
+                END WHEN
+
+            NEXT i
+        NEXT m
+
+    END SUB
+
+    !---------------------------------------------
+    ! Map from menu ids to indexes given menuid and wptr.
+    ! Return menu, and item; search status in found (0 or 1).
+    SUB Menu_Map (menuid, wptr, menu, item, found)
+
+        ! Shouldn't wptr be an output parameter?
+
+        LOCAL lb1, lb2, ub1, ub2, m, i, dummy
+
+        LET lb1 = lbound(menu_ids, 2)
+        LET ub1 = ubound(menu_ids, 2)
+        LET lb2 = lbound(menu_ids, 3)
+        LET ub2 = ubound(menu_ids, 3)
+
+        WHEN ERROR IN
+             LET dummy = menu_ids(wptr, lb1, lb2)
+        USE
+             CAUSE ERROR 829, "Invalid window id in Menu Map."
+
+        END WHEN
+
+        LET found = 0
+        FOR m = lb1 to ub1        ! Run through the menus
+            FOR i = lb2 to ub2    ! Run through the items
+                IF menu_ids(wptr, m, i) = menuid then      ! Found it!
+                   LET menu = m
+                   LET item = i
+                   LET found = 1
+                   EXIT SUB
+
+                END IF
+
+            NEXT i
+
+        NEXT m
+
+    END SUB
+
+    ! Now, two routines to help with hierarchical menus.
+
+    SUB DecodeItem (v$, v1$, sep, hot, hier)
+
+        LOCAL p, code$
+
+        IF pos(v$, "|") > 0 then
+           CALL SelectItemForPlatform (v$)
+        END IF
+
+        IF language$ = "japanese" THEN
+           LET p = kpos(v$, "@")
+           LET p = ctob(v$, p)    ! Convert character to byte for compatibility below.
+        ELSE
+           LET p = pos(v$, "@")
+        END IF
+
+
+        LET v1$ = v$
+        LET sep, hot, hier = 0
+        IF v$ = "@" then
+           LET sep = 1
+           LET v1$ = " "
+
+        ELSE IF p = 0 then
+           LET v1$ = v$
+
+        ELSE IF p = 1 then
+           LET hier = 1
+           LET v1$ = v$[2:1000]   ! Strip the leading "@"
+
+        ELSE
+           LET code$ = v$[p:p+10]
+           LET v1$ = v$[1:p-1]
+           IF code$ = "@@" then
+              ! This is okay; start of a hierarchical menu
+
+           ELSE IF len(code$) = 2 then      ! "@@" checked for above
+              LET hot = ord(code$[2:2])
+
+           ELSE
+              CAUSE ERROR 823, "Don't recognize menu item: " & v$
+
+           END IF
+
+        END IF
+
+    END SUB
+
+    SUB SelectItemForPlatform (v$)
+
+        LOCAL ucv$, p, p1, p2
+
+        LET ucv$ = ucase$(v$)
+        LET p = pos(ucv$, machine$)
+        IF p = 0 then LET p = pos(ucv$, "OTHER")
+
+        IF p = 0 then EXIT SUB    ! Error, ignore!!!
+
+        LET p1 = pos(v$, "|", p)
+        LET p2 = pos(v$, "|", p1+1)
+        LET v$ = v$[p1+1:p2-1]
+
+    END SUB
+
+    SUB SearchForParent (v1$, menu$(,), menu, item)
+
+        LOCAL v$
+
+        LET v$ = v1$ & "@@"
+        FOR menu = 1 to ubound(menu$,1)
+            FOR item = 1 to ubound(menu$,2)
+                IF v$ = menu$(menu,item) then EXIT SUB
+            NEXT item
+        NEXT menu
+
+        CAUSE ERROR 824, "Can't find parent menu: " & v$
+
+    END SUB
+
+    ! A private routine for maintaining the three-dimensional
+    ! array that contains the association between
+    ! id numbers and entries in a particular menu array.
+    !
+    SUB ExpandMenuArray (wid, ub1, ub2)
+
+        LOCAL maxwin, maxmenu, maxitem, temp(0:0, 0:0, 0:0), w, r, c
+
+        LET maxwin = ubound(menu_ids,1)     ! Max number of windows
+        LET maxmenu = ubound(menu_ids,2)    ! Max number of menus
+        LET maxitem = ubound(menu_ids,3)    ! Max number of items
+        IF wid > maxwin and ub1 <= maxmenu and ub2 <= maxitem then
+           MAT Redim menu_ids(0:wid, 0:maxmenu, 0:maxitem)
+           FOR w = maxwin+1 to wid
+               FOR r = 0 to maxmenu
+                   FOR c = 0 to maxitem
+                       LET menu_ids(w,r,c) = -1
+                   NEXT c
+               NEXT r
+           NEXT w
+
+        ELSE IF ub1 > maxmenu or ub2 > maxitem then
+
+           ! Need to copy to a re-dimmed temp to preserve contents.
+
+           LET maxwin = max(wid,maxwin)
+           LET maxmenu = max(ub1,maxmenu)
+           LET maxitem = max(ub2,maxitem)
+           MAT Redim temp(0:maxwin, 0:maxmenu, 0:maxitem)
+           MAT temp = (-1)*con
+           FOR w = 0 to maxwin
+               FOR r = 0 to maxmenu
+                   FOR c = 0 to maxitem
+                       WHEN ERROR IN
+                            LET temp(w,r,c) = menu_ids(w,r,c)
+                       USE
+                       END WHEN
+                   NEXT c
+               NEXT r
+           NEXT w
+           MAT menu_ids = temp
+
+        END IF
+
+    END SUB
+
+    ! Checkbox routines.
+
+    !---------------------------------------------------------------
+    SUB TC_Checkbox_Create (cid, text$, xl, xr, yb, yt)
+
+        LOCAL t$
+
+        CALL Normalize_Rect (xl, xr, yb, yt, 0, CheckBox_Height)
+
+        LET v(1) = OBJT_CONTROL
+        CALL Object (OBJM_CREATE, cid, "", "", v)
+
+        LET v(1) = CTLT_CHECKBOX  ! Check box
+        CALL Object (OBJM_SET, cid, "CONTROL TYPE", "", v)
+
+        CALL SetRect (cid, xl, xr, yb, yt)
+
+        LET t$ = text$            ! "Protect" the parameter
+        CALL JustifyText (cid, t$)     ! Set justification before showing
+        CALL Object (OBJM_SET, cid, "TEXT", t$, v)
+
+        IF show_default_flag <> 0 then CALL Object (OBJM_SHOW, cid, "", "", v)
+
+    END SUB
+
+    SUB TC_CheckBox_Set (cid, state)
+
+        ! Sets a checkbox to "on" if state <> 0; to "off" if 0.
+
+        LET v(1) = abs(sgn(state))
+
+        CALL Object (OBJM_SET, cid, "STATE", "", v())
+
+    END SUB
+
+    SUB TC_CheckBox_Get (cid, state)
+
+        ! Gets a checkbox stat; state = 1 if checked, 0 if not.
+
+        CALL Object (OBJM_GET, cid, "STATE", "", v())
+        LET state = v(1)
+
+    END SUB
+
+    ! This is used by TC_SText_Create, TC_PushBtn_Create, TC_RadioGroup_Create, and TC_CheckBox_Create
+
+    SUB JustifyText (cid, s$)
+
+        ! This routine examines s$.  If there is a "|"
+        ! immediately followed by one of: left, center, right,
+        ! this routine sets the text justification for the control
+        ! and strips the "|" with the text justifier from s$.
+        ! In all other cases, s$ is unchanged.
+
+        LOCAL p, tj$, tj
+
+        LET p = posr(s$, "|")
+        IF p = 0 then EXIT SUB
+
+        MAT Redim v(1)
+        LET tj$ = ucase$(s$[p+1:1000])
+        SELECT CASE tj$
+        CASE "LEFT"
+             LET v(1) = 0
+        CASE "CENTER"
+             LET v(1) = 1
+        CASE "RIGHT"
+             LET v(1) = 2
+        CASE else
+             EXIT SUB
+        END SELECT
+        LET s$ = s$[1:p-1]        ! Shorten s$
+        CALL Object (OBJM_SET, cid, "TEXT JUSTIFY", "", v())
+
+    END SUB
+
+    ! Edit field routines.
+
+    !---------------------------------------------------------------
+    ! Create edit field for Ok. prompt for commands
+    SUB TC_Edit_Create (cid, t$, xl, xr, yb, yt)
+
+        CALL Normalize_Rect (xl, xr, yb, yt, 0, Edit_Height)
+
+        LET v(1) = OBJT_CONTROL
+        CALL Object (OBJM_CREATE, cid, "", "", v)
+
+        LET v(1) = CTLT_EDIT
+        CALL Object (OBJM_SET, cid, "CONTROL TYPE", v$, v)
+
+        CALL SetRect (cid, xl, xr, yb, yt)
+
+        CALL TC_Edit_SetText (cid, t$)
+
+        IF show_default_flag <> 0 then CALL Object (OBJM_SHOW, cid, "", "", v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Set text for edit field.
+    ! Do not check for compatibility with the format
+    SUB TC_Edit_SetText (cid, t$)
+
+        CALL Object (OBJM_SET, cid, "TEXT", t$, v)
+
+    END SUB
+
+    SUB TC_Edit_GetText (cid, t$)
+
+        CALL Object (OBJM_GET, cid, "TEXT", t$, v())
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Set format for edit field.
+    ! Do not check for compatibility with the text
+    SUB TC_Edit_SetFormat (cid, fmt$)
+
+        IF fmt$ = "" then LET fmt$ = " "
+        CALL Object (OBJM_SET, cid, "FORMAT", fmt$, v)
+
+    END SUB
+
+    !-----------------------------------------
+    ! Given edit field id, check that entered text
+    ! conforms to field type specification.
+    ! If it does, errormess$ is returned as "".
+    ! If it does not, errormess$ suggests the error.
+    SUB TC_Edit_CheckField (cid, errormess$)
+
+        LOCAL fm$, t$
+
+        CALL Object (OBJM_GET, cid, "FORMAT", fm$, v)
+        CALL Object (OBJM_GET, cid, "TEXT", t$, v)
+        WHEN error in
+             CALL CheckField (fm$, t$)
+             LET errormess$ = ""
+
+        USE
+             LET errormess$ = extext$
+
+        END WHEN
+
+    END SUB
+
+    !-----------------------------------------
+    ! Given an object id, advance the focus to the
+    ! next object in the focus order.  If the object is not found, or if there
+    ! is no further sensitive object, then does nothing.
+    ! This does NOT restrict itself to edit fields!
+    SUB Edit_FocusShift (wid, cid)
+
+        LOCAL i, found, nids, ids(0)
+
+        CALL Object (OBJM_GET, wid, "FOCUS ORDER", v$, ids)
+
+        LET found = 0
+        LET nids = ubound(ids)
+        FOR i = 1 to nids
+            IF cid = ids(i) then
+               LET found = 1
+               EXIT FOR
+            END IF
+
+        NEXT i
+
+        IF found = 0 then EXIT SUB     ! Not found, so exit
+
+        ! Find next object that is sensitive; do not wrap around
+
+        FOR i = i+1 to nids
+
+            CALL Object (OBJM_GET, ids(i), "SENSITIVE", "", v)
+
+            IF v(1) = 1 then      ! Select object, and exit; otherwise, exit.
+               CALL Object (OBJM_SELECT, ids(i), "", "", v)
+               EXIT SUB
+
+            END IF
+
+        NEXT i
+
+    END SUB
+
+    !---------------------------------------------------
+    ! Given a format string fmt$ and a string s$ for verification
+    ! cause an error with errno if the string does not match
+    ! the format.
+    SUB CheckField (fmt1$, s$)    ! Private
+
+        LOCAL fmt$, n, low, high, p1, year, month, day, zip, plusfour
+
+        LET fmt$ = lcase$(trim$(fmt1$))
+        IF fmt$ = "" then
+
+        ELSEIF fmt$ = "alpha" then
+           CALL CheckAlpha (s$)
+
+        ELSEIF fmt$ = "alphanum" then
+           CALL CheckAlphaNum (s$)
+
+        ELSEIF fmt$ = "number" then
+           CALL CheckNumber (s$, n)
+
+        ELSEIF fmt$ = "integer" then
+           CALL CheckInteger (s$, n)
+
+        ELSEIF fmt$[1:5] = "range" then
+           LET p1 = cpos (fmt$[8:MAXNUM],  " ")
+           WHEN ERROR IN
+                LET low = val(fmt$[7:7+p1-1])
+                LET high = val(fmt$[8+p1:MAXNUM])
+
+           USE
+                CAUSE ERROR 1, "Bad internal format for |RANGE field type: " & fmt$
+
+           END WHEN
+           CALL CheckRange (s$, low, high, n)
+
+        ELSEIF fmt$[1:6] = "frange" then
+           LET p1 = cpos(fmt$[9:MAXNUM], " ")
+           WHEN ERROR IN
+                LET low = val(fmt$[8:8+p1-1])
+                LET high = val(fmt$[9+p1:MAXNUM])
+
+           USE
+                CAUSE ERROR 1, "Bad internal format for |FRANGE field type: " & fmt$
+
+           END WHEN
+           CALL CheckFRange (s$, low, high, n)
+
+        ELSEIF fmt$ = "zip" then
+           CALL CheckZip (s$, zip, plusfour)
+
+        ELSEIF fmt$ = "phone" then
+           ! CALL CheckPhone  (s$,  area_code,  exchange,  extension)
+           CALL CheckPhone (s$)
+
+        ELSEIF fmt$ = "ss" then
+           CALL CheckSS (s$)
+
+        ELSEIF fmt$[1:4] = "date" then
+           CALL CheckDate (fmt$[6:MAXNUM], s$, year, month, day)
+
+        ELSEIF fmt$[1:6] = "length" then
+           CALL CheckLength (fmt$[8:MAXNUM], s$)
+
+        ELSEIF fmt$[1:6] = "format" then
+           CALL CheckFormat (fmt$[8:MAXNUM], s$)
+
+        ELSEIF fmt$[1:4] = "list" then
+           CALL CheckList (fmt$[6:MAXNUM], s$)
+
+        ELSEIF fmt$ = "protected" then
+           ! FormLib field type (text object in this case)
+
+        ELSE
+        END IF
+
+    END SUB
+
+    SUB CheckAlpha (s$)           ! Private
+
+        IF language$ = "japanese" then
+           IF kncpos(lcase$(s$), letters$) <> 0 then
+              CAUSE ERROR 1, message$(s$, "Abcdewxyz (letters only)")
+           END IF
+        ELSE
+           IF ncpos(lcase$(s$), letters$) <> 0 then
+              CAUSE ERROR 1, message$(s$, "Abcdewxyz (letters only)")
+           END IF
+        END IF
+
+    END SUB
+
+    SUB CheckAlphaNum  (s$)       ! Private
+
+        IF language$ = "japanese" then
+           IF kncpos (lcase$(s$), alphas$) <> 0 then
+              CAUSE ERROR 1, message$(s$, "A1B2C3 (letters or digits only)")
+           END IF
+        ELSE
+           IF ncpos (lcase$(s$), alphas$) <> 0 then
+              CAUSE ERROR 1, message$(s$, "A1B2C3 (letters or digits only)")
+           END IF
+        END IF
+
+    END SUB
+
+    SUB CheckNumber (s$, n)       ! Private
+
+        WHEN ERROR in
+             LET n = Val(s$)
+        USE
+             CAUSE ERROR 1, message$(s$, "numbers only")
+        END WHEN
+
+    END SUB
+
+    SUB CheckInteger (s$, n)      ! Private
+
+        DECLARE DEF Intval
+
+        WHEN ERROR IN
+             LET n = Intval(s$)
+        USE
+             CAUSE ERROR 1, message$(s$, "whole number only")
+        END WHEN
+
+    END SUB
+
+    SUB CheckRange (s$, low, hi, n)    ! Private
+
+        LOCAL x
+
+        CALL CheckInteger (s$, x)
+
+        IF x < low or x > hi then
+           CAUSE ERROR 1, message$(s$, "in the range: " & Str$ (low) & " to " & Str$ (hi))
+        END IF
+
+        LET n = x
+
+    END SUB
+
+    SUB CheckFRange (s$, low, hi, n)   ! Private
+
+        LOCAL x
+
+        CALL CheckNumber (s$, x)
+
+        IF x < low or x > hi then
+           CAUSE ERROR 1, message$(s$, "in the range: " & Str$ (low) & " to " & Str$ (hi))
+        END IF
+
+        LET n = x
+
+    END SUB
+
+    SUB CheckDate (fmt$, d$, year, month, day)   ! Private
+
+        DECLARE DEF Intval
+
+        LOCAL c$, daymax
+
+        DEF MonthVal (month$)
+
+            LOCAL lcmonth$, i
+
+            LET lcmonth$ = lcase$(month$)
+            FOR i = 1 to 12
+                IF pos(monthname$(i), lcmonth$) = 1 THEN
+                   LET MonthVal = i
+                   EXIT DEF
+
+                END IF
+
+            NEXT i
+
+            CAUSE ERROR 1         ! Intercepted later; ignore message
+
+        END DEF
+
+        LET d$ = trim$(d$)        ! Remove leading and trailing spaces
+        WHEN ERROR IN
+             IF len(fmt$) <> len(d$) then CAUSE ERROR 1, "wrong length in date."
+
+             SELECT CASE Ucase$(fmt$)
+             CASE "YYYYMMDD"
+                  LET year  = Intval(d$[1:4])
+                  LET month = Intval(d$[5:6])
+                  LET day   = Intval(d$[7:8])
+
+             CASE "DD MMM YYYY"
+                  LET day   = Intval (d$[1:2])
+                  LET month = MonthVal(d$[4:6])
+                  LET year = Intval(d$[8:11])
+
+             CASE "MMM DD, YYYY"
+                  LET month = MonthVal(d$[1:3])
+                  LET day   = Intval(d$[5:6])
+                  LET year  = Intval(d$[9:12])
+
+             CASE "YYYY MMM DD", "YYYY/MMM/DD"
+                  LET year  = Intval(d$[1:4])
+                  LET month = MonthVal(d$[6:8])
+                  LET day   = IntVal(d$[10:11])
+
+             CASE else
+                  CAUSE ERROR 1, message$(d$, """YYYY MMM DD"", ""YYYYMMMDD"", ""MMM DD, YYYY"", (others)")
+
+             END SELECT
+
+             IF month < 1 or month > 12 then CAUSE ERROR 1, message$(d$, "in the range 1 to 12")
+             IF day < 1 then CAUSE ERROR 1, message$(d$, "number > 0")
+
+             SELECT CASE month
+             CASE 2
+                  LET daymax = 28
+                  IF mod(year,4) = 0 and mod(year,100) <> 0 or mod(year,400) = 0 then
+                     LET daymax = 29
+                  END IF
+
+             CASE 4, 6, 9, 11
+                  LET daymax = 30
+
+             CASE ELSE
+                  LET daymax = 31
+
+             END SELECT
+             IF day > daymax then CAUSE ERROR 1, "number <= " & str$(daymax)
+
+        USE
+             CAUSE ERROR 1, message$(d$, Ucase$(fmt$))
+
+        END WHEN
+
+    END SUB
+
+    SUB CheckPhone (s$)           ! Private
+
+        LOCAL fmt$
+
+        WHEN ERROR IN
+             IF Len (s$) = 8 then
+                CALL CheckFormat ("999-9999", s$)
+
+             ELSE IF Len (s$) = 12 then
+                IF s$[4:4] = "-" then LET fmt$="999-999-9999" else LET fmt$="999/999-9999"
+                CALL CheckFormat (fmt$, s$)
+
+             ELSE
+                CAUSE ERROR 1     ! Forces the subsequent CAUSE ERROR
+
+             END IF
+
+        USE
+             CAUSE ERROR 1, message$(s$, "999-9999 or 999-999-9999")
+
+        END WHEN
+
+    END SUB
+
+    SUB CheckZip (s$, zip, plusfour)   ! Private
+
+        LOCAL trims$
+
+        LET trims$ = trim$(s$)
+
+        WHEN ERROR IN
+             IF len(trims$) = 5 then
+                CALL CheckInteger (trims$[1:5], zip)
+                LET plusfour = 0
+
+             ELSE IF len(trims$) = 10 then
+                CALL CheckInteger (trims$[1:5], zip)
+                CALL CheckInteger (trims$[7:10], plusfour)
+
+             ELSE
+                CAUSE ERROR 1
+
+             END IF
+
+        USE
+             CAUSE ERROR 1, message$(s$, "99999 or 99999-9999")
+
+        END WHEN
+
+    END SUB
+
+    SUB CheckSS (s$)              ! Private
+
+        WHEN ERROR IN
+             CALL CheckFormat ("999-99-9999", s$)
+
+        USE
+             CAUSE ERROR 1, message$(s$, "000-00-0000")
+
+        END WHEN
+
+    END SUB
+
+    SUB CheckList (listp$, sp$)   ! Private
+
+        LOCAL s$, list$, lenlist, p1, p2
+
+        LET s$    = Ucase$(sp$)
+        LET list$ = Ucase$(listp$)
+        LET lenlist = len(list$)
+        LET p2 = 1
+        DO
+           LET p1 = ncpos(list$, ", ", p2)
+           IF p1 = 0 then EXIT DO
+           LET p2 = cpos(list$, ", ", p1)
+           IF p2 = 0 then LET p2 = len(list$) + 1
+           IF s$ = trim$(list$[p1:p2-1]) then EXIT SUB
+        LOOP
+
+        CAUSE ERROR 1, message$(s$, "one of " & listp$)
+
+    END SUB
+
+    SUB CheckLength (fmt$, s$)    ! Private
+
+        LOCAL p, n1, n2, n
+
+        LET p = cpos(fmt$, " ")
+        IF p = 0 then
+           WHEN ERROR IN
+                LET n1 = val(fmt$)
+           USE
+                CAUSE ERROR 1, "Bad internal format for |LENGTH field type: " & fmt$
+           END WHEN
+
+           IF len(s$) <> n1 then
+              CAUSE ERROR 1, message$(s$, "field of length " & str$(n1))
+
+           END IF
+
+        ELSE
+           WHEN ERROR IN
+                LET n1 = val(fmt$[1:p-1])
+                LET n2 = val(fmt$[p+1:MAXNUM])
+
+           USE
+                CAUSE ERROR 1, "Bad internal format for |LENGTH field type: " & fmt$
+
+           END WHEN
+           IF len(s$) < n1 or len(s$) > n2 then
+              CAUSE ERROR 1, message$(s$,"field length between " & str$(n1) & " and " & str$(n2))
+
+           END IF
+
+        END IF
+
+    END SUB
+
+    !----------------------------------------------------------------------------------
+    ! Could use parallel code from formlib.tru.
+    ! fmt$ is either a number or two numbers separated by a space
+    !----------------------------------------------------------------------------------
+    ! Supports the following format characters:
+    !  A  any letter
+    !  9  any digit
+    !  X  any letter or digit
+    !  ?  any character at all
+    !  *  any sequence of characters  (not part of FormLib)
+    ! Wildcard  (*) not supported yet.
+    ! All other characters are taken verbatim.
+    SUB CheckFormat  (fmt$, s$)   ! Private
+
+        LOCAL flen, error, i, n, ucfmt$
+
+        LET flen = len(fmt$)
+        LET error = 0
+        LET i = 1
+
+        ! Remove when * is implemented
+        IF flen <> len(s$) then CAUSE ERROR 1, "Edit and format strings must have the same length."
+
+        LET ucfmt$ = Ucase$(fmt$)
+        FOR i = 1 to flen
+
+            WHEN ERROR IN
+
+                 IF ucfmt$[i:i] = "A" then
+                    CALL CheckAlpha (s$[i:i])
+
+                 ELSEIF ucfmt$[i:i] = "9" then
+                    CALL CheckInteger (s$[i:i], n)
+
+                 ELSEIF ucfmt$[i:i] = "X" then
+                    CALL CheckAlphaNum (s$[i:i])
+
+                 ELSEIF ucfmt$[i:i] = "?" then
+                    ! Any character is ok.
+
+                 ELSE             ! Must match character
+                    IF ucfmt$[i:i] <> s$[i:i] then CAUSE ERROR 1, "Characters must match: "   & s$[i:i] & ", " & fmt$[i:i]
+
+                 END IF
+
+            USE
+                 CAUSE ERROR 1, message$(s$, fmt$)
+
+            END WHEN
+
+        NEXT i
+
+    END SUB
+
+    DEF Intval (s$)
+
+        LET s$ = trim$(s$)
+
+        IF language$ = "japanese" THEN
+           IF s$ = "" or kncpos(s$, "0123456789") <> 0 then CAUSE ERROR 1
+        ELSE
+           IF s$ = "" or ncpos(s$, "0123456789") <> 0 then CAUSE ERROR 1
+        END IF
+
+        LET Intval = val(s$)
+
+    END DEF
+
+    DEF message$ (s$, f$) = "       You entered: " & s$ & "|Try something like: " & f$
+
+    ! Graphics routines.
+
+    !---------------------------------------------------------------
+    SUB TC_Graph_Create (cid, type$, xl, xr, yb, yt)
+
+        LOCAL t$
+
+        ! CALL Normalize_Rect (xl, xr, yb, yt, 0, 0)
+        ! DO NOT ATTEMPT TO FIDDLE WITH THE USERS GRAPHICAL OBJECT
+
+        LET v(1) = OBJT_GRAPHIC
+        CALL Object (OBJM_CREATE, cid, "", "", v)
+
+        LET t$ = ucase$(type$)
+        IF t$ = "CIRCLE" then
+           LET v(1) = GRFT_CIRCLE
+
+        ELSEIF t$ = "LINE" then
+           LET v(1) = GRFT_LINE
+
+        ELSEIF t$ = "RECTANGLE" then
+           LET v(1) = GRFT_RECTANGLE
+
+        ELSEIF t$ = "ARC" then
+           LET v(1) = GRFT_ARC
+
+        ELSEIF t$ = "PIE" then
+           LET v(1) = GRFT_PIE
+
+        ELSEIF t$ = "ALINE" then
+           LET v(1) = GRFT_ALINE
+
+        ELSEIF t$ = "ROUNDRECT" then
+           LET v(1) = GRFT_ROUNDRECT
+
+        ELSEIF t$ = "POLYGON" then
+           LET v(1) = GRFT_POLYGON
+
+        ELSEIF t$ = "POLYLINE" then
+           LET v(1) = GRFT_POLYLINE
+
+        ELSEIF t$ = "IMAGE" then
+           LET v(1) = GRFT_IMAGE
+
+        ELSE
+           CAUSE ERROR 840, "Invalid graphics type: " & type$
+
+        END IF
+
+        CALL Object (OBJM_SET, cid, "GRAPHIC TYPE", "", v)
+
+        CALL SetRect (cid, xl, xr, yb, yt)
+
+        IF show_default_flag <> 0 then CALL Object (OBJM_SHOW, cid, "", "", v)
+
+        ! Note: we should be able to show all the different graphics
+        ! objects even if some of the components haven't yet been
+        ! defined.  This is intended.
+
+    END SUB
+
+    SUB TC_Graph_Shift (cid, deltax, deltay)
+
+        ! This routine shifts a graphics object.
+        ! For all, it is necessary to shift the Rectangle.
+        ! For Arc and Pie, it is necessary to shift the radii.
+        ! For Polyline and Polygon, it is necessary to shift the points.
+
+        LOCAL visible, units, radii(4), rect(4), dx, dy
+        LOCAL graphic_type, i, px0, py0, px1, py1
+
+        LET dx = deltax
+        LET dy = deltay
+
+        CALL Object (OBJM_GET, cid, "VISIBLE", "", v())
+        LET visible = v(1)
+        IF visible = 1 then CALL TC_Erase (cid)
+
+        CALL Object (OBJM_GET, cid, "UNITS", "", v())
+        LET units = v(1)
+
+        IF units = 1 then
+
+           ! If units are user, set them to pixels, for the duration,
+           ! and convert dx, dy to pixels.
+
+           LET v(1) = 0           ! Set units to pixels, for the duration
+           CALL Object (OBJM_SET, cid, "UNITS", "", v)
+
+           CALL TC_UserToPix (0, 0, px0, py0)
+           CALL TC_UserToPix (dx, dy, px1, py1)
+           LET dx = px1 - px0
+           LET dy = py1 - py0
+        END IF
+
+        ! First, get the RECTANGLE and shift, but do not update yet.
+
+        CALL Object (OBJM_GET, cid, "RECTANGLE", "", rect())
+        LET rect(1) = rect(1) + dx
+        LET rect(2) = rect(2) + dx
+        LET rect(3) = rect(3) + dy
+        LET rect(4) = rect(4) + dy
+
+        ! Convert the PIE, ARC points, or the POLY points first
+
+        CALL Object (OBJM_GET, cid, "GRAPHIC TYPE", "", v())
+        LET graphic_type = v(1)
+        IF graphic_type = GRFT_ARC or graphic_type = GRFT_PIE then
+
+           CALL Object (OBJM_GET, cid, "START X|START Y|STOP X|STOP Y", "", radii())
+           LET radii(1) = radii(1) + dx
+           LET radii(2) = radii(2) + dy
+           LET radii(3) = radii(3) + dx
+           LET radii(4) = radii(4) + dy
+
+           ! Do not update the radii yet.
+
+        ELSE IF graphic_type = GRFT_POLYGON or graphic_type = GRFT_POLYLINE then
+
+           CALL Object (OBJM_GET, cid, "POINTS", "", v())
+           FOR i = 2 to 2*v(1) step 2
+               LET v(i) = v(i) + dx
+               LET v(i+1) = v(i+1) + dy
+           NEXT i
+           CALL Object (OBJM_SET, cid, "POINTS", "", v())
+
+        END IF
+
+        ! Next, change the RECTANGLE
+
+        CALL Object (OBJM_SET, cid, "RECTANGLE", "", rect())
+
+        ! Finally, change the PIE, ARC radii, if they exist
+
+        IF graphic_type = GRFT_ARC or graphic_type = GRFT_PIE then
+           CALL Object (OBJM_SET, cid, "START X|START Y|STOP X|STOP Y", "", radii)
+        END IF
+
+        IF units = 1 then         ! Return to user units, if necessary
+           LET v(1) = 1
+           CALL Object (OBJM_SET, cid, "UNITS", "", v)
+        END IF
+
+        IF visible = 1 then CALL TC_Show (cid)
+
+    END SUB
+
+    SUB TC_Graph_Scale (cid, scalex, scaley)
+
+        ! This routine scales a graphics object.
+        ! For all, it is necessary to scale the Rectangle.
+        ! For Arc and Pie, it is necessary to scale the radii.
+        ! For Polyline and Polygon, it is necessary to scale the points.
+
+        LOCAL visible, units, rect(4), radii(4), graphic_type, i, centerx, centery, u(4)
+
+        CALL Object (OBJM_GET, cid, "VISIBLE", "", v())
+        LET visible = v(1)
+
+        IF visible = 1 then CALL TC_Erase (cid)
+
+        ! If units are USER, change to PIXELS, for setting RECTANGLE
+
+        CALL Object (OBJM_GET, cid, "UNITS", "", v)
+        LET units = v(1)
+        IF units = 1 then
+           LET v(1) = 0
+           CALL Object (OBJM_SET, cid, "UNITS", "", v)
+        END IF
+
+        ! Need to get the centers first.
+
+        CALL Object (OBJM_GET, cid, "RECTANGLE", "", rect())
+        LET centerx = (rect(1) + rect(2))/2
+        LET centery = (rect(3) + rect(4))/2
+        LET rect(1) = (rect(1) - centerx) * scalex + centerx
+        LET rect(2) = (rect(2) - centerx) * scalex + centerx
+        LET rect(3) = (rect(3) - centery) * scaley + centery
+        LET rect(4) = (rect(4) - centery) * scaley + centery
+
+        ! Don't update the RECTANGLE just yet.
+
+        ! Convert the PIE, ARC points, or the POLY points first
+
+        CALL Object (OBJM_GET, cid, "GRAPHIC TYPE", "", v())
+        LET graphic_type = v(1)
+        IF graphic_type = GRFT_ARC or graphic_type = GRFT_PIE then
+           CALL Object (OBJM_GET, cid, "START X|START Y|STOP X|STOP Y", "", radii())
+           LET radii(1) = (radii(1)-centerx) * scalex + centerx
+           LET radii(2) = (radii(2)-centery) * scaley + centery
+           LET radii(3) = (radii(3)-centerx) * scalex + centerx
+           LET radii(4) = (radii(4)-centery) * scaley + centery
+
+           ! Don't update, just yet.
+
+        ELSE IF graphic_type = GRFT_POLYGON or graphic_type = GRFT_POLYLINE then
+           CALL Object (OBJM_GET, cid, "POINTS", "", v())
+           FOR i = 2 to 2*v(1) step 2
+               LET v(i) = (v(i)-centerx) * scalex + centerx
+               LET v(i+1) = (v(i+1)-centery) * scaley + centery
+           NEXT i
+           CALL Object (OBJM_SET, cid, "POINTS", "", v())
+
+        END IF
+
+        ! Next, adjust the RECTANGLE
+
+        CALL Object (OBJM_SET, cid, "RECTANGLE", "", rect())
+
+        ! Finally, adjust the radii if necessary.
+
+        IF graphic_type = GRFT_ARC or graphic_type = GRFT_PIE then
+           CALL Object (OBJM_SET, cid, "START X|START Y|STOP X|STOP Y", "", radii())
+        END IF
+
+        IF units = 1 then         ! Restore the original units
+           LET v(1) = 1
+           CALL Object (OBJM_SET, cid, "UNITS", "", v)
+        END IF
+
+        IF visible = 1 then CALL TC_Show (cid)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Graph_SetPoly (cid, pts(,))
+
+        LOCAL i, j, lb2, ub2, lb1, ub1, npts
+
+        LET lb2 = lbound(pts, 2)
+        LET ub2 = ubound(pts, 2)
+        IF ub2 - lb2 <> 1 then CAUSE ERROR 841, "POINTS must be in pairs for vertices."
+
+        LET lb1 = lbound(pts, 1)
+        LET ub1 = ubound(pts, 1)
+        LET npts = ub1-lb1+1
+
+        MAT REDIM v(2*npts+1)
+        LET v(1) = npts           ! number of vertices
+        LET j = 1
+        FOR i = lb1 to ub1
+            LET j = j+1
+            LET v(j) = pts(i,lb2)
+            LET j = j+1
+            LET v(j) = pts(i,ub2)
+
+        NEXT i
+        CALL Object (OBJM_SET, cid, "POINTS", v$, v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Graph_SetArc (cid, starta, stopa)
+
+        ! This is also used for setting a pie segment.
+
+        LOCAL centerx, centery, sizex, sizey, u(1), units
+
+        ! Can work entirely in pixel coordinates.
+
+        CALL Object (OBJM_GET, cid, "RECTANGLE", "", v())
+        LET centerx = (v(1) + v(2))/2
+        LET centery = (v(3) + v(4))/2
+        LET sizex = v(2) - v(1)   ! Positive for conventional math
+        LET sizey = v(4) - v(3)   ! Positive for conventional math
+        LET v(1) = centerx + sizex*cos(starta)
+        LET v(2) = centery + sizey*sin(starta)
+        LET v(3) = centerx + sizex*cos(stopa)
+        LET v(4) = centery + sizey*sin(stopa)
+
+        ! However, must set units to PIXELS to set radii.
+
+        CALL Object (OBJM_GET, cid, "UNITS", "", u)
+        LET units = u(1)
+        IF units = 1 then
+           LET u(1) = 0
+           CALL Object (OBJM_SET, cid, "UNITS", "", u)
+        END IF
+
+        ! Now, restore units to original setting.
+
+        CALL Object (OBJM_SET, cid, "START X|START Y|STOP X|STOP Y", "", v)
+        IF units = 1 then
+           LET u(1) = 1
+           CALL Object (OBJM_SET, cid, "UNITS", "", u)
+        END IF
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Graph_SetRoundRect (cid, owidth, oheight)
+
+        IF owidth > 0 then
+           LET v(1) = owidth
+           CALL Object (OBJM_SET, cid, "OVAL WIDTH", "", v)
+
+        END IF
+
+        IF oheight > 0 then
+           LET v(1) = oheight
+           CALL Object (OBJM_SET, cid, "OVAL HEIGHT", "", v)
+
+        END IF
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Set the arrowheads on an Arrow line.
+    SUB TC_Graph_SetALine (cid, sarrow, earrow)
+
+        IF sarrow = 0 THEN LET v(1) = 0 ELSE LET v(1) = 1
+        CALL Object (OBJM_SET, cid, "START ARROW", "", v)
+
+        IF earrow = 0 THEN LET v(1) = 0 ELSE LET v(1) = 1
+        CALL Object (OBJM_SET, cid, "END ARROW", "", v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Set the image.  This is the original version.
+    SUB TC_Graph_SetImage (cid, filename$, adjustflag)
+
+        ! Call the new version.
+
+        CALL TC_Graph_SetImageFromFile (cid, filename$, "", adjustflag)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Set the image from a file
+    SUB TC_Graph_SetImageFromFile (cid, filename$, filetype$, adjustflag)
+
+        ! Brings in the image from the file named.
+        ! Adjustflag:  1     Modify RECTANGLE proportionally to fit
+        !              0     Show as is, squeezing or expanding
+        !              -1    Center, regardless of RECTANGLE
+
+        LOCAL width, height, xpix, ypix
+        LOCAL xl, xr, yb, yt, xdelta, ydelta, units, visible
+
+        CALL Object (OBJM_GET, cid, "VISIBLE", "", v)
+        LET visible = v(1)
+        IF visible <> 0 then CALL TC_Erase (cid)
+
+        IF filetype$ <> "" then
+           CALL Object (OBJM_SET, cid, "FILETYPE", filetype$, v)
+        END IF
+
+        IF adjustflag <> 0 then
+           ! First, we need to get the image in order to find its size.
+
+           CALL Object (OBJM_SET, cid, "FILENAME", filename$, v)
+           CALL Object (OBJM_GET, cid, "IMAGE WIDTH|IMAGE HEIGHT", "", v)
+           LET width = v(1)
+           LET height = v(2)
+           CALL TC_GetRect (cid, xl, xr, yb, yt)
+           ASK PIXELS xpix, ypix  ! Get current window size
+
+           IF adjustflag > 0 then
+              LET xdelta = int((xr-xl - width)/2)
+              LET ydelta = int((yb-yt - height)/2)
+              LET xl = xl + xdelta
+              LET xr = xl + width - 1
+
+              LET yb = yb - ydelta
+              LET yt = yb - height + 1
+
+           ELSE                   ! Center
+              LET xdelta = int((xpix - width)/2)
+              LET xl = xdelta
+              LET xr = xl + width - 1
+              LET ydelta = int((ypix - height)/2)
+              LET yt = ydelta
+              LET yb = yt + height - 1
+
+           END IF
+
+           CALL Object (OBJM_GET, cid, "UNITS", "", v)
+           LET units = v(1)
+           LET v(1) = 0           ! Make sure pixel coordinates
+           CALL Object (OBJM_SET, cid, "UNITS", "", v)
+           CALL TC_SetRect (cid, xl, xr, yb, yt)
+           IF units <> 0 then     ! Restore user units
+              LET v(1) = units
+              CALL Object (OBJM_SET, cid, "UNITS", "", v)
+           END IF
+
+        END IF
+
+        ! We now bring in the image for real, possibly with
+        ! recalculated sizes.
+
+        CALL Object (OBJM_SET, cid, "FILENAME", filename$, v)
+        IF visible <> 0 then CALL TC_Show (cid)
+
+    END SUB
+
+    SUB TC_Graph_SetImageFromBox (cid, boxstring$)
+
+        ! This subroutine does not provide for resizing the image.
+
+        CALL Object (OBJM_SET, cid, "IMAGE", boxstring$, v)
+
+    END SUB
+
+    SUB TC_Graph_GetImageToBox (cid, boxstring$)
+
+        CALL Object (OBJM_GET, cid, "IMAGE", boxstring$, v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Graph_SetPen (cid, width, color, style$, pattern$)
+
+        ! If width <= 0, does not change width; if color < 0, does not change color;
+        ! if style$ = "", does not change style; if pattern$ = "", does not change pattern.
+
+        LOCAL style, pattern, style1$, pattern1$
+
+        IF width > 0 then
+           LET v(1) = width
+           CALL Object (OBJM_SET, cid, "WIDTH", v$, v)
+
+        END IF
+
+        IF color >= -2 then
+           LET v(1) = color
+           CALL Object (OBJM_SET, cid, "PEN COLOR", v$, v)
+
+        END IF
+
+        IF style$ <> "" then
+           LET style1$ = ucase$(style$)
+           IF style1$ = "SOLID" then
+              LET style = PENS_SOLID
+
+           ELSEIF style1$ = "DOT" then
+              LET style = PENS_DOT
+
+           ELSEIF style1$ = "DASH" then
+              LET style = PENS_DASH
+
+           ELSE
+              CAUSE ERROR 842, "Invalid pen style: " & style$
+
+           END IF
+
+           LET v(1) = style
+           CALL Object (OBJM_SET, cid, "PEN STYLE", "", v)
+
+        END IF
+
+        IF pattern$ <> "" then
+           CALL Graph_SetPattern (cid, "PEN PATTERN", pattern$)
+
+        END IF
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Graph_SetBrush (cid, backcolor, color, pattern$)
+
+        IF backcolor >= -2 then
+           LET v(1) = backcolor
+           CALL Object (OBJM_SET, cid, "BACKGROUND COLOR", "", v)
+
+        END IF
+
+        IF color >= -2 then
+           LET v(1) = color
+           CALL Object (OBJM_SET, cid, "BRUSH COLOR", "", v)
+
+        END IF
+
+        IF pattern$ <> "" then
+           CALL Graph_SetPattern (cid, "BRUSH PATTERN", pattern$)
+
+        END IF
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB TC_Graph_SetDrawmode (cid, mode$)
+
+        LOCAL m$, m
+
+        LET m$ = ucase$(mode$)
+
+        IF m$ = "COPY" then
+           LET m = DM_COPY
+
+        ELSEIF m$ = "OR" then
+           LET m = DM_OR
+
+        ELSEIF m$ = "XOR" then
+           LET m = DM_XOR
+
+        ELSEIF m$ = "CLEAR" then
+           LET m = DM_CLEAR
+
+        ELSEIF m$ = "NOT COPY" then
+           LET m = DM_NOT_COPY
+
+        ELSEIF m$ = "NOT OR" then
+           LET m = DM_NOT_OR
+
+        ELSEIF m$ = "NOT XOR" then
+           LET m = DM_NOT_XOR
+
+        ELSEIF m$ = "NOT CLEAR" then
+           LET m = DM_NOT_CLEAR
+
+        ELSE
+           CAUSE ERROR 843, "Invalid drawmode: " & mode$
+
+        END IF
+
+        LET v(1) = m
+        CALL Object (OBJM_SET, cid, "DRAWMODE", "", v)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB Graph_SetPattern (cid, attr$, pattern1$)
+
+        LOCAL pattern, pattern$
+
+        LET pattern$ = ucase$(pattern1$)
+        IF pattern$ = "HOLLOW" THEN
+           LET pattern = PBP_HOLLOW
+
+        ELSEIF pattern$ = "SOLID" THEN
+           LET pattern = PBP_SOLID
+
+        ELSEIF pattern$ = "RUBBER" THEN
+           LET pattern = PBP_RUBBER
+
+        ELSEIF ucase$(attr$) = "PEN PATTERN" THEN
+           CAUSE ERROR 844, "Invalid pen pattern: " & pattern1$
+
+        ELSEIF pattern$ = "HORIZ" THEN
+           LET pattern = PBP_HORZ
+
+        ELSEIF pattern$ = "VERT" THEN
+           LET pattern = PBP_VERT
+
+        ELSEIF pattern$ = "FDIAG" THEN
+           LET pattern = PBP_FDIAG
+
+        ELSEIF pattern$ = "BDIAG" THEN
+           LET pattern = PBP_BDIAG
+
+        ELSEIF pattern$ = "CROSS" THEN
+           LET pattern = PBP_CROSS
+
+        ELSEIF pattern$ = "DIAGCROSS" THEN
+           LET pattern = PBP_DIAGCROSS
+
+        ELSE
+           CAUSE ERROR 845, "Invalid brush pattern: " & pattern1$
+
+        END IF
+
+        LET v(1) = pattern
+        CALL Object (OBJM_SET, cid, attr$, "", v)
+
+    END SUB
+
+    ! Groupbox routine.
+
+    !---------------------------------------------------------------
+    ! It is just a rectangle
+    SUB TC_Groupbox_Create (cid, title$, xl, xr, yb, yt)
+
+        CALL Normalize_Rect (xl, xr, yb, yt, 0, 0)
+
+        LET v(1) = OBJT_CONTROL
+        CALL Object (OBJM_CREATE, cid, "", "", v)
+
+        LET v(1) = CTLT_GROUPBOX
+        CALL Object (OBJM_SET, cid, "CONTROL TYPE", "", v)
+
+        CALL SetRect (cid, xl, xr, yb, yt)
+
+        IF title$ <> "" then
+           CALL Object (OBJM_SET, cid, "TITLE", title$, v)
+        END IF
+
+        IF show_default_flag <> 0 then CALL Object (OBJM_SHOW, cid, "", "", v)
+
+    END SUB
+
+    ! List button routines.
+
+    !---------------------------------------------------------------
+    SUB TC_ListBtn_Create (cid, list$(), xl, xr, yb, yt)
+
+        ! Since the mode must be set before first showing,
+        ! the contents of the list button must be supplied later.
+
+        CALL Normalize_Rect (xl, xr, yb, yt, 0, PushBtn_Height)
+
+        LET v(1) = OBJT_CONTROL
+        CALL Object (OBJM_CREATE, cid, "", "", v)
+
+        LET v(1) = CTLT_LISTBUTTON
+        CALL Object (OBJM_SET, cid, "CONTROL TYPE", "", v)
+
+        CALL SetRect (cid, xl, xr, yb, yt)
+
+        CALL TC_SetList (cid, list$())
+
+        IF show_default_flag <> 0 then CALL Object (OBJM_SHOW, cid, "", "", v)
+
+    END SUB
+
+    SUB TC_ListBtn_Get (cid, selection)
+
+        ! The Object routine returns in v(1) the number of items
+        ! selected, and in v(2) (etc.) the items selected.
+        ! This routine makes sense ONLY for lists that start with 1.
+
+        LET selection = 0
+        CALL Object (OBJM_GET, cid, "SELECTION", v$, v)
+
+        ! The selections start with 0 = the first, etc.
+
+        IF v(1) > 0 then LET selection = v(2) + 1
+
+    END SUB
+
+    SUB TC_ListBtn_Set (cid, selection)
+
+        ! The Object routines sets the item to be initially shown,
+        ! starting the counting with 0.
+
+        LET v(1) = selection - 1
+        CALL Object (OBJM_SET, cid, "SELECTION", "", v)
+
+    END SUB
+
+    ! List Edit routines.
+
+    !---------------------------------------------------------------
+    SUB TC_ListEdit_Create (cid, list$(), xl, xr, yb, yt)
+
+        ! The list subscript must start with 0.
+        ! The 0-th element becomes the title.
+
+        LOCAL listsize, listtemp$(0), i
+
+        IF lbound(list$) <> 0 then CAUSE ERROR 855, "List Edit list subscript must start with 0."
+        LET listsize = ubound(list$)
+
+        CALL Normalize_Rect (xl, xr, yb, yt, 0, PushBtn_Height)
+
+        LET v(1) = OBJT_CONTROL
+        CALL Object (OBJM_CREATE, cid, "", "", v)
+
+        LET v(1) = CTLT_LISTEDIT
+        CALL Object (OBJM_SET, cid, "CONTROL TYPE", "", v)
+
+        CALL SetRect (cid, xl, xr, yb, yt)
+
+        CALL TC_SetList (cid, list$())      ! Also sets text field
+
+        IF show_default_flag <> 0 then CALL Object (OBJM_SHOW, cid, "", "", v)
+
+    END SUB
+
+    SUB TC_ListEdit_Get (cid, text$)
+
+        CALL Object (OBJM_GET, cid, "TEXT", text$, v)
+
+    END SUB
+
+    SUB TC_ListEdit_Set (cid, text$)
+
+        CALL Object (OBJM_SET, cid, "TEXT", text$, v)
+
+    END SUB
+
+    ! List box routines.
+
+    !---------------------------------------------------------------
+    SUB TC_ListBox_Create (cid, mode$, xl, xr, yb, yt)
+
+        ! Since the mode must be established before first showing,
+        ! the list must be supplied later.
+
+        LOCAL lb, ub, temp$(0), i, sid, ucmode$
+
+        LET v(1) = OBJT_CONTROL
+        CALL Object (OBJM_CREATE, cid, "", "", v)
+        LET v(1) = CTLT_LBOX      ! Selection list
+        CALL Object (OBJM_SET, cid, "CONTROL TYPE", "", v)
+
+        LET ucmode$ = ucase$(mode$)
+        LET v(1) = 0              ! Default = SINGLE
+        IF ucmode$ = "MULTIPLE" then
+           LET v(1) = 1           ! Allow multiple selections
+        ELSE IF ucmode$ = "READONLY" then
+           LET v(1) = 2           ! Readonly
+        END IF
+        CALL Object (OBJM_SET, cid, "SELECTION MODE", "", v)
+
+        CALL Normalize_Rect (xl, xr, yb, yt, 0, 0)
+        CALL SetRect (cid, xl, xr, yb, yt)
+
+        IF show_default_flag <> 0 then CALL Object (OBJM_SHOW, cid, "", "", v)
+
+    END SUB
+
+    SUB TC_ListBox_Get (cid, sel())
+
+        ! This routine returns a list of numbers
+        ! The numbers start at 0.  I.e., 0 = first, 1 = second, etc.
+
+        LOCAL n, i
+
+        CALL Object (OBJM_GET, cid, "SELECTION", "", v)
+
+        LET n = v(1)
+        MAT Redim sel(n)
+        FOR i = 1 to n
+            LET sel(i) = v(i+1) + 1
+        NEXT i
+
+    END SUB
+
+    SUB TC_ListBox_Set (cid, sel)
+
+        ! This routine highlights a particular entry in the list box list.
+        ! The numbers start at 0.  I.e., 0 = first, 1 = second, etc.
+
+        MAT Redim v(1)
+        LET v(1) = sel - 1
+        CALL Object (OBJM_SET, cid, "SELECTION", "", v)
+
+    END SUB
+
+    ! Push button routines.
+
+    !--------------------------------------------------------
+    !
+    SUB TC_PushBtn_Create (cid, text$, xl, xr, yb, yt)
+
+        LOCAL t$
+
+        CALL Normalize_Rect (xl, xr, yb, yt, 0, PushBtn_Height)
+
+        LET v(1) = OBJT_CONTROL
+        CALL Object (OBJM_CREATE, cid, "", "", v)
+
+        LET v(1) = CTLT_PUSHBUTTON
+        CALL Object (OBJM_SET, cid, "CONTROL TYPE", "", v)
+
+        CALL SetRect (cid, xl, xr, yb, yt)
+
+        LET t$ = text$            ! "Protect" the parameter
+        CALL JustifyText (cid, t$)
+        CALL Object (OBJM_SET, cid, "TEXT", t$, v)
+
+        IF show_default_flag <> 0 then CALL Object (OBJM_SHOW, cid, "", "", v)
+
+    END SUB
+
+    ! Radio group routines.
+
+    !---------------------------------------------------------------
+    ! Creates a group of radio buttons given:
+    !      on: which radio button in group is initially on
+    !      text$(): array of text strings for buttons (bounds determine # of btns)
+    !      rect: bounding rectangle for group
+    ! Returns rid(): ids for group object (0) and radio buttons (1-n).
+    SUB TC_RadioGroup_Create (rid, text$(), xl, xr, yb, yt)
+
+        LOCAL i, radios, yinc, ytmp, offset, r_height, r_height_1, rgid, justify_flag, t$
+
+        IF lbound(text$) <> 1 then CAUSE ERROR 865, "Radio button group list must start with 1."
+
+        LET radios = ubound(text$)
+        IF radios <= 1 then CAUSE ERROR 866, "Radio button group must have at least two button."
+
+        MAT redim rg_ids(nrg_ids+radios,2)
+        LET offset = nrg_ids
+        LET nrg_ids = nrg_ids + radios
+
+        LET r_height   = Radio_Height
+        LET r_height_1 = r_height - 1
+        IF units_default_flag <> 0 then
+           CALL PixelsToUsers (0, 0, r_height, r_height)
+           CALL PixelsToUsers (0, 0, r_height_1, r_height_1)
+        END IF
+        CALL Normalize_Rect (xl, xr, yb, yt, 0, r_height*radios)
+
+        ! yinc is the space between radio buttons
+        ! and the offset of radio buttons from the group top and bottom edges
+
+        IF units_default_flag <> 0 then
+           LET yinc = (yt - yb - r_height*radios) / radios
+           LET ytmp = yt - yinc/2
+           FOR i = 1 to radios
+               CALL RadioCreate (rgid, text$(i), xl, xr, ytmp-r_height, ytmp)
+               LET rg_ids(i+offset,2) = rgid     ! Save the id
+               IF i = 1 then
+                  LET t$ = text$(i)    ! "Protect" the parameter
+                  CALL JustifyText (rgid, t$)    ! Check for justification
+                  CALL TC_SetText (rgid, t$)     ! Possibly reset text
+                  CALL Object (OBJM_GET, rgid, "TEXT JUSTIFY", "", v())   ! Find out
+                  LET justify_flag = v(1)
+
+               ELSE
+                  LET v(1) = justify_flag
+                  CALL Object (OBJM_SET, rgid, "TEXT JUSTIFY", "", v())   ! Set remaining
+
+               END IF
+
+               LET ytmp = ytmp - yinc - r_height
+
+           NEXT i
+
+        ELSE
+           LET yinc = int((yb-yt+1 - (r_height*radios)) / radios)
+           LET ytmp = yt + int(yinc/2)
+           FOR i = 1 to radios
+               CALL RadioCreate (rgid, text$(i), xl, xr, ytmp+r_height_1, ytmp)
+               LET rg_ids(i+offset,2) = rgid     ! Save the id
+               IF i = 1 then
+                  LET t$ = text$(i)    ! "Protect" the parameter
+                  CALL JustifyText (rgid, t$)    ! Check for justification
+                  CALL TC_SetText (rgid, t$)     ! Possibly reset text
+                  CALL Object (OBJM_GET, rgid, "TEXT JUSTIFY", "", v())   ! Find out
+                  LET justify_flag = v(1)
+
+               ELSE
+                  LET v(1) = justify_flag
+                  CALL Object (OBJM_SET, rgid, "TEXT JUSTIFY", "", v())   ! Set remaining
+
+               END IF
+               LET ytmp = ytmp + yinc + r_height
+
+           NEXT i
+
+        END IF
+
+        ! Set ids for group
+
+        MAT redim v(radios+4)
+        LET v(1) = OBJT_GROUP     ! Group
+        LET v(2) = 0              ! Button
+        LET v(3) = 1              ! Add
+        LET v(4) = radios
+        FOR i = 1 to radios
+            LET v(i+4) = rg_ids(i+offset,2)
+        NEXT i
+
+        CALL Object (OBJM_CREATE, rid, "", "", v)
+
+        FOR i = 1 to radios
+            LET rg_ids(i+offset,1) = rid
+        NEXT i
+
+        IF show_default_flag <> 0 then CALL Object (OBJM_SHOW, rid, "", "", v)
+
+    END SUB
+
+    ! Returns that radio button that is on.
+    SUB TC_RadioGroup_On (rid, button)
+
+        ! rid must be the rid of the radio group as a whole.
+        ! The original list must start with 0, since this routine
+        ! returns the ordinal number of the button.
+
+        ! Note: v(1) = the id the button that is on,
+        !       v(2) = the ordinal number of the button that is on,
+        !              starting at 0.
+
+        CALL Object (OBJM_GET, rid, "ON", "", v)
+        IF v(1) = 0 then LET button = 0 ELSE LET button = v(2) + 1
+
+    END SUB
+
+    !-------------------------------------------------
+    ! Sets the button to be on.
+    SUB TC_RadioGroup_Set (rid, button)
+
+        LOCAL id
+
+        CALL RadioGroupButtonId (rid, button, id)
+        IF id > 0 then
+           LET v(1) = 1
+           CALL Object (OBJM_SET, id, "STATE", "", v)
+        END IF
+
+    END SUB
+
+    SUB TC_RadioGroup_SetText (rid, button, newtext$)
+
+        LOCAL id
+
+        CALL RadioGroupButtonId (rid, button, id)
+        IF id > 0 then CALL Object (OBJM_SET, rg_ids(id,2), "TEXT", newtext$, v)
+
+    END SUB
+
+    SUB RadioGroupButtonId (rid, button, id)
+
+        LOCAL ordno, i
+
+        LET ordno = 0
+        FOR i = 1 to nrg_ids
+            IF rg_ids(i,1) = rid then
+               LET ordno = ordno + 1
+               IF ordno = button then
+                  LET id = rg_ids(i,2)
+                  EXIT SUB
+
+               END IF
+
+            END IF
+
+        NEXT i
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Assumes dimensions are correct
+    SUB RadioCreate (cid, t$, xl, xr, yb, yt)
+
+        LET v(1) = OBJT_CONTROL
+        CALL Object (OBJM_CREATE, cid, "", "", v)
+
+        LET v(1) = CTLT_RADIOBUTTON
+        CALL Object (OBJM_SET, cid, "CONTROL TYPE", "", v)
+
+        CALL SetRect (cid, xl, xr, yb, yt)
+        CALL Object (OBJM_SET, cid, "TEXT", t$, v)
+
+    END SUB
+
+    ! Scroll bar routines.
+
+    !---------------------------------------------------------------
+    ! xl, xr, yb, yt define the position of the scrollbar
+    ! cid is returned as the scroll id
+    SUB TC_Sbar_Create (cid, type$, xl, xr, yb, yt)
+
+        LOCAL uctype$, t(1)
+
+        LET uctype$ = ucase$(type$)
+        IF uctype$ = "VSCROLL" then
+           LET t(1) = CTLT_VSCROLL
+           CALL Normalize_Rect (xl, xr, yb, yt, SBar_Width, 0)
+
+        ELSE IF uctype$ = "HSCROLL" then
+           LET t(1) = CTLT_HSCROLL
+           CALL Normalize_Rect (xl, xr, yb, yt, 0, SBar_Height)
+
+        ELSE
+           CAUSE ERROR 870, "Scrollbar type must be VSCROLL or HSCROLL."
+
+        END IF
+
+        LET v(1) = OBJT_CONTROL
+        CALL Object (OBJM_CREATE, cid, "", "", v())
+        CALL Object (OBJM_SET, cid, "CONTROL TYPE", v$, t())
+
+        CALL SetRect (cid, xl, xr, yb, yt)
+
+        IF show_default_flag <> 0 then CALL Object (OBJM_SHOW, cid, "", "", v)
+
+    END SUB
+
+    ! Sbar support routines
+
+    SUB TC_Sbar_GetPosition (cid, position)
+
+        CALL Object (OBJM_GET, cid, "POSITION", "", v)
+        LET position = v(1)
+
+    END SUB
+
+    SUB TC_Sbar_GetRange (cid, srange, erange, prop)
+
+        CALL Object (OBJM_GET, cid, "START RANGE|END RANGE|PROPORTION", v$, v)
+        LET srange = v(1)
+        LET erange = v(2)
+        LET prop = v(3)
+
+    END SUB
+
+    SUB TC_Sbar_SetPosition (cid, position)
+
+        LET v(1) = position
+        CALL Object (OBJM_SET, cid, "POSITION", "", v)
+
+    END SUB
+
+    SUB TC_Sbar_SetRange (cid, srange, erange, prop)
+
+        MAT Redim v(3)
+
+        LET v(1) = min(prop, erange - srange)
+        LET v(2) = srange
+        LET v(3) = erange
+        CALL Object (OBJM_SET, cid, "PROPORTION|START RANGE|END RANGE", v$, v)
+
+    END SUB
+
+    SUB TC_Sbar_SetIncrements (cid, single, page)
+
+        ! Sets both increments for scroll bars NOT attached to windows.
+
+        MAT Redim v(2)
+        LET v(1) = single
+        LET v(2) = page
+        CALL Object (OBJM_SET, cid, "SINGLE INCREMENT|PAGE INCREMENT", "", v)
+
+    END SUB
+
+    SUB TC_Sbar_GetIncrements (cid, single, page)
+
+        ! Gets both increments for scroll bars NOT attached to windows.
+
+        CALL Object (OBJM_GET, cid, "SINGLE INCREMENT|PAGE INCREMENT", "", v)
+        LET single = v(1)
+        LET page = v(2)
+
+    END SUB
+
+    ! Static text routines.
+
+    !---------------------------------------------------------------
+    SUB TC_SText_Create (cid, text$, xl, xr, yb, yt)
+
+        LOCAL t$
+
+        CALL Normalize_Rect (xl, xr, yb, yt, 0, SText_Height)
+
+        LET v(1) = OBJT_CONTROL
+        CALL Object (OBJM_CREATE, cid, "", "", v)
+
+        LET v(1) = CTLT_TEXT      ! Static text
+        CALL Object (OBJM_SET, cid, "CONTROL TYPE", "", v)
+
+        CALL SetRect (cid, xl, xr, yb, yt)
+
+        LET t$ = text$            ! "Protect" the parameter
+        CALL JustifyText (cid, t$)
+        CALL Object (OBJM_SET, cid, "TEXT", t$, v)
+
+        IF show_default_flag <> 0 then CALL Object (OBJM_SHOW, cid, "", "", v)
+
+    END SUB
+
+    ! Text edit routines.
+
+    !---------------------------------------------------------------
+    ! Create and optionally show a textedit object.
+    !
+    ! Supports setting of attributes: READONLY, MARGIN #, WRAP
+    ! BORDER, VSCROLL, HSCROLL, ATTACHED.
+    !
+    ! If ATTACHED is used to associate the control with a window, then
+    ! VSCROLL and HSCROLL are ignored; the control uses the scroll bars,
+    ! if any, of the window.
+    !
+    ! Don't show the control if you want to set TRAP CHARS before showing it.
+    ! The scrollbars if created are shown if and when the control is shown.
+    !
+    ! Uses the public variable SBar_Width/Height to determine scroll width/height.
+    !
+    ! Returns the textedit id as txid
+    !
+    ! Text must be added later
+    !---------------------------------------------------------------
+    SUB TC_Txed_Create (txid, options$, xl, xr, yb, yt)
+
+        LOCAL oplc$, vrange, hrange, vprop, hprop, vid, hid, win
+        LOCAL attached, border, hl, hr, hb, ht, vl, vr, vb, vt, xpix, ypix
+
+        LET v(1) = OBJT_CONTROL
+        CALL Object (OBJM_CREATE, txid, "", "", v)
+
+        LET v(1) = CTLT_TXED
+        CALL Object (OBJM_SET, txid, "CONTROL TYPE", "", v)
+
+        LET oplc$ = lcase$(options$)
+
+        LET attached = 0
+        IF pos(oplc$, "attached") > 0 then LET attached = 1
+
+        !---------------------------------------------
+        ! Readonly?
+        IF pos(oplc$, "readonly") > 0 then
+           LET v(1) = 1
+           CALL Object (OBJM_SET, txid, "READONLY", v$, v)
+        END IF
+
+        !---------------------------------------------
+        ! Wrap?
+        IF pos(oplc$, "wrap") > 0 then
+           LET v(1) = 1
+           CALL Object (OBJM_SET, txid, "WRAP", v$, v)
+        END IF
+
+        !---------------------------------------------
+        ! margin? format: margin # (no effect unless wrap is set)
+        IF pos(oplc$, "margin") > 0 then
+           CALL Txed_Set_Attr (txid, oplc$, "margin")
+        END IF
+
+        !---------------------------------------------
+        ! Border?  System default is on, therefore turn off if not asked
+        LET border = 0
+        IF pos(oplc$, "border") > 0 and attached = 0 then LET border = 1
+        LET v(1) = border
+        CALL Object (OBJM_SET, txid, "BORDER", "", v)
+
+        ! Trap key events?
+        IF pos(oplc$, "key events") > 0 then
+           LET v(1) = 1
+           CALL Object (OBJM_SET, txid, "KEY EVENTS", "", v)
+        END IF
+
+        ! Trap mouse events?
+        IF pos(oplc$, "mouse events") > 0 then
+           LET v(1) = 1
+           CALL Object (OBJM_SET, txid, "MOUSE EVENTS", "", v)
+        END IF
+
+        !---------------------------------------------
+        ! Trap carriage returns (Enters)
+        MAT redim v(3)
+        LET v(1) = 1              ! Number of pairs
+        LET v(2) = sys_eol        ! Trap cr and update vrange
+        LET v(3) = 2              ! Return as KEYPRESS and pass to TC_Event but do not suspend
+        CALL Object (OBJM_SET, txid, "TRAP CHAR", "", v)
+
+        MAT Redim v(2)
+        LET v(1), v(2) = -1       ! Default value for VSCROLL and HSCROLL
+        CALL Object (OBJM_SET, txid, "VSCROLL|HSCROLL", "", v)
+
+        IF attached = 1 then
+           ! Need to find out the current window
+           CALL Winfo ("ASK ACTIVE", v$)
+           LET win = val(v$)
+
+           ! Find out if the window has attached scroll bars
+
+           CALL Object (OBJM_GET, win, "VSCROLL|HSCROLL", "", v)
+           IF v(1) = 1 then LET v(1) = win else LET v(1) = -1
+           IF v(2) = 1 then LET v(2) = win else LET v(2) = -1
+
+           ! If so, store the window number; if not, store -1
+
+           CALL Object (OBJM_SET, txid, "VSCROLL|HSCROLL", "", v)
+
+           ! Also, store the txid number for the window
+
+           LET v(1) = txid
+           CALL Object (OBJM_SET, win, "TEXTEDIT", "", v)
+
+           ! Finally, need to set the window cursor to ibeam
+
+           CALL TC_Win_SetCursor (win, "IBEAM")
+
+        ELSE
+
+           !---------------------------------------------
+           ! Create regular vertical scrollbar?
+           LET vid = 0
+           IF pos(oplc$, "vscroll") > 0 then
+              LET v(1) = OBJT_CONTROL
+              CALL Object (OBJM_CREATE, vid, "", "", v)
+              LET v(1) = CTLT_VSCROLL
+              CALL Object (OBJM_SET, vid, "CONTROL TYPE", "", v)
+
+              ! Set vscroll id for textedit
+              LET v(1) = vid
+              CALL Object (OBJM_SET, txid, "VSCROLL", "", v)
+
+              ! Set textedit id for scrollbar
+              LET v(1) = txid
+              CALL Object (OBJM_SET, vid, "TEXTEDIT", "", v)
+
+           END IF
+
+           !---------------------------------------------
+           ! Create regular horizontal scrollbar?
+           LET hid = 0
+           IF pos(oplc$, "hscroll") > 0 then
+              LET v(1) = OBJT_CONTROL
+              CALL Object (OBJM_CREATE, hid, "", "", v)
+              LET v(1) = CTLT_HSCROLL
+              CALL Object (OBJM_SET, hid, "CONTROL TYPE", "", v)
+
+              ! Set hscroll id for textedit
+              LET v(1) = hid
+              CALL Object (OBJM_SET, txid, "HSCROLL", "", v)
+
+              ! Set textedit id for scrollbar
+              LET v(1) = txid
+              CALL Object (OBJM_SET, hid, "TEXTEDIT", "", v)
+
+           END IF
+
+        END IF
+
+        IF attached = 1 then      ! Attach to the window
+           CALL Winfo ("ASK ACTIVE", v$)
+           LET win = val(v$)
+           CALL Txed_SetRectAuto (win, txid)
+           LET txedwinattached (tbwindow(win)) = txid
+
+        ELSE
+           ! Don't consider default sizing
+
+           ASK PIXELS xpix, ypix
+
+           IF vid > 0 then
+              LET vb = yb
+              LET vt = yt
+              LET vr = xr
+              IF units_default_flag <> 0 then
+                 LET xr = xr - Sbar_Width/xpix
+                 LET vl = xr + 1/xpix
+              ELSE
+                 LET xr = xr - Sbar_Width
+                 LET vl = xr + 1
+              END IF
+              CALL SetRect (vid, vl, vr, vb, vt)
+
+           END IF
+
+           IF hid > 0 then
+              LET hl = xl
+              LET hr = xr
+              LET hb = yb
+              IF units_default_flag <> 0 then
+                 LET yb = yb + Sbar_Height/ypix
+                 LET ht = yb - 1/ypix
+              ELSE
+                 LET yb = yb - Sbar_Height
+                 LET ht = yb + 1
+              END IF
+              CALL SetRect (hid, hl, hr, hb, ht)
+
+           END IF
+
+           CALL SetRect (txid, xl, xr, yb, yt)
+
+        END IF
+
+        IF show_default_flag <> 0 then
+
+           ! If we show the text edit control, we also show the
+           ! regular scroll bars, if present.
+
+           CALL Object (OBJM_SHOW, txid, "", "", v)
+           CALL Object (OBJM_GET, txid, "HSCROLL", "", v)
+           IF v(1) >= 100 then CALL Object (OBJM_SHOW, v(1), "", "", v)
+           CALL Object (OBJM_GET, txid, "VSCROLL", "", v)
+           IF v(1) >= 100 then CALL Object (OBJM_SHOW, v(1), "", "", v)
+
+        END IF
+
+    END SUB
+
+    ! Txed support routines
+
+    !--------------------------------------------------------
+    ! Erase currently selected text and stores it in the clipboard.
+    SUB TC_Txed_Cut (txed)
+
+        LOCAL startp, startln, startch
+        LOCAL endp, endch, endln
+        LOCAL clip$
+
+        CALL Object (OBJM_GET, txed, "SELECTION", "", v)
+        LET startp  = v(1)        ! p1, l1, c1, p2, l2, c2
+        LET startln = v(2)
+        LET startch = v(3)
+        LET endp    = v(4)
+        LET endln   = v(5)
+        LET endch   = v(6)
+        LET clip$   = ""
+
+        ! Cut text only if a selection has been made
+
+        IF startp = endp and startln = endln and startch = endch then EXIT SUB
+
+        CALL Txed_CopyText (txed, startp, startln, startch, endp, endln, endch, clip$)
+        CALL ClipBoard ("PUT", "TEXT", clip$)
+        CALL Txed_CutText  (txed, startp, startln, startch, endp, endln, endch)
+
+    END SUB
+
+    !----------------------------------------------
+    ! Get current selection given textedit object, and
+    ! copy the selected text string to the clipboard.
+    SUB TC_Txed_Copy (txed)
+
+        LOCAL startp, startln, startch, endp, endln, endch, clip$
+
+        CALL Object (OBJM_GET, txed, "SELECTION", v$, v)
+        LET startp  = v(1)
+        LET startln = v(2)
+        LET startch = v(3)
+        LET endp    = v(4)
+        LET endln   = v(5)
+        LET endch   = v(6)
+
+        IF startp = endp and startln = endln and startch = endch then EXIT SUB
+
+        CALL Txed_CopyText (txed, startp, startln, startch, endp, endln, endch, clip$)
+        CALL ClipBoard ("PUT", "TEXT", clip$)
+
+    END SUB
+
+    !--------------------------------------------------------
+    ! Paste text from ClipBoard into textedit object.
+    ! Replace selected text if selected.
+    !
+    SUB TC_Txed_Paste (txed)
+
+        LOCAL clip$, insp, insln, insch, before$, after$
+        LOCAL clipp, cliplen, out$, delimitflag, insertpoint
+        LOCAL par$, lines$(0), line$
+
+        LET clip$ = ""
+        CALL ClipBoard ("GET", "TEXT", clip$)
+
+        ! If something has been selected, need to cut it.
+
+        CALL TC_Txed_Cut (txed)
+
+        ! But now the wrong contents are in the clipboard, so need to restore it.
+
+        CALL ClipBoard ("PUT", "TEXT", clip$)
+
+        IF clip$ = "" then EXIT SUB    ! No further changes if clipboard is empty
+
+        CALL Object (OBJM_GET, txed, "INSERTION", "", v)
+        LET insp  = v(1)
+        LET insln = v(2)
+        LET insch = v(3)
+
+        CALL GetLines (txed, insp, lines$())
+        CALL SplitLines (lines$(), insln, insch, before$, after$)
+        CALL Object (OBJM_TXE_DEL_PAR, txed, "", "", v())
+
+        LET clipp = 1             ! Index into clip$
+        LET cliplen = len(clip$)
+
+        CALL NextLine (clip$, out$, clipp, delimitflag)
+
+        ! Now, deal with the start of the paste
+        ! out$ could be null or delimitflag could be 0.
+        ! But, there has to be something, because we have already checked
+        ! that clip$ is not null.
+
+        LET par$ = before$ & out$
+        IF language$ = "japanese" THEN
+           LET insertpoint = klen(par$)
+        ELSE
+           LET insertpoint = len(par$)
+        END IF
+
+        DO WHILE clipp < cliplen
+
+           ! Next, we insert paragraphs from the clipboard until we get to the last line
+           ! of the clipboard
+
+           LET v(1) = insp
+           CALL Object (OBJM_TXE_ADD_PAR, txed, "", par$, v())
+           LET insp = insp + 1
+
+           CALL NextLine (clip$, par$, clipp, delimitflag)
+
+        LOOP
+
+        ! Now, we process the last part of the clipboard
+
+        IF language$ = "japanese" THEN
+           LET insertpoint = klen(par$)     ! Used to insert cursor later
+        ELSE
+           LET insertpoint = len(par$)      ! Used to insert cursor later
+        END IF
+        LET par$ = par$ & after$
+        CALL Object (OBJM_GET, txed, "NUM PARS", "", v())
+
+        ! Note: the last paragraph, whether complete or not, never ends
+        ! in an EOL.  Therefore, delimitflag is always 0, but we must never
+        ! combine with the next line.  For now, the fix is to reset
+        ! the value of delimitflag to 1.
+
+        LET delimitflag = 1
+        IF delimitflag = 0 and after$ = "" and insp < v(1) then
+
+           ! Combine with the next paragraph, if there is one.
+
+           CALL GetLines (txed, insp, lines$())
+           CALL Concat (lines$(), 0, ubound(lines$()), line$)
+           LET par$ = par$ & line$
+
+           LET v(1) = insp
+           CALL Object (OBJM_TXE_DEL_PAR, txed, "", "", v())
+           CALL Object (OBJM_TXE_ADD_PAR, txed, "", par$, v())
+
+        ELSE
+           LET v(1) = insp
+           CALL Object (OBJM_TXE_ADD_PAR, txed, "", par$, v())
+
+        END IF
+
+        ! Update cursor to after pasted text
+
+        CALL InsertCursor (txed, insp, insertpoint)
+
+    END SUB
+
+    SUB TC_Txed_SetCutCopyPaste (wid, cutmenu, cutitem, copymenu, copyitem, pastemenu, pasteitem)
+
+        CALL TC_Win_Valid (wid)
+
+        WHEN EXCEPTION IN
+             LET cutmenuitem(wid) = menu_ids (wid, cutmenu, cutitem)
+             LET copymenuitem(wid) = menu_ids (wid, copymenu, copyitem)
+             LET pastemenuitem(wid) = menu_ids (wid, pastemenu, pasteitem)
+
+        USE
+             CAUSE ERROR 880, "Invalid menu specification in TC_Txed_SetCutCopyPaste"
+
+        END WHEN
+
+    END SUB
+
+    SUB TC_Txed_SetText (txid, text$)
+
+        CALL RemoveCtrlZ (text$)
+        CALL Object (OBJM_SET, txid, "TEXT", text$, v)
+
+        CALL Txed_AdjustScrollBarParameters (txid)
+        CALL Txed_SetScrollBars (txid)
+
+    END SUB
+
+    SUB TC_Txed_GetText (txid, text$)
+
+        ! This is correct only if FlatToSys is not needed.
+
+        CALL Object (OBJM_GET, txid, "TEXT", text$, v)
+        CALL AttachEOL (text$)
+
+    END SUB
+
+    SUB TC_Txed_ReadTextFromFile (txid, filename$)
+
+        LOCAL n, text$
+
+        WHEN EXCEPTION IN
+             CLOSE #37
+             OPEN #37: name filename$, org byte
+             ASK #37: FILESIZE n
+             READ #37, bytes n: text$
+             CLOSE #37
+             CALL TC_Txed_SetText (txid, text$)
+
+        USE
+             CAUSE ERROR 881, "Input file not available for Text Edit Control"
+
+        END WHEN
+
+    END SUB
+
+    SUB TC_Txed_WriteTextToFile (txid, filename$)
+
+        LOCAL text$
+
+        WHEN EXCEPTION IN
+             CLOSE #37
+             OPEN #37: name filename$, org byte, create newold
+             ERASE #37
+             CALL TC_Txed_GetText (txid, text$)
+             WRITE #37: text$
+             CLOSE #37
+
+        USE
+             CAUSE ERROR 882, "Output file not available for Text Edit Control"
+
+        END WHEN
+
+    END SUB
+
+    SUB TC_Txed_ReadTextFromArray (txid, a$())
+
+        LOCAL i, text$
+
+        LET text$ = ""
+        FOR i = 1 to ubound(a$)
+            LET text$ = text$ & a$(i) & eol$
+        NEXT i
+        CALL TC_Txed_SetText (txid, text$)
+
+    END SUB
+
+    SUB TC_Txed_WriteTextToArray (txid, a$())
+
+        LOCAL text$, lentext, p0, p1, c
+
+        CALL TC_Txed_GetText (txid, text$)
+        LET lentext = len(text$)
+        LET p0, p1, c = 0
+        DO
+           LET p1 = pos(text$, eol$, p0)
+           IF p1 = 0 then LET p1 = len(text$) + 1
+           LET c = c + 1
+           IF c > ubound(a$) then MAT Redim a$(c+100)
+           LET a$(c) = text$[p0:p1-1]
+           LET p0 = p1 + leneol
+
+        LOOP until p0 > lentext
+        MAT Redim a$(c)
+
+    END SUB
+
+    SUB TC_Txed_Append (txid, text$, reveal)
+
+        ! Appends a single line of text to the end of the
+        ! text edit control.  Should be used for a single
+        ! string only, no eols.  Scroll bars are adjusted
+        ! only when reveal = 1
+
+        CALL Object (OBJM_GET, txid, "NUM PARS", "", v)
+        LET v(1) = v(1) + 1
+        CALL Object (OBJM_TXE_ADD_PAR, txid, "", text$, v)
+        IF reveal <> 0 then       ! Set cursor to beyond text, to scroll
+           CALL TC_Txed_SetCursor (txid, v(1)+2, 0, 0)
+           CALL Txed_AdjustScrollBarParameters (txid)
+           CALL Txed_SetScrollBars (txid)
+
+        END IF
+
+        ! CALL Txed_AdjustScrollBarParameters (txid)
+        ! CALL Txed_SetScrollBars (txid)
+
+    END SUB
+
+    SUB TC_Txed_SetMargin (txid, margin)
+
+        IF margin < 0 then        ! Use default width to set the margin
+           CALL Object (OBJM_GET, txid, "RECTANGLE", "", v)
+           LET v(1) = v(2) - v(1) - 7
+        ELSE
+           LET v(1) = margin
+        END IF
+
+        CALL Object (OBJM_SET, txid, "MARGIN", "", v)
+
+    END SUB
+
+    SUB TC_Txed_SetFont (txid, fontname$, fontsize, fontstyle$)
+
+        ! Sets the font information for a text edit control.
+        ! Changes only if non-null or non-zero.
+
+        IF fontname$ <> "" then
+           CALL Object (OBJM_SET, txid, "FONT NAME", lcase$(fontname$), v)
+        END IF
+
+        IF fontsize > 0 then
+           LET v(1) = fontsize
+           CALL Object (OBJM_SET, txid, "FONT SIZE", "", v)
+        END IF
+
+        IF fontstyle$ <> "" then
+           CALL Object (OBJM_SET, txid, "FONT STYLE", lcase$(fontstyle$), v)
+        END IF
+
+        CALL Txed_AdjustScrollBarParameters (txid)
+
+    END SUB
+
+    SUB TC_Txed_SetColor (txid, forecolor, backcolor, bordercolor)
+
+        ! Sets the colors for a text edit control.
+        ! Changes only if the color is >= 0.
+
+        IF forecolor >= 0 then
+           LET v(1) = forecolor
+           CALL Object (OBJM_SET, txid, "FORE COLOR", "", v)
+        END IF
+
+        IF backcolor >= 0 then
+           LET v(1) = backcolor
+           CALL Object (OBJM_SET, txid, "BACK COLOR", "", v)
+        END IF
+
+        IF bordercolor >= 0 then
+           LET v(1) = bordercolor
+           CALL Object (OBJM_SET, txid, "BORDER COLOR", "", v)
+        END IF
+
+    END SUB
+
+    SUB TC_Txed_SetTrapChar (txid, char, action)
+
+        MAT Redim v(3)
+        LET v(1) = 1
+        LET v(2) = char
+        LET v(3) = action
+        CALL Object (OBJM_SET, txid, "TRAP CHAR", "", v)
+
+    END SUB
+
+    SUB TC_Txed_Suspend (txid)
+
+        CALL Object (OBJM_TXE_SUSPEND, txid, "", "", v)
+
+    END SUB
+
+    SUB TC_Txed_Resume (txid)
+
+        CALL Object (OBJM_TXE_RESUME, txid, "", "", v)
+
+    END SUB
+
+    !--------------------------------------------------------
+    ! Searches textedit control txed for key$, given starting paragraph, line, and
+    ! character.  If found, returns starting paragraph, line and character of
+    ! the match.  If not found, par, ln, and ch are not changed.
+    !      case_sense = 0 not case sensitive
+    !      case_sense = 1 case sensitive
+    !      whole_word = 0 part of word
+    !      whole_word = 1 whole word
+    ! Return found = 1 if found and position in par, ln, ch.
+    SUB TC_Txed_Find (txed, case_sense, whole_word, key$, par, ln1, ch1, ln2, ch2, found)
+
+        LOCAL p, l, k$, par$, there, p1, p2, klen, plen, c1, c2, charsinline(0:0), firsttime, numpars
+
+        LET found = 0
+        IF key$ = "" then EXIT SUB
+
+        LET k$ = key$
+        IF case_sense = 0 then LET k$ = lcase$(k$)
+        LET klen = len(k$)
+
+        CALL Object (OBJM_GET, txed, "NUM PARS", "", v())
+        LET numpars = v(1)
+        LET p = par
+        LET firsttime = 1
+        DO
+
+           IF p >= numpars then EXIT SUB    ! Not that many paragraphs
+
+           CALL GetParagraph (p, par$, there)
+           IF there = 0 then EXIT SUB
+
+           LET p1 = 1
+           IF firsttime = 1 then  ! Get user's starting location
+              LET firsttime = 0
+              FOR l = 0 to ln1 - 1
+                  LET p1 = p1 + charsinline(l)
+
+              NEXT l
+              LET p1 = p1 + ch1
+
+           END IF
+
+           IF case_sense = 0 then LET par$ = lcase$(par$)
+
+           DO                     ! Perform multiple searches on a single paragraph
+
+              LET p1 = pos(par$, k$, p1)
+
+              IF p1 = 0 then EXIT DO   ! Nothing there
+
+              LET plen = len(par$)
+              LET found = 1       ! Tentatively
+
+              IF whole_word = 0 then EXIT DO     ! Don't care about whole words
+
+              !----------------------------------------------------------------
+              ! Whole words are surrounded by: margins, punctuation, spaces, eol
+
+              IF p1 = 1 and klen = plen then
+                 ! All is okay, the entire line matches
+
+              ELSE IF p1 = 1 then      ! First word on line
+                 LET c1 = klen + 1
+                 IF cpos(par$[c1:c1], punct$) <= 0 then LET found = 0
+
+              ELSE IF p1+klen-1 = plen then      ! Last word on line
+                 LET c1 = plen - klen
+                 IF cpos(par$[c1:c1], punct$) <= 0 then LET found = 0
+
+              ELSE                ! Middle of line
+                 LET c1 = p1 - 1
+                 LET c2 = p1 + klen
+                 IF cpos(par$[c1:c1], punct$) <= 0 or cpos(par$[c2:c2], punct$) <= 0 then
+                    LET found = 0
+
+                 END IF
+
+              END IF
+
+              IF found = 1 then EXIT DO     ! Passes the whole word tests, so okay.
+
+              LET p1 = p1 + 1     ! Fails the whole word tests, so continue on line.
+
+           LOOP
+
+           IF found = 1 then
+
+              LET p2 = p1 + klen - 1
+
+              CALL FindLineNumber (p1, ln1, ch1)
+              CALL FindLineNumber (p2, ln2, ch2)
+              LET par = p
+              EXIT SUB
+
+           ELSE                   ! Not found in paragraph, so start new paragraph
+              LET p = p + 1
+
+           END IF
+
+        LOOP
+
+        SUB GetParagraph (p, par$, there)
+
+            LOCAL lastline, l, line$
+
+            LET par$ = ""
+            LET there = 0
+
+            LET v(1) = p
+            CALL Object (OBJM_GET, txed, "LINES IN PAR", "", v())
+            LET lastline = v(2) - 1
+            MAT Redim charsinline(0:lastline)
+
+            LET v(1) = p
+            FOR l = 0 to lastline
+                LET v(2) = l
+                CALL Object (OBJM_GET, txed, "LINE", line$, v())
+                LET charsinline(l) = len(line$)
+                LET par$ = par$ & line$
+
+            NEXT l
+            LET there = 1
+
+        END SUB
+
+        SUB FindLineNumber (c, ln, ch)
+
+            LOCAL cc, l
+
+            LET cc = c
+            FOR l = 0 to ubound(charsinline)
+                LET cc = cc - charsinline(l)
+                IF cc <= 0 then
+                   LET ln = l
+                   LET ch = cc + charsinline(l) - 1   ! XVT characters start at 0
+                   EXIT SUB
+                END IF
+
+            NEXT l
+
+            ! Should be an error !!!
+
+        END SUB
+
+    END SUB
+
+    SUB TC_Txed_SetSelection (txid, pr1, ln1, ch1, pr2, ln2, ch2)
+
+        MAT Redim v(6)
+
+        LET v(1) = pr1
+        LET v(2) = ln1
+        LET v(3) = ch1
+        LET v(4) = pr2
+        LET v(5) = ln2
+        LET v(6) = ch2
+        CALL Object (OBJM_SET, txid, "SELECTION", "", v)
+
+    END SUB
+
+    SUB TC_Txed_GetSelection (txid, pr1, ln1, ch1, pr2, ln2, ch2)
+
+        CALL Object (OBJM_GET, txid, "SELECTION", "", v)
+        LET pr1 = v(1)
+        LET ln1 = v(2)
+        LET ch1 = v(3)
+        LET pr2 = v(4)
+        LET ln2 = v(5)
+        LET ch2 = v(6)
+
+    END SUB
+
+    SUB TC_Txed_SetCursor (txid, p, l, c)
+
+        CALL TC_Txed_SetSelection (txid, p, l, c, p, l, c)
+
+    END SUB
+
+    SUB TC_Txed_GetCursor (txid, p, l, c)
+
+        LOCAL px, lx, cx
+
+        CALL TC_Txed_GetSelection (txid, p, l, c, px, lx, cx)
+
+    END SUB
+
+    SUB Txed_SetScrollBars (txid)
+
+        CALL Txed_AdjustVSBarToText (txid)  ! Null, if none
+        CALL Txed_AdjustHSBarToText (txid)  ! Null, if none
+
+    END SUB
+
+    SUB RemoveCtrlZ (text$)
+
+        LOCAL p
+        LET p = pos(text$, chr$(26))
+        IF p > 0 then LET text$ = text$[1:p-1]
+
+    END SUB
+
+    SUB AttachEOL (text$)
+
+        LOCAL lt
+
+        LET lt = len(text$)
+        IF text$[lt-leneol+1:lt] <> eol$ then
+           LET text$[lt+1:lt+leneol] = eol$
+        END IF
+
+    END SUB
+
+    !--------------------------------------------------------
+    ! Cut text in specified range.
+    !
+    ! Note: All six pointers start with 0.
+    !       Startch and endch start from 0, but TB strings start with character 1.
+    SUB Txed_CutText (txed, startp, startln, startch, endp, endln, endch)
+
+        LOCAL lines$(0:0), par$, p, adjustpar, spar$
+
+        IF startp > endp or (startp = endp and startch > endch) then EXIT SUB  ! Error?
+        IF startp = endp and startln = endln and startch > endch then EXIT SUB      ! Error?
+
+        IF startp = endp and startln = endln and startch = endch then EXIT SUB      ! NOP
+
+        IF startp = endp then
+           CALL GetLines (txed, startp, lines$())
+           IF startln = endln then     ! Changes in one line only
+              IF language$ = "japanese" THEN
+                 LET lines$(startln){startch+1:endch} = ""
+              ELSE
+                 LET lines$(startln)[startch+1:endch] = ""
+              END IF
+
+           ELSE                   ! Changes across two or more lines
+              IF language$ = "japanese" THEN
+                 LET lines$(startln){startch+1:maxnum} = ""
+                 CALL DeleteLines (lines$(), startln+1, endln-1)
+                 LET lines$(endln){1:endch} = ""
+              ELSE
+                 LET lines$(startln)[startch+1:maxnum] = ""
+                 CALL DeleteLines (lines$(), startln+1, endln-1)
+                 LET lines$(endln)[1:endch] = ""
+              END IF
+           END IF
+
+           LET v(1) = startp
+           CALL Object (OBJM_TXE_DEL_PAR, txed, "", "", v())
+           CALL Concat (lines$(), 0, ubound(lines$()), par$)
+           CALL Object (OBJM_TXE_ADD_PAR, txed, "", par$, v())
+
+           EXIT SUB
+
+        END IF
+
+        ! Fix up starting paragraph
+
+        CALL GetLines (txed, startp, lines$())
+        IF language$ = "japanese" THEN
+           LET lines$(startln){startch+1:maxnum} = ""
+        ELSE
+           LET lines$(startln)[startch+1:maxnum] = ""
+        END IF
+        CALL DeleteLines (lines$(), startln+1, ubound(lines$()))
+
+        LET v(1) = startp
+        CALL Object (OBJM_TXE_DEL_PAR, txed, "", "", v())
+        CALL Concat (lines$(), 0, ubound(lines$()), par$)
+        IF par$ <> "" THEN
+           CALL Object (OBJM_TXE_ADD_PAR, txed, "", par$, v())
+           LET adjustpar = 0
+           LET spar$ = par$
+        ELSE
+           !
+           ! We've deleted a par now, and we won't add anything in its
+           ! place, so all our paragraph calculations below will be off by one.
+           ! We set a variable here to subtract to make up for it. CLS.
+           !
+           LET adjustpar = 1
+        END IF
+
+        ! Fix up ending paragraph
+
+        IF endch = 0 and endln = 0 THEN
+           !
+           ! The ending paragraph is really the beginning of the next,
+           ! which means we are deleting a complete paragraph. We don't
+           ! need to do any getting, deleting, and concating of lines,
+           ! and we DON'T want to delete endp.  In fact, for the moment,
+           ! we need do nothing here. CLS.
+           !
+        ELSE
+           CALL GetLines (txed, endp-adjustpar, lines$())
+           IF language$ = "japanese" THEN
+              LET lines$(endln){1:endch} = ""
+           ELSE
+              LET lines$(endln)[1:endch] = ""
+           END IF
+           CALL DeleteLines (lines$(), 0, endln-1)
+           LET v(1) = endp-adjustpar
+           CALL Object (OBJM_TXE_DEL_PAR, txed, "", "", v())
+           CALL Concat (lines$(), 0, ubound(lines$()), par$)
+           IF adjustpar = 0 THEN
+              !
+              ! We already have a partial first paragraph. This partial
+              ! last paragraph should go with it. CLS.
+              !
+              LET par$ = spar$ & par$
+              LET v(1) = startp
+              CALL Object (OBJM_TXE_DEL_PAR, txed, "", "", v())
+              CALL Object (OBJM_TXE_ADD_PAR, txed, "", par$, v())
+           ELSE
+              CALL Object (OBJM_TXE_ADD_PAR, txed, "", par$, v())
+           END IF
+        END IF
+
+        ! Delete all lines in between. (We go from last to first to avoid messing up paragraph numbers. CLS.)
+
+        FOR p = endp-1-adjustpar to startp+1-adjustpar step -1
+            LET v(1) = p
+            CALL Object (OBJM_TXE_DEL_PAR, txed, "", "", v())
+        NEXT p
+
+        ! Remove highlight, set insertion point
+
+        MAT redim v(3)
+        LET v(1) = startp
+        LET v(2) = startln
+        LET v(3) = startch
+        CALL Object (OBJM_SET, txed, "INSERTION", "", v)
+
+    END SUB
+
+    !--------------------------------------------------------
+    ! Copy text in specified range.
+    ! Return text in clip$
+    !
+    SUB Txed_CopyText (txed, startp, startln, startch, endp, endln, endch, clip$)
+
+        LOCAL p, l, lines$(0:0), par$
+
+        LET clip$ = ""
+
+        IF startp > endp or (startp = endp and startln > endln) then EXIT SUB  ! Error ???
+        IF startp = endp and startln = endln and startch >= endch then EXIT SUB     ! Error ???
+
+        IF startp = endp then
+           CALL GetLines (txed, startp, lines$())
+           IF startln = endln then
+              IF language$ = "japanese" THEN
+                 LET clip$ = clip$ & lines$(startln){startch+1:endch}
+              ELSE
+                 LET clip$ = clip$ & lines$(startln)[startch+1:endch]
+              END IF
+
+           ELSE                   ! Different lines
+              IF language$ = "japanese" THEN
+                 LET clip$ = clip$ & lines$(startln){startch+1:maxnum}
+                 FOR l = startln+1 to endln-1
+                     LET clip$ = clip$ & lines$(l)
+                 NEXT l
+                 LET clip$ = clip$ & lines$(endln){1:endch}
+              ELSE
+                 LET clip$ = clip$ & lines$(startln)[startch+1:maxnum]
+                 FOR l = startln+1 to endln-1
+                     LET clip$ = clip$ & lines$(l)
+                 NEXT l
+                 LET clip$ = clip$ & lines$(endln)[1:endch]
+              END IF
+
+           END IF
+
+           EXIT SUB
+
+        END IF
+
+        ! Different paragraphs
+
+        CALL GetLines (txed, startp, lines$())
+        IF language$ = "japanese" THEN
+           LET clip$ = clip$ & lines$(startln){startch+1:maxnum}
+        ELSE
+           LET clip$ = clip$ & lines$(startln)[startch+1:maxnum]
+        END IF
+        FOR l = startln + 1 to ubound(lines$())
+            LET clip$ = clip$ & lines$(l)
+        NEXT l
+        LET clip$ = clip$ & eol$
+
+        FOR p = startp+1 to endp-1
+            CALL GetLines (txed, p, lines$())
+            CALL ConCat (lines$(), 0, ubound(lines$()), par$)
+            LET clip$ = clip$ & par$ & eol$
+        NEXT p
+
+        CALL GetLines (txed, endp, lines$())
+        FOR l = 0 to endln - 1
+            LET clip$ = clip$ & lines$(l)
+        NEXT l
+        IF language$ = "japanese" THEN
+           LET clip$ = clip$ & lines$(endln){1:endch}
+        ELSE
+           LET clip$ = clip$ & lines$(endln)[1:endch]
+        END IF
+        IF endch = 0 and endln = 0 THEN LET clip$ = clip$ & eol$     ! Must have selected whole paragraph. CLS.
+
+        ! Works with the lines from the last paragraph
+
+        IF (endch=0 and endln=0) then
+           LET clip$ = clip$ & eol$
+        ELSE IF endln = ubound(lines$()) and endch >= len(lines$(endln)) then
+           LET clip$ = clip$ & eol$
+        END IF
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Called when user scrolls the textedit control.
+    ! Update vertical scrollbars associated with the control.
+    SUB Txed_AdjustVSBarToText (txid)
+
+        LOCAL sbid, posit
+
+        CALL Object (OBJM_GET, txid, "VSCROLL", "", v)
+        LET sbid = v(1)
+        IF sbid < 0 then EXIT SUB
+
+        IF sbid < 100 then
+           CALL Object (OBJM_GET, sbid, "POSITION VERTICAL", "", v)
+        ELSE                      ! Must be a regular scroll bar
+           CALL Object (OBJM_GET, sbid, "POSITION", "", v)
+        END IF
+
+        LET posit = v(1)
+        CALL Object (OBJM_GET, txid, "ORIGIN", "", v)
+        IF posit = v(3) then EXIT SUB  ! Don't bother
+
+        LET v(1) = v(3)           ! This line
+        IF sbid < 100 then        ! Must be a window scroll bar
+           CALL Object (OBJM_SET, sbid, "POSITION VERTICAL", "", v)
+        ELSE                      ! Must be a regular scroll bar
+           CALL Object (OBJM_SET, sbid, "POSITION", "", v)
+        END IF
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Called when user scrolls the textedit control.
+    ! Update horizontal scrollbars associated with the control.
+    SUB Txed_AdjustHSBarToText (txid)
+
+        LOCAL sbid, posit
+
+        CALL Object (OBJM_GET, txid, "HSCROLL", "", v)
+        LET sbid = v(1)
+        IF sbid < 0 then EXIT SUB
+
+        IF sbid < 100 then        ! Must be a window scroll bar
+           CALL Object (OBJM_GET, sbid, "POSITION HORIZONTAL", "", v)
+        ELSE                      ! Must be a regular scroll bar
+           CALL Object (OBJM_GET, sbid, "POSITION", "", v)
+        END IF
+
+        LET posit = v(1)
+        CALL Object (OBJM_GET, txid, "ORIGIN", "", v)
+        IF posit = v(4) then EXIT SUB  ! Don't bother
+
+        LET v(1) = v(4)           ! This pixel
+        IF sbid < 100 then        ! Must be a window scroll bar
+           CALL Object (OBJM_SET, sbid, "POSITION HORIZONTAL", "", v)
+        ELSE                      ! Must be a regular scroll bar
+           CALL Object (OBJM_SET, sbid, "POSITION", "", v)
+        END IF
+
+    END SUB
+
+    !---------------------------------------------------------------
+    ! Given scrollbar position, sync text with position
+    SUB Txed_AdjustTextToSBar (txid, sbtype, position)
+
+        LOCAL startv, starth
+
+        ! v1 relative starting paragraph number */
+        ! v2 relative starting line number within paragraph */
+        ! v3 absolute starting line number */
+        ! v4 number of pixels shifted to left of view */
+
+        CALL Object (OBJM_GET, txid, "ORIGIN", "", v)
+        LET startv = v(3)
+        LET starth = v(4)
+
+        LET v(1) = position
+        IF sbtype = 1 then        ! Vertical scroll bar
+           LET v(1) = startv - position
+           CALL Object (OBJM_TXE_VSCROLL, txid, "", "", v)
+
+        ELSEIF sbtype = 0 then    ! Horizontal scroll bar
+           LET v(1) = starth - position
+           CALL Object (OBJM_TXE_HSCROLL, txid, "", "", v)
+
+        ELSE
+           CAUSE ERROR 885, "True Controls error: invalid scrollbar option " & str$(sbtype)
+
+        END IF
+
+    END SUB
+
+    !------------------------------------------
+    ! Given a textedit id and an option string,
+    ! search option string and set attribute if found.
+    ! Format is: <attr$>|<numeric value>
+    !
+    SUB Txed_Set_Attr (txed, op$, attr$)
+
+        ! Note: this does NOT allow for setting attributes that have
+        ! both a string and a numeric part.
+
+        ! Note: remove this and use TC_SetAttr.
+
+        LOCAL p, p2, alen
+
+        IF language$ = "japanese" THEN
+           LET p = kpos(lcase$(op$), lcase$(attr$))
+        ELSE
+           LET p = pos(lcase$(op$), lcase$(attr$))
+        END IF
+        IF p > 0 then
+           IF language$ = "japanese" THEN
+              LET alen = klen(attr$)
+              LET p2 = kcpos(op$, "|", p+alen)
+              IF p2 = 0 then LET p2 = klen(op$)+1
+              LET v$ = trim$(op${p+alen:p2-1})
+
+           ELSE
+              LET alen = len(attr$)
+              LET p2 = cpos(op$, "|", p+alen)
+              IF p2 = 0 then LET p2 = len(op$)+1
+              LET v$ = trim$(op$[p+alen:p2-1])
+
+           END IF
+
+           WHEN error in
+                LET v(1) = val(v$)
+                LET v$ = ""
+
+           USE
+                ! Might be a string attribute, in v$ already
+
+           END WHEN
+           CALL Object (OBJM_SET, txed, attr$, v$, v)
+
+        END IF
+
+    END SUB
+
+    SUB Txed_AdjustScrollBarParameters (txid)
+
+        LOCAL vpx_in_view, hpx_in_view
+        LOCAL vscroll, numlines, lines_in_view, page_increment
+        LOCAL hscroll, maxwidth
+
+        CALL Object (OBJM_GET, txid, "RECTANGLE", v$, v)
+        LET vpx_in_view = v(3) - v(4) + 1   ! Pixels in vertical view
+        LET hpx_in_view = v(2) - v(1) + 1   ! Pixels in horizontal view
+
+        CALL Object (OBJM_GET, txid, "VSCROLL", "", v)
+        LET vscroll = v(1)
+        IF vscroll >= 0 then
+           CALL Object (OBJM_GET, txid, "NUM LINES|FONT METRICS", v$, v)
+           LET numlines = v(1)
+           LET lines_in_view = int(vpx_in_view/v(6))
+
+           IF numlines > lines_in_view then      ! Fiddle only if necessary
+              LET v(1) = 1        ! Single increment
+              LET page_increment = lines_in_view - 1  ! Allow for overlapping
+              IF machine$ = "UNIX" then LET page_increment = 10
+              LET v(2) = page_increment
+              IF vscroll < 100 then    ! Must be a window scroll bar
+                 CALL Object (OBJM_SET, vscroll, "SINGLE VERTICAL|PAGE VERTICAL", "", v)
+              ELSE                ! Must be a regular scroll bar
+                 CALL Object (OBJM_SET, vscroll, "SINGLE INCREMENT|PAGE INCREMENT", "", v)
+              END IF
+
+              LET v(1) = min(numlines, lines_in_view)      ! Proportion
+              LET v(2) = numlines      ! End Range
+              IF machine$ = "UNIX" then LET v(2) = 10
+
+           ELSE
+              LET v(1) = 1
+              LET v(2) = 0
+
+           END IF
+
+           IF vscroll < 100 then  ! Must be a window scroll bar
+              CALL Object (OBJM_SET, vscroll, "PROPORTION VERTICAL|END RANGE VERTICAL", "", v)
+           ELSE                   ! Must be a regular scroll bar
+              CALL Object (OBJM_SET, vscroll, "PROPORTION|END RANGE", "", v)
+           END IF
+
+        END IF
+
+        CALL Object (OBJM_GET, txid, "HSCROLL", "", v)
+        LET hscroll = v(1)
+        IF hscroll >= 0 then
+           CALL Object (OBJM_GET, txid, "MAX WIDTH", v$, v)
+           LET maxwidth = v(1)
+
+           MAT Redim v(3)
+           LET page_increment = int(hpx_in_view/2)
+           IF maxwidth <= hpx_in_view then LET page_increment = 0
+
+           IF page_increment > 0 then
+              IF machine$ = "UNIX" then LET page_increment = 20
+              LET v(1) = 10
+              LET v(2) = page_increment
+              IF hscroll < 100 then    ! Must be a window scroll bar
+                 CALL Object (OBJM_SET, hscroll, "SINGLE HORIZONTAL|PAGE HORIZONTAL", "", v)
+              ELSE                ! Must be a regular scroll bar
+                 CALL Object (OBJM_SET, hscroll, "SINGLE INCREMENT|PAGE INCREMENT", "", v)
+              END IF
+
+              LET v(1) = min(maxwidth, hpx_in_view)   ! Proportion
+              LET v(2) = maxwidth      ! End Range
+              IF machine$ = "UNIX" then LET v(3) = 20
+
+           ELSE
+              LET v(1) = 1
+              LET v(2) = 0
+
+           END IF
+
+           IF hscroll < 100 then  ! Must be a window scroll bar
+              CALL Object (OBJM_SET, hscroll, "PROPORTION HORIZONTAL|END RANGE HORIZONTAL", "", v)
+           ELSE                   ! Must be a regular scroll bar
+              CALL Object (OBJM_SET, hscroll, "PROPORTION|END RANGE", "", v)
+           END IF
+
+        END IF
+
+    END SUB
+
+    SUB Txed_SetRectAuto (win, txid)
+
+        ! We assume that both the window id win and the text id txid are
+        ! valid, and that the text edit control is in the window in question,
+        ! and must be resized to fit.
+
+        LOCAL xxl, xxr, yyb, yyt, xpix, ypix
+        LOCAL vscroll, hscroll, border
+        LOCAL xl, xr, yb, yt, vl, vr, vb, vt, hl, hr, hb, ht
+
+        ! Find out extent of user real estate in the window.
+
+        CALL TC_GetRect (win, xxl, xxr, yyb, yyt)
+        LET xpix = xxr - xxl
+        LET ypix = yyb - yyt
+
+        ! Find out whether scroll bars are attached.
+
+        CALL Object (OBJM_GET, txid, "VSCROLL", "", v)
+        LET vscroll = v(1)
+        CALL Object (OBJM_GET, txid, "HSCROLL", "", v)
+        LET hscroll = v(1)
+        CALL Object (OBJM_GET, txid, "BORDER", "", v)
+        LET border = v(1)
+
+        ! Compute new dimensions of the text edit control.
+
+        LET xl = 2
+        LET xr = xpix - 1
+        LET yt = 0
+        LET yb = ypix - 1
+
+        ! Reset to the new sizes, so as to fill the window.
+        ! If the Txed RECTANGLE is changed, then the txed control
+        ! repositions at the origin, so need to reset the
+        ! scroll bar positions.
+        !
+        ! Window scroll bars should not be adjusted.
+
+        LET v(1) = 0
+        IF vscroll >= 0 then CALL Object (OBJM_SET, vscroll, "POSITION VERTICAL", "", v)
+
+        LET v(1) = 0
+        IF hscroll >= 0 then CALL Object (OBJM_SET, hscroll, "POSITION HORIZONTAL", "", v)
+
+        CALL TC_SetRect (txid, xl, xr, yb, yt)
+
+        ! Change the MARGIN, if the text is wrapped.
+
+        CALL Object (OBJM_GET, txid, "WRAP", "", v)
+        IF v(1) > 0 then
+           LET v(1) = xr - 7 - 6*border
+           CALL Object (OBJM_SET, txid, "MARGIN", "", v)
+        END IF
+
+    END SUB
+
+    SUB GetLines (txed, par, lines$())
+
+        LOCAL numlines, line
+
+        LET v(1) = par
+        CALL Object (OBJM_GET, txed, "LINES IN PAR", "", v())
+        LET numlines = v(2)
+
+        MAT Redim lines$(0:numlines-1)
+        LET v(1) = par
+        FOR line = 0 to numlines-1
+            LET v(2) = line
+            CALL Object (OBJM_GET, txed, "LINE", lines$(line), v())
+        NEXT line
+
+    END SUB
+
+    SUB DeleteLines (lines$(), from, to)
+
+        LOCAL line
+
+        FOR line = from to to
+            LET lines$(line) = ""
+        NEXT line
+
+    END SUB
+
+    SUB InsertCursor (txed, par, at)
+
+        LOCAL at1, numlines, l, line$, lline
+
+        LET at1 = at              ! We are modifying at1
+        LET v(1) = par
+        CALL Object (OBJM_GET, txed, "LINES IN PAR", "", v())
+        LET numlines = v(2)
+
+        LET v(1) = par
+        FOR l = 0 to numlines - 1
+            LET v(2) = l
+            CALL Object (OBJM_GET, txed, "LINE", line$, v())
+
+            LET lline = len(line$)
+            LET at1 = at1 - lline
+            IF at1 <= 0 then
+               MAT Redim v(3)
+               LET v(1) = par
+               LET v(2) = l
+               LET v(3) = at1 + lline
+               CALL Object (OBJM_SET, txed, "INSERTION", "", v())
+
+               EXIT SUB
+
+            END IF
+
+        NEXT l
+
+        ! If here, should be an error
+        ! But, no user error should be possible.
+
+    END SUB
+
+    SUB SplitLines (lines$(), insln, insch, before$, after$)
+
+        LOCAL endb$, starta$
+
+        LET endb$ = lines$(insln)[1:insch]
+        LET starta$ = lines$(insln)[insch+1:maxnum]
+
+        CALL ConCat (lines$(), 0, insln-1, before$)
+        LET before$ = before$ & endb$
+
+        CALL ConCat (lines$(), insln+1, ubound(lines$()), after$)
+        LET after$ = starta$ & after$
+
+    END SUB
+
+    SUB Concat (lines$(), from, to, par$)
+
+        LOCAL line
+
+        LET par$ = ""
+        FOR line = from to to
+            LET par$ = par$ & lines$(line)
+        NEXT line
+
+    END SUB
+
+    !--------------------------------------------------------
+    SUB NextLine (flat$, out$, p, delimitflag)
+
+        ! Flat$ is not changed.
+        ! Upon exit, p points to the first character that starts a new line.
+        ! Delimitflag = 0 only when the last line does not end with an eol$
+
+        LOCAL newp
+
+        LET newp = pos(flat$, eol$, p)
+        IF newp = 0 then
+           LET newp = len(flat$)+1
+           LET out$ = flat$[p:newp-1]
+           LET p = newp
+           LET delimitflag = 0
+
+        ELSE
+           LET out$ = flat$[p:newp-1]
+           LET p = newp+leneol
+           LET delimitflag = 1
+
+        END IF
+
+    END SUB
+
+    ! General conversion routines
+
+    !-----------------------------------------------------------------------
+    ! Convert from pixel to world coordinates
+    SUB TC_PixToUser (px, py, wx, wy)
+
+        LOCAL xl, xr, yb, yt, pxs, pys
+
+        ASK WINDOW xl, xr, yb, yt
+        ASK PIXELS pxs, pys
+
+        LET wx = xl + ((px/(pxs-1)) * (xr-xl))
+        LET wy = yt - ((py/(pys-1)) * (yt-yb))
+
+    END SUB
+
+    !-----------------------------------------------------------------------
+    ! Convert from world to pixel coordinates
+    SUB TC_UserToPix (wx, wy, px, py)
+
+        LOCAL xl, xr, yb, yt, pxs, pys
+
+        ASK WINDOW xl, xr, yb, yt
+        ASK PIXELS pxs, pys
+
+        LET px = (((wx-xl)/(xr-xl)) * (pxs-1))
+        LET py = (((yt-wy)/(yt-yb)) * (pys-1))
+
+    END SUB
+
+    SUB PixelsToUsers (px, ux, py, uy)
+
+        ! This routine converts a length in pixels to the
+        ! corresponding length in user coordinates.
+        ! Both x and y values are provided.
+
+        LOCAL xpix, ypix, xl, xr, yb, yt
+
+        ASK PIXELS xpix, ypix
+        ASK WINDOW xl, xr, yb, yt
+
+        LET ux = px*ABS(xr-xl)/xpix
+        LET uy = py*ABS(yt-yb)/ypix
+
+    END SUB
+
+    SUB PrintMenuIds
+
+        LOCAL w, m, i, s$
+
+        FOR w = 0 to ubound(menu_ids,1)
+            CALL Log ("Window " & str$(w))
+            FOR m = 0 to ubound(menu_ids,2)
+                LET s$ = "Menu " & str$(m) & ": "
+                FOR i = 0 to ubound(menu_ids,3)
+                    LET s$ = s$ & str$(menu_ids(w,m,i)) & " "
+                NEXT i
+                CALL Log (s$)
+            NEXT m
+        NEXT w
+
+    END SUB
+
+    SUB Log (line$)
+
+        WHEN EXCEPTION IN
+             PRINT #17: line$
+        USE
+             OPEN #17: name "LogFile.tru", create newold
+             SET #17: POINTER end
+             PRINT #17: line$
+        END WHEN
+
+    END SUB
+
+END MODULE
+
+
+! MODULE Constants
+! Version 5.0
+! Copyright (c) 1994 and 1995 by True BASIC, Inc.
+!                             12 Commerce Avenue
+!                             West Lebanon, NH  03784
+! All rights reserved
+
+MODULE Constants
+
+    ! SUB Init_Constants
+    ! SUB Version_Control! Adjust for different versions
+    ! SUB Load_Version40_Constants
+    ! SUB Load_Version45_Constants
+
+    OPTION TYPO
+
+    PUBLIC machine$               ! machine type (OS/2, UNIX, WIN32, MAC)
+    PUBLIC sys_eol                ! system-specific eol code from KEYPRESS
+    PUBLIC eol$                   ! platform-specific eol sequence for files
+    PUBLIC leneol                 ! Its length
+    PUBLIC language$              ! Primary language of True BASIC version.
+
+    !
+    ! Object method definitions
+    !
+    PUBLIC OBJM_CREATE, OBJM_COPY, OBJM_SET, OBJM_GET, OBJM_SHOW, OBJM_ERASE
+    PUBLIC OBJM_FREE, OBJM_SELECT, OBJM_UPDATE, OBJM_SYSINFO, OBJM_PRINT
+    PUBLIC OBJM_PAGESETUP, OBJM_REALIZE, OBJM_SCROLL
+    READ   OBJM_CREATE, OBJM_COPY, OBJM_SET, OBJM_GET, OBJM_SHOW, OBJM_ERASE
+    READ   OBJM_FREE, OBJM_SELECT, OBJM_UPDATE, OBJM_SYSINFO, OBJM_PRINT
+    READ   OBJM_PAGESETUP, OBJM_REALIZE, OBJM_SCROLL
+    DATA   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+
+    ! TextEdit Methods
+    PUBLIC OBJM_TXE_SUSPEND, OBJM_TXE_RESUME, OBJM_TXE_ADD_PAR, OBJM_TXE_DEL_PAR, OBJM_TXE_APPEND_PAR, OBJM_TXE_VSCROLL, OBJM_TXE_HSCROLL
+    READ   OBJM_TXE_SUSPEND, OBJM_TXE_RESUME, OBJM_TXE_ADD_PAR, OBJM_TXE_DEL_PAR, OBJM_TXE_APPEND_PAR, OBJM_TXE_VSCROLL, OBJM_TXE_HSCROLL
+    DATA 20, 21, 22, 23, 24, 25, 26
+
+    !
+    ! Object type definitions
+    !
+    PUBLIC OBJT_FREE, OBJT_GRAPHIC, OBJT_WINDOW, OBJT_CONTROL, OBJT_MENU, OBJT_GROUP
+    READ   OBJT_FREE, OBJT_GRAPHIC, OBJT_WINDOW, OBJT_CONTROL, OBJT_MENU, OBJT_GROUP
+    DATA   -1, 0, 1, 2, 3, 4
+
+    !
+    ! Graphic type defnitions
+    !
+    PUBLIC GRFT_CIRCLE, GRFT_LINE, GRFT_RECTANGLE, GRFT_ARC, GRFT_PIE
+    PUBLIC GRFT_ALINE, GRFT_ROUNDRECT, GRFT_POLYGON, GRFT_POLYLINE
+    PUBLIC GRFT_IMAGE
+    READ   GRFT_CIRCLE, GRFT_LINE, GRFT_RECTANGLE, GRFT_ARC, GRFT_PIE
+    READ   GRFT_ALINE, GRFT_ROUNDRECT, GRFT_POLYGON, GRFT_POLYLINE
+    READ   GRFT_IMAGE
+    DATA   0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+
+    !
+    ! Default window id
+    !
+    PUBLIC DEFAULT_WIN
+    READ   DEFAULT_WIN
+    DATA   0
+
+    !
+    ! Mouse status definitions
+    !
+    PUBLIC TB_MSTAT_NONE, TB_MSTAT_DRAG, TB_MSTAT_CLICK, TB_MSTAT_RELEASE, TB_MSTAT_EXTEND
+    READ   TB_MSTAT_NONE, TB_MSTAT_DRAG, TB_MSTAT_CLICK, TB_MSTAT_RELEASE, TB_MSTAT_EXTEND
+    DATA   0, 1, 2, 3, 4
+
+    !
+    ! Mouse button definitions
+    !
+    PUBLIC TB_MLEFT, TB_MRIGHT, TB_MMIDDLE
+    READ   TB_MLEFT, TB_MRIGHT, TB_MMIDDLE
+    DATA   0, 1, 2
+
+    !
+    ! Menu type definitions
+    !
+    PUBLIC MENT_BAR, MENT_ITEM
+    READ   MENT_BAR, MENT_ITEM
+    DATA   0, 1
+
+    !
+    ! Event types
+    !
+    PUBLIC TW_NOP, TW_KEYPRESS, TW_SINGLE, TW_DOUBLE, TW_EXTEND, TW_SIZE, TW_REFRESH, TW_SELECT, TW_HIDE, TW_CTRL_SEL, TW_CTRL_DSEL, TW_CTRL_DSELD
+    PUBLIC TW_UP, TW_DOWN, TW_LEFT, TW_RIGHT, TW_PAGEUP, TW_PAGEDOWN, TW_PAGELEFT, TW_PAGERIGHT, TW_VSCROLL, TW_HSCROLL, TW_MENU, TW_CTRL_SGL, TW_CTRL_DBL
+    READ   TW_NOP, TW_KEYPRESS, TW_SINGLE, TW_DOUBLE, TW_EXTEND, TW_SIZE, TW_REFRESH, TW_SELECT, TW_HIDE, TW_CTRL_SEL, TW_CTRL_DSEL, TW_CTRL_DSELD
+    READ   TW_UP, TW_DOWN, TW_LEFT, TW_RIGHT, TW_PAGEUP, TW_PAGEDOWN, TW_PAGELEFT, TW_PAGERIGHT, TW_VSCROLL, TW_HSCROLL, TW_MENU, TW_CTRL_SGL, TW_CTRL_DBL
+    DATA   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24
+
+    !
+    ! Control types
+    !
+    PUBLIC CTLT_PUSHBUTTON, CTLT_RADIOBUTTON, CTLT_CHECKBOX, CTLT_HSCROLL, CTLT_VSCROLL, CTLT_EDIT
+    PUBLIC CTLT_TEXT, CTLT_LBOX, CTLT_LISTBUTTON, CTLT_LISTEDIT, CTLT_GROUPBOX, CTLT_TXED, CTLT_ICON
+    READ   CTLT_PUSHBUTTON, CTLT_RADIOBUTTON, CTLT_CHECKBOX, CTLT_HSCROLL, CTLT_VSCROLL, CTLT_EDIT
+    READ   CTLT_TEXT, CTLT_LBOX, CTLT_LISTBUTTON, CTLT_LISTEDIT, CTLT_GROUPBOX, CTLT_TXED, CTLT_ICON
+    DATA   10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22, 23, 24
+
+    !
+    ! Pen Styles
+    !
+    PUBLIC PENS_SOLID, PENS_DOT, PENS_DASH
+    READ   PENS_SOLID, PENS_DOT, PENS_DASH
+    DATA   0, 1, 2
+
+    !
+    ! Pen and Brush Patterns
+    !
+    PUBLIC PBP_NONE, PBP_HOLLOW, PBP_SOLID, PBP_HORZ, PBP_VERT, PBP_FDIAG, PBP_BDIAG
+    PUBLIC PBP_CROSS, PBP_DIAGCROSS, PBP_RUBBER, PBP_SPECIAL
+    READ   PBP_NONE, PBP_HOLLOW, PBP_SOLID, PBP_HORZ, PBP_VERT, PBP_FDIAG, PBP_BDIAG
+    READ   PBP_CROSS, PBP_DIAGCROSS, PBP_RUBBER, PBP_SPECIAL
+    DATA   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+
+    !
+    ! Draw Modes
+    !
+    PUBLIC DM_COPY, DM_OR, DM_XOR, DM_CLEAR, DM_NOT_COPY, DM_NOT_OR, DM_NOT_XOR, DM_NOT_CLEAR
+    READ   DM_COPY, DM_OR, DM_XOR, DM_CLEAR, DM_NOT_COPY, DM_NOT_OR, DM_NOT_XOR, DM_NOT_CLEAR
+    DATA   0, 1, 2, 3, 4, 5, 6, 7
+
+    !
+    ! Text Justification
+    !
+    PUBLIC TXTJ_LEFT, TXTJ_CENTER, TXTJ_RIGHT
+    READ   TXTJ_LEFT, TXTJ_CENTER, TXTJ_RIGHT
+    DATA   0, 1, 2
+
+    !
+    ! List Box Types
+    !
+    PUBLIC LBXM_SINGLE, LBXM_MULTIPLE, LBXM_READONLY
+    READ   LBXM_SINGLE, LBXM_MULTIPLE, LBXM_READONLY
+    DATA   0, 1, 2
+
+    !
+    ! Window Types
+    !
+    PUBLIC WINT_DOC, WINT_PLAIN, WINT_DOUBLE, WINT_NO_BORDER
+    READ   WINT_DOC, WINT_PLAIN, WINT_DOUBLE, WINT_NO_BORDER
+    DATA   1, 2, 3, 7
+
+    SHARE v(0)
+
+    CALL Init_Constants
+    CALL Version_Control
+
+    !---------------------------------------------------------------
+    ! Get system-specific control dimensions
+    SUB Init_Constants
+
+        CALL Object (OBJM_SYSINFO, 0, "MACHINE", machine$, v)
+        LET machine$ = ucase$(machine$)
+        CALL Object (OBJM_SYSINFO, 0, "LANGUAGE", language$, v)
+        LET language$ = lcase$(language$)
+
+        !-------------------------------
+        ! Initialize system-specific eol stuff.
+        IF machine$ = "UNIX" then
+           LET eol$ = chr$(10)
+           LET sys_eol = 13       ! System specific eol symbol (KEYPRESS value)
+
+        ELSE IF machine$ = "MAC" then
+           LET eol$ = chr$(13)
+           LET sys_eol = 13       ! System specific eol symbol (KEYPRESS value)
+
+        ELSE IF machine$ = "WIN32" then
+           LET eol$ = chr$(13) & chr$(10)
+           LET sys_eol = 13       ! System specific eol symbol (KEYPRESS value)
+
+        ELSE IF machine$ = "OS/2" then
+           LET eol$ = chr$(13) & chr$(10)
+           LET sys_eol = 13       ! System specific eol symbol (KEYPRESS value)
+
+        ELSE
+           ! Need an error message here.
+
+        END IF
+        LET leneol = len(eol$)
+
+    END SUB
+
+    !---------------------------------------------------------------
+    SUB Version_Control           ! Adjust for different versions
+
+        LOCAL version$
+
+        CALL Object (OBJM_SYSINFO, 0, "VERSION", version$, v)
+
+        !
+        ! Modified for XVT 4.5 by CLS. Need to separate out loads because of
+        ! dual sets of DATA statements.
+        !
+        IF pos(lcase$(version$), "version 4.x") > 0 then
+
+           CALL Load_Version40_Constants
+
+        ELSE IF pos(lcase$(version$), "version 4.5") > 0 then
+
+           CALL Load_Version45_Constants
+
+        END IF
+
+    END SUB
+
+    SUB Load_Version40_Constants
+
+        READ CTLT_PUSHBUTTON, CTLT_RADIOBUTTON, CTLT_CHECKBOX
+        READ CTLT_HSCROLL, CTLT_VSCROLL, CTLT_EDIT
+        READ CTLT_TEXT, CTLT_LBOX, CTLT_LISTBUTTON
+        READ CTLT_LISTEDIT, CTLT_GROUPBOX, CTLT_TXED
+
+        DATA   11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
+
+    END SUB
+
+    SUB Load_Version45_Constants
+
+        READ CTLT_PUSHBUTTON, CTLT_RADIOBUTTON, CTLT_CHECKBOX
+        READ CTLT_HSCROLL, CTLT_VSCROLL, CTLT_EDIT
+        READ CTLT_TEXT, CTLT_LBOX, CTLT_LISTBUTTON
+        READ CTLT_LISTEDIT, CTLT_GROUPBOX, CTLT_TXED
+
+        DATA   12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+
+    END SUB
+
+END MODULE

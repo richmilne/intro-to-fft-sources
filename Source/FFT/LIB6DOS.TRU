@@ -1,0 +1,519 @@
+EXTERNAL             !LIB6DOS
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX24( Z1$, NOCONV, A$ )
+
+  CLEAR
+  CALL BOXU(2,12,56,18)
+  CALL LINEU(5,12,56)
+  PRINT TAB(3,15);  "FORMAT OF FILE TO BE LOADED:    ALL VALUES MUST BE"
+  PRINT TAB(4,15);  "ASCII-NUMERIC, ONE TO A LINE.  NULL LINES ACCEPTED"
+  PRINT TAB(7,15);  "N  VALUES OF  XRE(K) ............................. A"
+  PRINT TAB(9,15);  "N  VALUES OF  XRE(K)   AND  N  OF  X2RE(K) ....... B"
+  PRINT TAB(11,15); "N  VALUES OF  XRE(K)   AND  N  OF  XIM(K) ........ C"
+  PRINT TAB(13,15); "N  VALUES OF  XRE(K)   AND  N  OF  XIM(K)           "
+  PRINT TAB(14,15); "N  VALUES OF  X2RE(K)  AND  N  OF  X2IM(K) ....... D"
+  PRINT TAB(16,15); "N  VALUES OF  FRE(K)   AND  N  OF  FIM(K) ........ E"
+  PRINT TAB(18,15); "N  VALUES OF  FRE(K)   AND  N  OF  FIM(K)           "
+  PRINT TAB(19,15); "N  VALUES OF  F2RE(K)  AND  N  OF  F2IM(K) ....... F"
+
+  IF NOCONV = 1 THEN
+    PRINT TAB(9,66);  " "
+    PRINT TAB(14,66); " "
+    PRINT TAB(19,66); " "
+  END IF
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 23, 31, A$, FRAZ$, Z1$ )
+
+    IF Z1$ <> "A" AND Z1$ <> "C" AND Z1$ <> "E" AND Z1$ <> "Q" AND (NOCONV = 1 OR (Z1$ <> "B" AND Z1$ <> "D" AND Z1$ <> "F")) THEN SOUND 500,.1
+  LOOP UNTIL Z1$ = "A" OR Z1$ = "C" OR Z1$ = "E" OR Z1$ = "Q" OR (NOCONV = 0 AND (Z1$ = "B" OR Z1$ = "D" OR Z1$ = "F"))
+
+END SUB !BOX24
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX27A( FDT$, A$ )   !FILETODISK
+
+  CLEAR
+  CALL BOXU(4,17,44,7)
+  CALL LINEU(6,17,44)
+  PRINT TAB(5,20); "WHICH TYPE OF FILE DO YOU WANT TO SEND ?"
+  PRINT TAB(8,20); "ASCII-SEQUENTIAL ..................... A"
+  PRINT TAB(10,20);"PRINT-IMAGE .......................... P"
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 14, 31, A$, FRAZ$, FDT$ )
+
+    IF FDT$ <> "A" AND FDT$ <> "P" AND FDT$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL FDT$ = "A" OR FDT$ = "P" OR FDT$ = "Q"
+
+END SUB !BOX27A
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX27B( FDT$, NOCONV, A$ )   !DATAFILETODISK
+
+  CLEAR
+  CALL BOXU(2,15,49,17)
+  CALL LINEU(4,15,49)
+  PRINT TAB(3,20); "THE VECTORS THAT YOU CAN SEND TO DISK ARE"
+  PRINT TAB(6,18); "X ......................................... A"
+  PRINT TAB(8,18); "X AND X2 .................................. B"
+  PRINT TAB(10,18);"F ......................................... C"
+  PRINT TAB(12,18);"F AND F2 .................................. D"
+  PRINT TAB(14,18);"Y ......................................... E"
+  PRINT TAB(16,18);"ITEMS A, C AND E ABOVE .................... F"
+  PRINT TAB(18,18);"ITEMS B, D AND E ABOVE .................... G"
+
+  IF NOCONV = 1 THEN
+    PRINT TAB(8,62);  " "
+    PRINT TAB(12,62); " "
+    PRINT TAB(18,62); " "
+  END IF
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 22, 31, A$, FRAZ$, FDT$ )
+
+    IF FDT$ <> "A" AND FDT$ <> "C" AND FDT$ <> "E" AND FDT$ <> "F" AND (NOCONV = 1 OR (FDT$ <> "B" AND FDT$ <> "D" AND FDT$ <> "G")) AND FDT$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL FDT$ = "A" OR FDT$ = "C" OR FDT$ = "E" OR FDT$ = "F" OR (NOCONV = 0 AND (FDT$ = "B" OR FDT$ = "D" OR FDT$ = "G")) OR FDT$ = "Q"
+
+END SUB !BOX27B
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX100( XFLAG, X2FLAG, FFTFLAG, FFT2FLAG, IFFTFLAG, Z15$, A$ )
+
+  CLEAR
+  PRINT TAB(4,20);  "ษอออออออออออออออออออออออออออออออออออออออป"
+  PRINT TAB(5,20);  "บ   THE SYSTEM VECTORS ARE AS FOLLOWS:  บ"
+  PRINT TAB(6,20);  "ฬออออออออออหออออออออออออหอออออออออออออออน"
+  PRINT TAB(7,20);  "บ    X     บ            บ               บ"
+  PRINT TAB(8,20);  "ฬออออออออออฮออออออออออออฮอออออออออออออออน"
+  PRINT TAB(9,20);  "บ    X2    บ            บ               บ"
+  PRINT TAB(10,20); "ฬออออออออออฮออออออออออออฮอออออออออออออออน"
+  PRINT TAB(11,20); "บ    F     บ            บ               บ"
+  PRINT TAB(12,20); "ฬออออออออออฮออออออออออออฮอออออออออออออออน"
+  PRINT TAB(13,20); "บ    F2    บ            บ               บ"
+  PRINT TAB(14,20); "ฬออออออออออฮออออออออออออฮอออออออออออออออน"
+  PRINT TAB(15,20); "บ    Y     บ            บ               บ"
+  PRINT TAB(16,20); "ศออออออออออสออออออออออออสอออออออออออออออผ"
+
+  LET G$ = "ZERO"
+  LET H$ = "NONZERO"
+
+  IF XFLAG    = 0 THEN PRINT TAB(7,36);  G$
+  IF XFLAG    = 1 THEN PRINT TAB(7,49);  H$
+  IF X2FLAG   = 0 THEN PRINT TAB(9,36);  G$
+  IF X2FLAG   = 1 THEN PRINT TAB(9,49);  H$
+  IF FFTFLAG  = 0 THEN PRINT TAB(11,36); G$
+  IF FFTFLAG  = 1 THEN PRINT TAB(11,49); H$
+  IF FFT2FLAG = 0 THEN PRINT TAB(13,36); G$
+  IF FFT2FLAG = 1 THEN PRINT TAB(13,49); H$
+  IF IFFTFLAG = 0 THEN PRINT TAB(15,36); G$
+  IF IFFTFLAG = 1 THEN PRINT TAB(15,49); H$
+
+  DO
+    LET FRAZ$ = "ณ CONTINUE ... C ณ  ?  "
+
+    CALL APROMPT( 18, 30, A$, FRAZ$, Z15$ )
+
+    IF Z15$ <> "C" AND Z15$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL Z15$ = "C" OR Z15$ = "Q"
+
+END SUB !BOX100
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX124( PR$, A$ )
+
+  CLEAR
+  CALL BOXU(4, 15, 50, 5)
+  PRINT TAB(6,18); "THE OUTPUT VALUES CAN BE IN STANDARD PRECISION"
+  PRINT TAB(8,31); "OR DOUBLE PRECISION"
+
+  DO
+    LET FRAZ$ =  "ณ STANDARD ... S ณ DOUBLE ... D ณ  ?  "
+
+    CALL APROMPT( 12, 24, A$, FRAZ$, PR$ )
+
+    IF PR$ <> "S" AND PR$ <> "D" AND PR$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL PR$ = "S" OR PR$ = "D" OR PR$ = "Q"
+
+END SUB !BOX124
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX125( GPR$, A$ )
+
+  CLEAR
+  CALL BOXU( 4, 15, 48, 5 )
+  PRINT TAB(6,18); "THE DATA VALUES CAN BE SEQUENTIALLY NUMBERED"
+  PRINT TAB(8,33); "OR UN-NUMBERED"
+
+  DO
+    LET FRAZ$ =  "ณ NUMBERED ... N ณ UN-NUMBERED ... U ณ  ?  "
+
+    CALL APROMPT( 12, 20, A$, FRAZ$, GPR$ )
+
+    IF GPR$ <> "N" AND GPR$ <> "U" AND GPR$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL GPR$ = "N" OR GPR$ = "U" OR GPR$ = "Q"
+
+END SUB !BOX125
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX126( FILENAME$, A$, BOXNO )
+
+  SOUND 1000,.1
+  CLEAR
+  IF BOXNO = 1 THEN
+    LET FRAZ1$ = "OK: THE SELECTED ITEMS HAVE BEEN SENT TO DISK FILE"
+  ELSE IF BOXNO = 2 THEN
+    LET FRAZ1$ = "OK: YOUR PRINT FILE HAS BEEN SENT TO"
+  ELSE IF BOXNO = 3 THEN
+    LET FRAZ1$ = "OK: WE HAVE LOADED THE FOLLOWING FILE"
+  END IF
+
+  LET FRAZ2$ = "----->  " & FILENAME$ & "  <-----"
+  LET COUNT1 = LEN(FRAZ1$)
+  LET COUNT2 = LEN(FRAZ2$)
+  LET COUNTB = MAX(COUNT1,COUNT2) + 4
+  LET STARTB = 39 - ROUND(COUNTB/2)
+  CALL BOXU( 4, STARTB, COUNTB, 5 )
+  LET START1 = 40 - ROUND(COUNT1/2)
+  LET START2 = 40 - ROUND(COUNT2/2)
+  PRINT TAB(6,START1);FRAZ1$
+  PRINT TAB(8,START2);FRAZ2$
+
+  CALL BOX48MFIX( 12, 30, A$ )
+
+END SUB !BOX126
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX133( CONT, FILENAME$, A$ )
+
+!2  ษอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+!3  บ       WHAT IS THE NAME OF THE DISC FILE THAT YOU WANT TO XXXX ?       บ
+!4  ฬอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+!5  บ                                                                       บ
+!6  บ  PLEASE SPECIFY USING FULL DOS FORMAT, i.e. DRIVE:\PATH\FILENAME.EXT  บ
+!7  บ                                                                       บ
+!8  บ     WE EXPECT THAT ALL FILES SHALL HAVE A 3-CHARACTER EXTENSION;      บ
+!9  บ                                                                       บ
+!0  บ  IF NO EXTENSION THEN AT LEAST A PERIOD AT THE END OF THE FILE NAME.  บ
+!1  บ                                                                       บ
+!2  ฬอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+!3  บ                                                                       บ
+!4  บ        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX        บ
+!5  บ                                                                       บ
+!6  บ   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX    บ
+!7  บ                                                                       บ
+!8  บ    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX     บ
+!9  บ                                                                       บ
+!0  ศอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+!
+!2                                ณ FILE NAME ณ ? "
+
+!                                MACINTOSH SYNTAX
+!   PRINT "FULL NAME IN MAC FORMAT OF THE FILE TO BE LOADED MUST BE GIVEN."
+!   PRINT
+!   PRINT "i.e. DISKNAME:FOLDERNAME:FILENAME"
+!   PRINT
+!   PRINT "e.g. APPLE SOURCE:DATA FOLDER:DATAFILE ONE"
+!   PRINT
+!   PRINT "(PLEASE DONT ADD ANY SPACES THAT AREN'T CALLED FOR)"
+
+    ! ----> MACINTOSH SYNTAX
+    !          PRINT "PLEASE SPECIFY   DISKNAME:FOLDERNAME:FILENAME   IN MAC FORMAT"
+    !          PRINT
+    !          PRINT "e.g.  APPLE SOURCE:DATA FOLDER:FIRST RUN"
+    !          PRINT
+    !          PRINT "(PLEASE DON'T ADD SPACES IF THEY ARE NOT CALLED FOR"
+    !          PRINT "   AND PLEASE BE SURE THAT SUCH A FILE DOES NOT ALREADY EXIST)"
+    !          PRINT
+    !          PRINT "IF YOU ENTER ONLY A FILE NAME"
+    !          PRINT "   THEN THE DATA WILL BE SENT TO YOUR CURRENT FOLDER"
+
+  CLEAR
+  CALL BOXU(2, 4, 71, 17)
+  CALL LINEU(4, 4, 71)
+  CALL LINEU(12, 4, 71)
+
+  PRINT TAB(6,5); "  PLEASE SPECIFY USING FULL DOS FORMAT, i.e. DRIVE:\PATH\FILENAME.EXT  "
+  PRINT TAB(8,5); "     WE EXPECT THAT ALL FILES SHALL HAVE A 3-CHARACTER EXTENSION;      "
+  PRINT TAB(10,5);"  IF NO EXTENSION THEN AT LEAST A PERIOD AT THE END OF THE FILE NAME.  "
+
+  IF CONT = 0 THEN
+    PRINT TAB(3,5); "       WHAT IS THE NAME OF THE DISC FILE THAT YOU WANT TO LOAD ?       "
+    PRINT TAB(14,5);"        IF THE FILE WHICH YOU ARE ABOUT TO LOAD DOES NOT COMPLY        "
+    PRINT TAB(16,5);"   THEN EXIT NOW FROM THE FFT SYSTEM AND RENAME IT SO THAT IT DOES,    "
+    PRINT TAB(18,5);"    OR ELSE IT WILL BE DECLARED NONEXISTENT AND WILL NOT BE LOADED.    "
+  ELSE IF CONT = 1 THEN
+    PRINT TAB(3,5); "      WHAT IS THE NAME OF THE DISC FILE THAT YOU WANT TO CREATE ?      "
+    PRINT TAB(14,5);"  (1) IF YOU ENTER ONLY A FILE NAME AND YOU DON'T INCLUDE A PATH THEN  "
+    PRINT TAB(15,5);"      THE DATA WILL BE SENT TO YOUR CURRENT DOS DIRECTORY              "
+    PRINT TAB(17,5);"  (2) IF YOU DON'T ADD AN EXTENSION THEN THE SYSTEM IS GOING TO        "
+    PRINT TAB(18,5);"      APPEND ---> .TRU  AS THE EXTENSION.                              "
+  END IF
+
+  LET FRAZ$ = "ณ FILE NAME ณ ? "
+
+  CALL APROMPT( 22, 34, A$, FRAZ$, FILENAME$ )
+
+END SUB !BOX133
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX134( MESG$, Z0$, A$ )
+
+  SOUND 500,.1
+  CLEAR
+
+  LET FRAZ1$ = "AN ERROR HAS OCCURRED. THE ERROR MESSAGE READS"
+  LET COUNT1 = LEN(FRAZ1$)
+  LET COUNT2 = LEN(MESG$)
+  LET COUNT = MAX(COUNT1,COUNT2)
+  LET STARTB = 37 - ROUND(COUNT/2)
+  CALL BOXU(4, STARTB, COUNT+4, 7)
+
+  LET START1 = 40 - ROUND(COUNT1/2)
+  PRINT TAB(6,START1); FRAZ1$
+  LET DLIN$ = REPEAT$("-",COUNT)
+  PRINT TAB(8,STARTB+3);  DLIN$
+  PRINT TAB(10,STARTB+3); DLIN$
+  LET START2 = 40 - ROUND(COUNT2/2)
+  PRINT TAB(9,START2); MESG$
+
+  LET FRAS$ = "ณ CONTINUE ... C ณ  ?  "
+  DO
+    IF FER = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( 14, 29, A$, FRAS$, Z0$ )
+
+    IF Z0$ = "C" OR Z0$ = "Q" THEN LET QAZ = 1
+    LET FER = 1
+  LOOP UNTIL QAZ = 1
+
+END SUB !BOX134
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX135(MESG$, R$, MM, VSQ$, A$)
+
+  SOUND 500,.1
+  CLEAR
+
+  LET FRAZ1$ = "AN ERROR HAS OCCURRED IN LINE NUMBER " & STR$(MM) & " OF YOUR DATA FILE."
+  LET COUNT1 = LEN(FRAZ1$)
+
+  LET FRAZ3$ = """" & R$ & """"
+  LET COUNT3 = LEN(FRAZ3$)
+
+  LET FRAZ5$ = MESG$
+  LET COUNT5 = LEN(FRAZ5$)
+
+  LET COUNTB = MAX(COUNT1,COUNT3)
+  LET COUNTB = MAX(COUNTB,COUNT5)
+  LET WID = COUNTB+4
+  IF WID >= 78 THEN LET WID = 78
+
+  LET STARTB = 40 - ROUND((COUNTB+6)/2)
+  IF STARTB < 1 THEN LET STARTB = 1
+
+  CALL BOXU(4, STARTB, WID, 12)
+
+  LET START1 = 40 - ROUND(COUNT1/2)
+  LET FRAZ1$ = FRAZ1$[1:WID]
+  PRINT TAB(6,START1); FRAZ1$
+
+  LET FRAZ2$ = "THE LINE WHICH HAS BEEN READ IS:"
+  LET COUNT2 = LEN(FRAZ2$)
+  LET START2 = 40 - ROUND(COUNT2/2)
+  PRINT TAB(8,START2);FRAZ2$
+
+  LET START3 = 40 - ROUND(COUNT3/2)
+  LET FRAZ3$ = FRAZ3$[1:WID]
+  PRINT TAB(10,START3);FRAZ3$
+
+  LET FRAZ4$ = "THE ERROR DIAGNOSTIC READS:"
+  LET COUNT4 = LEN(FRAZ4$)
+  LET START4 = 40 - ROUND(COUNT4/2)
+  PRINT TAB(12,START4);FRAZ4$
+  PRINT TAB(13,STARTB+3);
+  FOR K = 1 TO COUNTB
+    PRINT "-";
+  NEXT K
+
+  LET START5 = 40 - ROUND(COUNT5/2)
+  LET FRAZ5$ = FRAZ5$[1:WID]
+  PRINT TAB(14,START5);FRAZ5$
+
+  PRINT TAB(15,STARTB+3);
+  FOR K = 1 TO COUNTB
+    PRINT "-";
+  NEXT K
+
+  LET FRAZ6$ = "ณ DISREGARD THIS LINE ... D ณ QUIT ... Q ณ  ?  "
+
+  DO
+    IF PRL = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( 19, 18, A$, FRAZ6$, VSQ$ )
+
+    IF VSQ$ = "D" OR VSQ$ = "Q" THEN LET SXP = 1
+    LET PRL = 1
+  LOOP UNTIL SXP = 1
+
+END SUB !BOX135
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX136( FILENAME$, Z11$, A$ )
+
+  CLEAR
+  LET FRAZ1$ = "OK: WE ARE GOING TO SEND A FILE TO"
+  LET COUNT1 = LEN(FRAZ1$)
+
+  LET FRAZ2$ = "----->  " & FILENAME$ & "  <-----"
+  LET COUNT2 = LEN(FRAZ2$)
+
+  LET COUNT = MAX(COUNT1, COUNT2)
+  LET WID = COUNT + 4
+  LET STARTB = 40 - ROUND((WID+2)/2)
+
+  CALL BOXU(4, STARTB, WID, 5)
+
+  LET START1 = 40 - ROUND(COUNT1/2)
+  PRINT TAB(6,START1);FRAZ1$
+
+  LET START2 = 40 - ROUND(COUNT2/2)
+  PRINT TAB(8,START2);FRAZ2$
+
+  LET FRAZ3$ = "ณ PROCEED ... P ณ CHANGE ... G ณ  ?  "
+
+  DO
+    IF SAO = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( 12, 24, A$, FRAZ3$, Z11$ )
+
+    IF Z11$ = "P" OR Z11$ = "G" OR Z11$ = "Q" THEN LET SWP = 1
+    LET SAO = 1
+  LOOP UNTIL SWP = 1
+
+END SUB !BOX136
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX137( FDT$, CZE$, SDT$, A$ )
+
+  CLEAR
+  IF FDT$ = "A" OR FDT$ = "C" OR FDT$ = "E" THEN
+    LET HYT = 6
+  ELSE IF FDT$ = "B" OR FDT$ = "D" THEN
+    LET HYT = 9
+  ELSE IF FDT$ = "F" THEN
+    LET HYT = 12
+  ELSE IF FDT$ = "G" THEN
+    LET HYT = 18
+    LET DELT = -2
+  END IF
+
+  CALL BOXU(4+DELT,13,51,HYT)
+  CALL LINEU(6+DELT,13,51)
+
+  PRINT TAB(5+DELT,16); "THE FORMAT OF YOUR DATA FILE WILL BE AS FOLLOWS"
+
+  IF FDT$ = "A" OR FDT$ = "B" OR FDT$ = "F" OR FDT$ = "G" THEN
+    PRINT TAB(8+DELT,29); "N  NUMBERS FOR  XRE"
+    PRINT TAB(9+DELT,29); "N  NUMBERS FOR  XIM"
+    LET COUNT = 3
+  END IF
+
+  IF FDT$ = "B" OR FDT$ = "G" THEN
+    PRINT TAB(8+DELT+COUNT,29); "N  NUMBERS FOR  X2RE"
+    PRINT TAB(9+DELT+COUNT,29); "N  NUMBERS FOR  X2IM"
+    LET COUNT = COUNT + 3
+  END IF
+
+  IF FDT$ = "C" OR FDT$ = "D" OR FDT$ = "F" OR FDT$ = "G" THEN
+    IF CZE$ = "C" OR CZE$ = "S" OR CZE$ = "DD" THEN
+      PRINT TAB(8+DELT+COUNT,29); "N  NUMBERS FOR  FRE"
+      PRINT TAB(9+DELT+COUNT,29); "N  NUMBERS FOR  FIM"
+
+    ELSE IF CZE$ = "R" THEN
+      PRINT TAB(8+DELT+COUNT,29); "N/2  NUMBERS FOR  a(n)"
+      PRINT TAB(9+DELT+COUNT,29); "N/2  NUMBERS FOR  b(n)"
+
+    ELSE IF CZE$ = "I" THEN
+      PRINT TAB(8+DELT+COUNT,22); "N  NUMBERS FOR THE WEIGHTS IN  FRE"
+      PRINT TAB(9+DELT+COUNT,22); "N  NUMBERS FOR THE WEIGHTS IN  FIM"
+    END IF
+    LET COUNT = COUNT + 3
+  END IF
+
+  IF FDT$ = "D" OR FDT$ = "G" THEN
+    IF CZE$ = "C" OR CZE$ = "S" OR CZE$ = "DD" THEN
+      PRINT TAB(8+DELT+COUNT,29); "N  NUMBERS FOR  F2RE"
+      PRINT TAB(9+DELT+COUNT,29); "N  NUMBERS FOR  F2IM"
+
+    ELSE IF CZE$ = "R" THEN
+      PRINT TAB(8+DELT+COUNT,29); "N/2  NUMBERS FOR  a2(n)"
+      PRINT TAB(9+DELT+COUNT,29); "N/2  NUMBERS FOR  b2(n)"
+
+    ELSE IF CZE$ = "I" THEN
+      PRINT TAB(8+DELT+COUNT,22); "N  NUMBERS FOR THE WEIGHTS IN  F2RE"
+      PRINT TAB(9+DELT+COUNT,22); "N  NUMBERS FOR THE WEIGHTS IN  F2IM"
+    END IF
+    LET COUNT = COUNT + 3
+  END IF
+
+  IF FDT$ = "E" OR FDT$ = "F" OR FDT$ = "G" THEN
+    PRINT TAB(8+DELT+COUNT,29); "N  NUMBERS FOR  YRE"
+    PRINT TAB(9+DELT+COUNT,29); "N  NUMBERS FOR  YIM"
+    LET COUNT = COUNT + 3
+  END IF
+
+  LET FRAZ$ = "ณ CONTINUE ... C ณ  ?  "
+
+  LET WXQ = 0
+  DO
+    IF WXQ = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( 10+DELT+COUNT, 30, A$, FRAZ$, SDT$ )
+
+    IF SDT$ = "C" OR SDT$ = "Q" THEN LET SQK = 1
+    LET WXQ = 1
+  LOOP UNTIL SQK = 1
+
+END SUB !BOX137
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,0 +1,883 @@
+EXTERNAL            !LIB4FFT
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB SHOWNUMBERS( CONCORFLAG, N, NU, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, T, TYPE$, MODE$, KLEEN$, A$, CALL$, CARD$, COLOR$ )
+
+  IF CONCORFLAG = 1 THEN
+    LET WURDD$ = "convolution"
+  ELSE IF CONCORFLAG = 0 THEN
+    LET WURDD$ = "correlation"
+  END IF
+
+  IF CARD$ <> "HERCULES" AND CARD$ <> "CGA-COLOR" AND CARD$ <> "CGA" THEN
+    LET COLGROUP$ = "A"
+    LET LIFT = 0
+  ELSE
+    LET COLGROUP$ = "B"
+    LET LIFT = 1
+  END IF
+
+  WHEN ERROR IN
+    LET PROCEED = 1
+    LET SHOW = 0
+    LET DISP = 0
+
+    LET ZAZ = 1
+
+    IF PICK$ = "P" THEN
+      LET ZAZ = 1              ! SHOW PRIMARY
+    ELSE IF PICK$ = "Q" THEN
+      LET MMENU = 1
+    END IF
+
+    IF MMENU = 0 THEN
+
+      CALL BOX21( ZAZ, Z11$, A$ )
+
+      IF Z11$ = "X" THEN
+        LET SHOW = 1       !SHOW INPUT/IFFT
+        LET SHOWKEEP = 0
+
+      ELSE IF Z11$ = "F" THEN
+        LET SHOW = 2       !SHOW A SPECTRUM
+        LET SHOWKEEP = 2
+
+      ELSE IF Z11$ = "Q" THEN
+        LET MMENU = 1
+      END IF
+    END IF
+
+    IF MMENU = 0 THEN
+      IF TYPE$ = "PER" AND MODE$ = "SAMP" AND SHOW = 2 THEN
+        CLEAR
+        CALL MENU3( A$ )          !TO SELECT COMPLEX SPECTRUM OR REAL SPECTRUM
+
+      ELSE IF TYPE$ = "PUL" AND MODE$ = "SAMP" AND SHOW = 2 THEN
+        CLEAR
+        CALL MENU4( CONVFLAG, A$ )          !TO SELECT SINGLE PULSE OR INFINITE PULSE TRAIN
+      END IF
+    END IF
+
+
+    ! MODE$ = "DISC" : DISCRETE
+    ! MODE$ = "SAMP" : SAMPLED
+
+    ! TYPE$ = "PER" : PERIODIC
+    ! TYPE$ = "PUL" : PULSE
+
+    ! ZAZ = 1  : SHOW PRIMARY
+    ! ZAZ = 2  : SHOW SECONDARY
+
+    ! SHOW = 1 : SHOW TIME-DOMAIN
+    ! SHOW = 2 : SHOW A SPECTRUM
+
+    ! DISP = 0 : DISCRETE FUNCTION, PERIODIC OR PULSE
+    ! DISP = 1 : FOURIER SERIES COMPLEX FORM
+    ! DISP = 2 : FOURIER SERIES REAL FORM
+    ! DISP = 3 : FOURIER TRANSFORM, SINGLE PULSE, COMPLEX FORM
+    ! DISP = 4 : FOURIER TRANSFORM, INF PULSE TRAIN, COMPLEX FORM
+
+    IF MMENU = 0 THEN
+      CLEAR
+      IF SHOW = 1 THEN
+        LET JLO =  0
+        LET JHI = 16
+      ELSE IF SHOW = 2 THEN
+        IF DISP <> 2 THEN
+          LET JLO = -8
+          LET JHI =  8
+        ELSE IF DISP = 2 THEN
+          LET JLO =  0
+          LET JHI = 16
+        END IF
+      END IF
+      LET SWEEP$ = "UP"
+
+      DO                           !MASTER DO LOOP
+
+        CALL SETCOLOR( COLOR$ )
+        IF DISP = 0 THEN
+          LET MM = 1               !NO SCALE FACTORS FOR DISCRETE
+          LET GG = 1
+        ELSE IF DISP = 1 THEN
+            LET MM = 1/N           !SCALE FACTOR FOR COMPLEX FOURIER SERIES
+        ELSE IF DISP = 2 THEN
+            LET MM = 1/N           !SCALE FACTOR FOR REAL FOURIER SERIES
+        ELSE IF DISP = 3 THEN
+          LET MM = T/N             !SCALE FACTOR FOR SINGLE PULSE XFORM
+        ELSE IF DISP = 4 THEN
+          LET MM = 2*PI/N          !SCALE FACTOR FOR INF PULSE TRAIN XFORM
+        END IF
+
+        IF CONVFLAG = 0 THEN
+          LET GG = MM
+          LET SCC = 1
+        ELSE IF CONVFLAG = 1 THEN
+          LET GG = MM^2            !SQUARE THE FACTOR FOR PULSES IF CONVOLUTION HAS BEEN RUN BECAUSE THE SPECTRA HAVE BEEN MULTIPLIED AND PLACED IN FFT
+          IF DISP = 1 OR DISP = 2 THEN
+            LET GG = T*GG          !IF PERIODIC, THEN ALSO MULTIPLY BY  To  (SEE CHAPTER 15, FINAL SECTION FOR CIRCULAR CONV)
+          END IF
+          IF MODE$ = "SAMP" THEN   !SCALE FACTOR FOR CONVOLUTION IF "SAMPLED"
+            LET SCC = T/N
+          ELSE IF MODE$ = "DISC" THEN
+            LET SCC = 1
+          END IF
+        END IF
+
+        !IF PRIMARY AND TIME-DOMAIN
+        IF SHOW = 1 AND ZAZ = 1 AND IFFTDONEFLAG = 0 THEN
+          LET IFFTDONEFLAG = 1
+
+          FOR K = 0 TO N - 1
+            LET TEMPRE(K) = SCC*IFFTRE(K)     !TEMPRE IS SCALED IFFT
+            LET TEMPIM(K) = SCC*IFFTIM(K)
+          NEXT K
+
+          IF KLEEN$ = "ONE"  THEN
+            PRINT TAB(23-LIFT,1);
+            CALL CLEANUP( N, TEMPRE(), TEMPIM() )
+            PRINT TAB(23-LIFT,1);A$
+          END IF
+
+        !IF A SPECTRUM
+
+        ELSE IF SHOW = 2 THEN
+
+          IF ZAZ <> OLDZAZ THEN LET FFTDONEFLAG = 0
+
+          IF FFTDONEFLAG = 0 THEN
+            LET FFTDONEFLAG = 1
+
+            IF ZAZ = 1 THEN                     !SHOW PRIMARY SPECTRUM
+              FOR K = 0 TO N - 1
+                LET TEMP2RE(K) = GG*FFTRE(K)      !TEMP2RE IS SCALED FFTRE
+                LET TEMP2IM(K) = GG*FFTIM(K)
+              NEXT K
+            ELSE IF ZAZ = 2 THEN                !SHOW SECONDARY SPECTRUM
+              FOR K = 0 TO N - 1
+                LET TEMP2RE(K) = MM*FFT2RE(K)     !TEMP2RE IS SCALED FFT2RE
+                LET TEMP2IM(K) = MM*FFT2IM(K)
+              NEXT K
+            END IF
+
+            IF KLEEN$ = "ONE" THEN
+              LET FFTDONEFLAG = 1
+              PRINT TAB(23-LIFT,1);
+              CALL CLEANUP( N, TEMP2RE(), TEMP2IM() )
+              PRINT TAB(23-LIFT,1);A$
+            END IF
+          END IF
+        END IF
+
+        IF SHOW = 1 THEN                 !SHOW TIME DOMAIN
+          PRINT TAB(1,1);"N =";N;
+          IF MODE$ = "SAMP" THEN
+            PRINT TAB(2,1);"T =";T
+            PRINT TAB(3,1);"Ts =";T/N
+          END IF
+          IF ZAZ = 1 THEN                !SHOW PRIMARY
+            PRINT TAB(1,26);"X VECTOR"
+            PRINT TAB(1,57);"Y VECTOR"
+          ELSE IF ZAZ = 2 THEN           !SHOW SECONDARY
+            PRINT TAB(1,25); "X2  VECTOR" !DON'T TOUCH
+          END IF
+          IF MODE$ = "DISC" THEN
+            PRINT TAB(2,26);"DISCRETE"
+          ELSE IF MODE$ = "SAMP" THEN
+            IF TYPE$ = "PUL" THEN
+              PRINT TAB(2,23);"SAMPLED  PULSE" !DON'T TOUCH
+            ELSE IF TYPE$ = "PER" THEN
+              PRINT TAB(2,22);"SAMPLED PERIODIC"
+            END IF
+          END IF
+
+          IF CONVFLAG = 1 AND ZAZ = 1 THEN
+            IF MODE$ = "DISC" THEN
+              PRINT TAB(2,48);"( produced by " & WURDD$ & "  ) "
+            ELSE IF MODE$ = "SAMP" THEN
+              PRINT TAB(2,48);"( produced by " & WURDD$ & " ) "
+              PRINT TAB(3,48);"( and multiplied by  T/N  )"
+            END IF
+          END IF
+          PRINT TAB(4,1);
+          IF ZAZ = 1 THEN
+            PRINT "  k               XRE(k)          XIM(k)          YRE(k)          YIM(k)"
+          ELSE IF ZAZ = 2 THEN
+            PRINT "  k               X2RE(k)         X2IM(k)"
+          END IF
+
+        ELSE IF SHOW = 2 THEN   !SHOWING A SPECTRUM
+          PRINT TAB(1,1);"N =";N;
+          IF MODE$ = "SAMP" THEN
+            PRINT TAB(2,1);"T =";T
+            PRINT TAB(3,1);"ê =";2*PI/T
+          END IF
+          IF ZAZ = 1 THEN       !SHOWING PRIMARY
+            IF DISP = 0 OR DISP = 1 OR DISP = 3 THEN
+              PRINT TAB(1,32);"F VECTOR (COMPLEX)"
+            ELSE IF DISP = 2 THEN
+              PRINT TAB(1,35);"F VECTOR (REAL)"
+            ELSE IF DISP = 4 THEN
+              PRINT TAB(1,27);"WEIGHTS OF F VECTOR (COMPLEX)"
+            END IF
+          ELSE IF ZAZ = 2 THEN   !SHOWING SECONDARY
+            IF DISP = 0 OR DISP = 1 OR DISP = 3 THEN
+              PRINT TAB(1,32);"F2 VECTOR (COMPLEX)"
+            ELSE IF DISP = 2 THEN
+              PRINT TAB(1,33);"F2 VECTOR (REAL)"
+            ELSE IF DISP = 4 THEN
+              PRINT TAB(1,25);"WEIGHTS OF F2 VECTOR (COMPLEX)"
+            END IF
+          END IF
+
+          IF MODE$ = "DISC" THEN
+            PRINT TAB(1,67);"DISCRETE"
+            IF CONVFLAG = 1 AND ZAZ = 1 THEN
+              PRINT TAB(2,23);"( " & WURDD$ & " run: F multiplied by F2 )"
+            END IF
+          ELSE IF MODE$ = "SAMP" THEN
+            IF TYPE$ = "PER" THEN
+              PRINT TAB(1,65);"SAMPLED PERIODIC"
+              IF CONVFLAG = 0 THEN
+                IF ZAZ = 1 THEN
+                  PRINT TAB(2,24);"( F  has been multiplied by  1/N )"
+                ELSE IF ZAZ = 2 THEN
+                  PRINT TAB(2,24);"( F2  has been multiplied by  1/N )"
+                END IF
+              ELSE IF CONVFLAG = 1 THEN
+
+                CALL BOX72( ZAZ, WURDD$ )
+
+              END IF
+            ELSE IF TYPE$ = "PUL" THEN
+              IF DISP = 3 THEN
+                PRINT TAB(1,68);"SAMPLED PULSE"
+                IF CONVFLAG = 0 THEN
+                  IF ZAZ = 1 THEN
+                    PRINT TAB(2,24);"( F  has been multiplied by  T/N )"
+                  ELSE IF ZAZ = 2 THEN
+                    PRINT TAB(2,24);"( F2  has been multiplied by  T/N )"
+                  END IF
+                ELSE IF CONVFLAG = 1 THEN
+
+                  CALL BOX73( ZAZ, WURDD$ )
+
+                END IF
+              ELSE IF DISP = 4 THEN
+                PRINT TAB(1,67); "SAMPLED PULSE"
+                IF CONVFLAG = 0 THEN
+
+                  CALL BOX74( ZAZ )
+
+                ELSE IF CONVFLAG = 1 THEN
+
+                  CALL BOX75( ZAZ, WURDD$ )
+
+                END IF
+              END IF
+            END IF
+          END IF
+
+          IF MODE$ = "DISC" THEN
+            PRINT TAB (4,2);
+
+            CALL BOX45( ZAZ )
+
+          ELSE IF MODE$ = "SAMP" THEN
+            IF TYPE$ = "PER" THEN
+              PRINT TAB (4,2);
+              IF DISP = 1 THEN
+
+                CALL BOX50( ZAZ )
+
+              ELSE IF DISP = 2 THEN
+
+                CALL BOX76( ZAZ )
+
+              END IF
+            ELSE IF TYPE$ = "PUL" THEN
+              PRINT TAB (4,1);
+
+              CALL BOX51( ZAZ )
+
+            END IF
+          END IF
+        END IF
+
+        LET NNN = N
+        IF NNN/2 = INT(NNN/2) THEN
+          LET UPLIM = -NNN/2
+        ELSE
+          LET UPLIM = INT(-NNN/2 + 1)
+        END IF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        IF NNN < 16 THEN
+          IF SHOW = 1 THEN      !TIME DOMAIN
+            LET LO = 0
+            LET HI = NNN
+          ELSE IF SHOW = 2 THEN   !FREQ DOMAIN
+            IF DISP <> 2 THEN
+              LET LO = UPLIM
+            ELSE IF DISP = 2 THEN
+              LET LO = 0
+            END IF
+            LET HI = INT(NNN/2)
+          END IF
+
+          LET J = 0
+          FOR K = LO TO HI STEP 1
+            LET H = MOD(K,NNN)
+            IF SHOW = 1 THEN
+              LET K$ = STR$(K)
+              IF K >= 0 AND K <= 9 THEN
+                LET K$ = " " & K$
+              END IF
+              PRINT TAB(6+J,3);
+              PRINT K$
+              IF ZAZ = 1 THEN
+                PRINT TAB(6+J,15);XRE(H)
+                PRINT TAB(6+J,32);XIM(H)
+                PRINT TAB(6+J,48);TEMPRE(H)    !TEMPRE(K) IS SCALED IFFTRE
+                PRINT TAB(6+J,65);TEMPIM(H)
+              ELSE IF ZAZ = 2 THEN
+                PRINT TAB(6+J,16);X2RE(H)
+                PRINT TAB(6+J,32);X2IM(H)
+              END IF
+            ELSE IF SHOW = 2 THEN
+              IF DISP = 0 OR DISP = 1 OR DISP = 3 OR DISP = 4 THEN
+                LET K$ = STR$(K)
+                IF K >= 0 AND K <= 9 THEN
+                  LET K$ = " " & K$
+                END IF
+                PRINT TAB(6+J,2);K$
+                PRINT TAB(6+J,7); TEMP2RE(H)     !TEMP2RE(H) IS SCALED SPECTRUM
+                PRINT TAB(6+J,22);TEMP2IM(H)
+                LET MODFSQ = TEMP2RE(H)^2 + TEMP2IM(H)^2
+                PRINT TAB(6+J,37);SQR(MODFSQ)
+                IF NNN/2 = INT(NNN/2) THEN                !N IS EVEN
+                  IF SYMMFLAG = 0 OR H <= NNN/2 THEN
+                    LET XF = TEMP2RE(H)
+                    LET YF = TEMP2IM(H)
+                  ELSE IF SYMMFLAG = 1 AND H > NNN/2 THEN
+                    LET XF = TEMP2RE(NNN - H)
+                    LET YF = TEMP2IM(NNN - H)
+                  END IF
+
+                  CALL ARCTAN( XF, YF, THETA )
+
+                  IF SYMMFLAG = 1 AND H > NNN/2 THEN
+                    LET THETA = -THETA
+                  END IF
+                ELSE IF NNN/2 <> INT(NNN/2) THEN             !N IS ODD
+                  IF SYMMFLAG = 0 OR H <= INT(NNN/2) THEN
+                    LET XF = TEMP2RE(H)
+                    LET YF = TEMP2IM(H)
+                  ELSE IF SYMMFLAG = 1 AND H > INT(NNN/2) THEN
+                    LET XF = TEMP2RE(NNN - H)
+                    LET YF = TEMP2IM(NNN - H)
+                  END IF
+
+                  CALL ARCTAN( XF, YF, THETA )
+
+                  IF SYMMFLAG = 1 AND H > INT(NNN/2) THEN
+                    LET THETA = -THETA
+                  END IF
+                END IF
+                PRINT TAB(6+J,52);
+
+                IF H = NNN/2 AND XF < 0 AND YF = 0 THEN
+                  PRINT " *******"
+                ELSE
+                  PRINT THETA
+                END IF
+
+                PRINT TAB(6+J,66);
+                IF MODE$ = "DISC" THEN
+                  PRINT MODFSQ
+                ELSE IF MODE$ = "SAMP" THEN
+                  IF TYPE$ = "PUL" THEN
+                    PRINT MODFSQ/(2*PI)
+                  ELSE IF TYPE$ = "PER" THEN
+                    PRINT MODFSQ
+                  END IF
+                END IF
+              ELSE IF DISP = 2 THEN
+                LET K$ = STR$(K)
+                IF K >= 0 AND K <= 9 THEN
+                  LET K$ = " " & K$
+                END IF
+                PRINT TAB(6+J,2);K$
+                LET AAA = 2*TEMP2RE(H)
+                PRINT TAB(6+J,8);AAA
+                LET BBB = -2*TEMP2IM(H)
+                PRINT TAB(6+J,22);BBB
+                LET MODFSQ = AAA^2 + BBB^2
+                PRINT TAB(6+J,37);SQR(MODFSQ)
+                IF NNN/2 = INT(NNN/2) THEN                !N IS EVEN
+                  IF SYMMFLAG = 0 OR H <= NNN/2 THEN
+                    LET XF = AAA
+                    LET YF = BBB
+                  ELSE IF SYMMFLAG = 1 AND H > NNN/2 THEN
+                    LET XF =  2*TEMP2RE(NNN - H)
+                    LET YF = -2*TEMP2IM(NNN - H)
+                  END IF
+
+                  CALL ARCTAN( XF, YF, PHI )
+
+                  IF SYMMFLAG = 1 AND H > NNN/2 THEN
+                    LET PHI = -PHI
+                  END IF
+                ELSE IF NNN/2 <> INT(NNN/2) THEN             !N IS ODD
+                  IF SYMMFLAG = 0 OR H <= INT(NNN/2) THEN
+                    LET XF = AAA
+                    LET YF = BBB
+                  ELSE IF SYMMFLAG = 1 AND H > INT(NNN/2) THEN
+                    LET XF =  2*TEMP2RE(NNN - H)
+                    LET YF = -2*TEMP2IM(NNN - H)
+                  END IF
+
+                  CALL ARCTAN( XF, YF, PHI )
+
+                  IF SYMMFLAG = 1 AND H > INT(NNN/2) THEN
+                    LET PHI = -PHI
+                  END IF
+                END IF
+                PRINT TAB(6+J,52);
+
+                IF H = NNN/2 AND XF < 0 AND YF = 0 THEN
+                  PRINT " *******"
+                ELSE
+                  PRINT PHI
+                END IF
+
+                PRINT TAB(6+J,66);MODFSQ
+              END IF
+            END IF
+            LET J = J + 1
+          NEXT K
+          PRINT
+          IF SHOW = 1 AND ZAZ = 1 THEN   !VIEWING  X & Y
+            LET TAG = 1
+            LET VECFLAG = X2FLAG
+
+          ELSE IF SHOW = 1 AND ZAZ = 2 THEN     !VIEWING  X2
+            LET TAG = 2
+            LET VECFLAG = FFT2FLAG
+
+          ELSE IF SHOW = 2 AND ZAZ = 1 THEN   !VIEWING  F
+            LET TAG = 3
+            LET VECFLAG = FFT2FLAG
+
+          ELSE IF SHOW = 2 AND ZAZ = 2 THEN   !VIEWING F2
+            LET TAG = 4
+            LET VECFLAG = X2FLAG
+
+          END IF
+          CALL BOX61( N, Z3$, A$, VECFLAG, TAG )
+
+          IF Z3$ = "X" THEN
+            LET SHOW = 1
+            LET ZAZ = 1
+
+          ELSE IF Z3$ = "X2" THEN
+            LET SHOW = 1
+            LET ZAZ = 2
+
+          ELSE IF Z3$ = "F" OR Z3$ = "F2" THEN
+            CLEAR
+            IF SHOWKEEP = 0 THEN
+              IF TYPE$ = "PER" AND MODE$ = "SAMP" THEN
+
+                CALL MENU3( A$ )
+
+              ELSE IF TYPE$ = "PUL" AND MODE$ = "SAMP" THEN
+
+                CALL MENU4( CONVFLAG, A$ )
+
+              END IF
+              LET SHOWKEEP = 2
+            END IF
+
+            LET SHOW = 2
+            IF Z3$ = "F" THEN
+              LET ZAZ = 1
+            ELSE IF Z3$ = "F2" THEN
+              LET ZAZ = 2
+            END IF
+
+          ELSE IF Z3$ = "Q" THEN
+            LET MMENU = 1
+          END IF
+          CLEAR
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        ELSE IF NNN >= 16 THEN
+          DO
+            IF SWEEP$ = "UP" THEN
+              LET J = 0
+              LET START = JLO
+              LET END = JHI
+              LET AMT = 1
+            ELSE IF SWEEP$ = "DOWN" THEN
+              LET J = 16
+              LET START = JHI
+              LET END = JLO
+              LET AMT = -1
+            END IF
+
+            FOR K = START TO END STEP AMT
+              LET H = MOD(K,NNN)
+              IF SHOW = 1 THEN
+                PRINT TAB(6+J,1);A$
+                LET K$ = STR$(K)
+                IF K >= 0 AND K <= 9 THEN
+                  LET K$ = " " & K$
+                END IF
+                PRINT TAB(6+J,1);K$
+                IF ZAZ = 1 THEN
+                  PRINT TAB(6+J,15);XRE(H)
+                  PRINT TAB(6+J,32);XIM(H)
+                  PRINT TAB(6+J,48);TEMPRE(H)   !TEMPRE(K) IS SCALED IFFTRE
+                  PRINT TAB(6+J,65);TEMPIM(H)
+                ELSE IF ZAZ = 2 THEN
+                  PRINT TAB(6+J,16);X2RE(H)
+                  PRINT TAB(6+J,32);X2IM(H)
+                END IF
+              ELSE IF SHOW = 2 THEN
+                IF DISP = 0 OR DISP = 1 OR DISP = 3 OR DISP = 4 THEN
+                  PRINT TAB(6+J,1);A$
+                  LET K$ = STR$(K)
+                  IF K >= 0 AND K <= 9 THEN
+                    LET K$ = " " & K$
+                  END IF
+                  PRINT TAB(6+J,1);K$
+                  PRINT TAB(6+J,7); TEMP2RE(H)   !TEMP2RE(H) IS SCALED SPECTRUM
+                  PRINT TAB(6+J,22);TEMP2IM(H)
+                  LET MODFSQ = TEMP2RE(H)^2 + TEMP2IM(H)^2
+                  PRINT TAB(6+J,37);SQR(MODFSQ)
+                  IF NNN/2 = INT(NNN/2) THEN                !N IS EVEN
+                    IF SYMMFLAG = 0 OR H <= NNN/2 THEN
+                      LET XF = TEMP2RE(H)
+                      LET YF = TEMP2IM(H)
+                    ELSE IF SYMMFLAG = 1 AND H > NNN/2 THEN
+                      LET XF = TEMP2RE(NNN - H)
+                      LET YF = TEMP2IM(NNN - H)
+                    END IF
+
+                    CALL ARCTAN( XF, YF, THETA )
+
+                    IF SYMMFLAG = 1 AND H > NNN/2 THEN
+                      LET THETA = -THETA
+                    END IF
+                  ELSE IF NNN/2 <> INT(NNN/2) THEN             !N IS ODD
+                    IF SYMMFLAG = 0 OR H <= INT(NNN/2) THEN
+                      LET XF = TEMP2RE(H)
+                      LET YF = TEMP2IM(H)
+                    ELSE IF SYMMFLAG = 1 AND H > INT(NNN/2) THEN
+                      LET XF = TEMP2RE(NNN - H)
+                      LET YF = TEMP2IM(NNN - H)
+                    END IF
+
+                    CALL ARCTAN( XF, YF, THETA )
+
+                    IF SYMMFLAG = 1 AND H > INT(NNN/2) THEN
+                      LET THETA = -THETA
+                    END IF
+                  END IF
+                  PRINT TAB(6+J,52);
+
+                  IF H = NNN/2 AND XF < 0 AND YF = 0 THEN
+                    PRINT " *******"
+                  ELSE
+                    PRINT THETA
+                  END IF
+
+                  PRINT TAB(6+J,66);
+                  IF MODE$ = "DISC" THEN
+                    PRINT MODFSQ
+                  ELSE IF MODE$ = "SAMP" THEN
+                    IF TYPE$ = "PUL" THEN
+                      PRINT MODFSQ/(2*PI)
+                    ELSE IF TYPE$ = "PER" THEN
+                      PRINT MODFSQ
+                    END IF
+                  END IF
+                ELSE IF DISP = 2 THEN
+                  PRINT TAB(6+J,1);A$
+                  LET K$ = STR$(K)
+                  IF K >= 0 AND K <= 9 THEN
+                    LET K$ = " " & K$
+                  END IF
+                  PRINT TAB(6+J,1);K$
+                  LET AAA =  2*TEMP2RE(H)
+                  PRINT TAB(6+J,7);AAA
+                  LET BBB = -2*TEMP2IM(H)
+                  PRINT TAB(6+J,22);BBB
+                  LET MODFSQ = AAA^2 + BBB^2
+                  PRINT TAB(6+J,37);SQR(MODFSQ)
+                  IF NNN/2 = INT(NNN/2) THEN                !N IS EVEN
+                    IF SYMMFLAG = 0 OR H <= NNN/2 THEN
+                      LET XF = AAA
+                      LET YF = BBB
+                    ELSE IF SYMMFLAG = 1 AND H > NNN/2 THEN
+                      LET XF =  2*TEMP2RE(NNN - H)
+                      LET YF = -2*TEMP2IM(NNN - H)
+                    END IF
+
+                    CALL ARCTAN( XF, YF, PHI )
+
+                    IF SYMMFLAG = 1 AND H > NNN/2 THEN
+                      LET PHI = -PHI
+                    END IF
+                  ELSE IF NNN/2 <> INT(NNN/2) THEN             !N IS ODD
+                    IF SYMMFLAG = 0 OR H <= INT(NNN/2) THEN
+                      LET XF = AAA
+                      LET YF = BBB
+                    ELSE IF SYMMFLAG = 1 AND H > INT(NNN/2) THEN
+                      LET XF =  2*TEMP2RE(NNN - H)
+                      LET YF = -2*TEMP2IM(NNN - H)
+                    END IF
+
+                    CALL ARCTAN( XF, YF, PHI )
+
+                    IF SYMMFLAG = 1 AND H > INT(NNN/2) THEN
+                      LET PHI = -PHI
+                    END IF
+                  END IF
+                  PRINT TAB(6+J,52);
+
+                  IF H = NNN/2 AND XF < 0 AND YF = 0 THEN
+                    PRINT " *******"
+                  ELSE
+                    PRINT PHI
+                  END IF
+
+                  PRINT TAB(6+J,66);MODFSQ
+                END IF
+              END IF
+              IF SWEEP$ = "UP" THEN
+                LET J = J + 1
+              ELSE IF SWEEP$ = "DOWN" THEN
+                LET J = J - 1
+              END IF
+            NEXT K
+
+            IF COLGROUP$ = "B" THEN PRINT TAB(22,1);A$
+            LET Z3$ = ""
+
+            IF SHOW = 1 AND ZAZ = 1 THEN   !VIEWING  X & Y
+              LET TAG = 1
+              LET VECFLAG = X2FLAG
+
+            ELSE IF SHOW = 1 AND ZAZ = 2 THEN     !VIEWING  X2
+              LET TAG = 2
+              LET VECFLAG = FFT2FLAG
+
+            ELSE IF SHOW = 2 AND ZAZ = 1 THEN   !VIEWING  F
+              LET TAG = 3
+              LET VECFLAG = FFT2FLAG
+
+            ELSE IF SHOW = 2 AND ZAZ = 2 THEN   !VIEWING F2
+              LET TAG = 4
+              LET VECFLAG = X2FLAG
+            END IF
+
+            IF SHOW = 2 THEN LET OLDZAZ = ZAZ
+
+            CALL BOX68( Z3$, A$, VECFLAG, VALUE, NUMFLAG, COLGROUP$, COLOR$, TAG )
+
+            IF Z3$ <> "X" AND Z3$ <> "X2" AND Z3$ <> "F" AND Z3$ <> "F2" AND Z3$ <> "Q" THEN
+              LET SCROLLFLAG = 1
+            ELSE
+              LET SCROLLFLAG = 0
+            END IF
+
+            IF SCROLLFLAG = 1 THEN
+              IF NUMFLAG = 0 THEN
+                IF Z3$ = "U" THEN
+                  LET SWEEP$ = "UP"
+                  LET JLO = JLO - 16
+                  LET JHI = JHI - 16
+                ELSE IF Z3$ = "D" THEN
+                  LET SWEEP$ = "DOWN"
+                  LET JLO = JLO + 16
+                  LET JHI = JHI + 16
+                ELSE IF Z3$ = "H" THEN
+                  IF SHOW = 1 OR (SHOW = 2 AND DISP = 2) THEN
+                    IF JLO < 0 THEN
+                      LET SWEEP$ = "DOWN"
+                    ELSE
+                      LET SWEEP$ = "UP"
+                    END IF
+                    LET JLO = 0
+                    LET JHI = 16
+                  ELSE IF SHOW = 2 AND DISP <> 2 THEN
+                    IF JLO < -8 THEN
+                      LET SWEEP$ = "DOWN"
+                    ELSE
+                      LET SWEEP$ = "UP"
+                    END IF
+                    LET JLO = -8
+                    LET JHI =  8
+                  END IF
+                END IF
+              ELSE IF NUMFLAG = 1 THEN
+                LET JLO_OLD = JLO
+                LET JLO = VALUE
+                LET JHI = VALUE + 16
+                IF JLO > JLO_OLD THEN
+                  LET SWEEP$ = "DOWN"
+                ELSE
+                  LET SWEEP$ = "UP"
+                END IF
+              END IF
+
+              IF COLGROUP$ = "A" THEN
+                CALL BOX67( TAG, X2FLAG, FFT2FLAG )
+              END IF
+            END IF
+          LOOP WHILE SCROLLFLAG = 1
+
+          IF Z3$ = "X" THEN
+            CLEAR
+            LET SWEEP$ = "UP"
+            LET ZAZ = 1
+            LET SHOW = 1
+            LET JLO =  0
+            LET JHI =  16
+
+          ELSE IF Z3$ = "X2" THEN
+            CLEAR
+            LET SWEEP$ = "UP"
+            LET ZAZ = 2
+            LET SHOW = 1
+            LET JLO = 0
+            LET JHI = 16
+
+          ELSE IF Z3$ = "F" OR Z3$ = "F2" THEN
+            CLEAR
+            LET SWEEP$ = "UP"
+
+            IF SHOWKEEP = 0 THEN
+              IF TYPE$ = "PER" AND MODE$ = "SAMP" THEN
+                CALL MENU3( A$ )
+              ELSE IF TYPE$ = "PUL" AND MODE$ = "SAMP" THEN
+                CALL MENU4( CONVFLAG, A$ )
+              END IF
+              LET SHOWKEEP = 2
+            END IF
+
+            IF DISP <> 2 THEN
+              LET JLO = -8
+              LET JHI =  8
+            ELSE IF DISP = 2 THEN
+              LET JLO =  0
+              LET JHI = 16
+            END IF
+
+            LET SHOW = 2
+            IF Z3$ = "F" THEN
+              LET ZAZ = 1
+            ELSE IF Z3$ = "F2" THEN
+              LET ZAZ = 2
+            END IF
+
+          ELSE IF Z3$ = "Q" THEN
+            LET MMENU = 1
+          END IF
+        END IF
+      LOOP UNTIL MMENU = 1
+    END IF
+  USE
+    SOUND 500,.1
+    LET MESG$ = "     """ & EXTEXT$ & """"
+    CLEAR
+    PRINT
+    PRINT "AN ERROR HAS OCCURRED... THE ERROR MESSAGE READS"
+    PRINT "-----------------------------------------------------"
+    PRINT MESG$
+    PRINT "-----------------------------------------------------"
+    PRINT
+    CALL BOX48C( A$ )
+  END WHEN
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB MENU3( A$ )
+
+  CALL BOX22( TYPE$, CR$, A$ )
+
+  IF CR$ = "C" THEN            !SHOW FOURIER SERIES COMPLEX FORM
+    LET DISP = 1
+  ELSE IF CR$ = "R" THEN       !SHOW FOURIER SERIES REAL FORM
+    LET DISP = 2
+  ELSE IF CR$ = "Q" THEN       !MAIN MENU
+    LET MMENU = 1
+  END IF
+  CLEAR
+
+END SUB !MENU3
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB MENU4( CONVFLAG, A$ )
+
+  IF CONVFLAG = 0 THEN
+
+    CALL BOX22( TYPE$, CS$, A$ )
+
+    IF CS$ = "S" THEN            !SHOW SINGLE PULSE FORM (COMPLEX)
+      LET DISP = 3
+    ELSE IF CS$ = "I" THEN       !SHOW INFINITE PULSE TRAIN FORM (MULT BY 2ã/N)
+      LET DISP = 4
+    ELSE IF CS$ = "Q" THEN       !MAIN MENU
+      LET MMENU = 1
+    END IF
+    CLEAR
+
+  ELSE IF CONVFLAG = 1 THEN
+    LET DISP = 3
+  END IF
+
+END SUB !MENU4
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END SUB !SHOWNUMBERS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ARCTAN( XF, YF, THETA )
+
+  IF XF <> 0 AND YF <> 0 THEN
+    IF XF > 0 AND YF > 0 THEN
+      LET THETA = ATN(YF/XF)
+    ELSE IF XF > 0 AND YF < 0 THEN
+      LET THETA = ATN(YF/XF)
+    ELSE IF XF < 0 AND YF > 0 THEN
+      LET THETA = ATN(YF/XF) + PI
+    ELSE IF XF < 0 AND YF < 0 THEN
+      LET THETA = ATN(YF/XF) - PI
+    END IF
+  ELSE IF XF <> 0 AND YF = 0 THEN
+    IF XF > 0 THEN
+      LET THETA = 0
+    ELSE IF XF < 0  THEN
+      LET THETA = PI
+    END IF
+  ELSE IF XF = 0 AND YF <> 0 THEN
+    IF YF > 0 THEN
+      LET THETA = PI/2
+    ELSE IF YF < 0 THEN
+      LET THETA = -PI/2
+    END IF
+  ELSE IF XF = 0 AND YF = 0 THEN
+    LET THETA = 0
+  END IF
+
+END SUB !ARCTAN
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,0 +1,1301 @@
+EXTERNAL             !LIB1DOS
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX1( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, ZFLAG, A$, TAXIS, FAXIS, WXI$, GMODE$, N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTRE(), IFFTIM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, CENTFREQ, CONCORFLAG, STORDATE )
+
+  WHEN ERROR IN
+    WHEN ERROR IN
+      CLOSE #2
+      OPEN #2: NAME "PARAMS03.TRU", ACCESS "INPUT", ORGANIZATION RECORD, RECSIZE 16, CREATE NEWOLD
+      CLOSE #2
+    USE
+
+      LET MESSAGE$ = "UNABLE TO OPEN A DISK FILE TO READ FROM"
+
+      CALL ERRORMESSAGE1( MESSAGE$ )    !Must use manual mode
+
+      LET GETOUT = 1    !Must be a read-only network with no PARAMS03 file
+    END WHEN
+
+    !If GETOUT = 1 then exit after declaring "Must use manual mode"
+    !Read-only networks with no PARAMS03 file now totally excluded
+
+    IF GETOUT = 0 THEN    !Able to read... now testing for write capability
+      WHEN ERROR IN
+        CLOSE #2
+        OPEN #2: NAME "PARAMS03.TRU", ACCESS "OUTPUT", ORGANIZATION RECORD, RECSIZE 16, CREATE NEWOLD
+        LET SYST$ = "PC"   !Must be a PC
+        CLOSE #2
+      USE
+
+        LET SYST$ = "NW" !Must be a read-only network with a PARAMS03 file
+                        !Cannot be a PC.
+      END WHEN
+
+      IF SYST$ = "PC" THEN  !For PC's only
+                           !Compare stored card to card-as-read
+
+!        CALL SHELL("CARD.EXE > CARD.TRU")   !Read the actual PC card
+!
+!        CLOSE #3
+!        OPEN  #3: NAME "CARD.TRU"      !CARD.TRU contains result of card.exe
+!        INPUT #3: CARD1$
+!        CLOSE #3
+!        LET CARD1$ = UCASE$(CARD1$)    !CARD1$ is the actual card
+
+        LET CARD1$ = "VGA"
+
+
+        IF CARD1$ = "MCGA" OR CARD1$ = "IBM 8514" OR CARD1$ = "IBM 3270 PC" THEN
+          LET CARD1$ = "VGA"
+        ELSE IF CARD1$ = "64K EGA" THEN
+          LET CARD1$ = "EGA"
+        END IF
+
+        IF CARD1$ = "VGA" OR CARD1$ = "EGA" OR CARD1$ = "CGA" OR CARD1$ = "HERCULES" OR CARD1$ = "MONO EGA" THEN
+          ASK MAX COLOR COLNUM
+          IF CARD1$ = "VGA" AND COLNUM > 1 THEN
+            LET CARD1$ = "VGA-COLOR"
+          ELSE IF CARD1$ = "EGA" AND COLNUM > 1 THEN
+            LET CARD1$ = "EGA-COLOR"
+          ELSE IF CARD1$ = "CGA" AND COLNUM > 1 THEN
+            LET CARD1$ = "CGA-COLOR"
+          ELSE IF CARD1$ = "HERCULES" THEN
+            LET CARD1$ = "HERCULES"
+          ELSE IF CARD1$ = "VGA" AND COLNUM <= 1 THEN
+            LET CARD1$ = "VGA-MONO"
+          ELSE IF CARD1$ = "EGA" AND COLNUM <= 1 THEN
+            LET CARD1$ = "EGA-MONO"
+          ELSE IF CARD1$ = "MONO EGA" THEN
+            LET CARD1$ = "EGA-MONO"
+          ELSE IF CARD1$ = "CGA" AND COLNUM <= 1 THEN
+            LET CARD1$ = "CGA-MONO"
+          END IF
+        END IF
+
+        !Now read PFLAG$ to see if PARAMS03 has been previously written to
+        WHEN ERROR IN
+          CLOSE #2
+          OPEN #2: NAME "PARAMS03.TRU", ACCESS "OUTIN", ORGANIZATION RECORD, RECSIZE 16, CREATE NEWOLD
+          READ #2: PFLAG$  !PFLAG is blank or zero if never used, one if used
+          IF PFLAG$ = "ONE" THEN
+            SET  #2: RECORD 2      !Error here if PC is virgin
+            READ #2: CARD2$        !CARD2$ is the stored card
+
+                !Compare stored card to card-as-read
+            IF CARD2$ <> CARD1$ THEN    !If not the same...
+              LET PFLAG$ = "ZERO"       !then force a card determination
+              SET  #2: RECORD 1
+              WRITE #2: PFLAG$
+            END IF
+          END IF
+        USE          !PFLAG$ is blank... PC is virgin
+          CLOSE #2
+          OPEN #2: NAME "PARAMS03.TRU", ACCESS "OUTPUT", ORGANIZATION RECORD, RECSIZE 16, CREATE NEWOLD
+          LET PFLAG$ = "ZERO"
+          WRITE #2: PFLAG$      !Will force a card determination regardless
+        END WHEN
+        CLOSE #2                !Placed here to close PARAMS03 even if ERROR
+
+      END IF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !For both stand-alone PC and read-only-network-with-PARAMS03-file
+      !Read PFLAG$
+
+      WHEN ERROR IN
+        CLOSE #2
+        OPEN #2: NAME "PARAMS03.TRU", ACCESS "INPUT", ORGANIZATION RECORD, RECSIZE 16, CREATE NEWOLD
+        READ #2: PFLAG$
+        CLOSE #2
+      USE               !PARAMS03.TRU is empty. Must be a virgin PC
+        LET PFLAG$ = "ZERO"
+      END WHEN
+
+      IF SYST$ = "PC" AND PFLAG$ <> "ZERO" AND PFLAG$ <> "ONE" THEN
+                  !Must be a PC... If all else fails, force a card identification
+        LET PFLAG$ = "ZERO"
+        LET GETOUT = 0
+
+      ELSE IF SYST$ = "NW" AND PFLAG$ <> "ONE" THEN
+        LET MESSAGE$ = "UNABLE TO READ FROM DISK"
+
+        CALL ERRORMESSAGE1( MESSAGE$ )    !Must use manual mode
+
+        LET GETOUT = 1    !Must be a read-only network with no PARAMS03 file
+      END IF
+
+      IF GETOUT = 0 THEN
+        IF PFLAG$ = "ZERO" AND SYST$ = "PC" THEN   !Stand-alone PC only.
+                       !Now doing a first-time terminal identification
+          CLOSE #2
+          OPEN #2: NAME "PARAMS03.TRU", ACCESS "OUTPUT", ORGANIZATION RECORD, RECSIZE 16, CREATE NEWOLD
+          LET PFLAG$ = "ONE"
+          WRITE #2: PFLAG$        !For next time... PARAMS03 has been used
+          CLOSE #2
+
+!          CALL SHELL("CARD.EXE > CARD.TRU")   !Identifying the terminal
+!
+!          CLOSE #3
+!          OPEN  #3: NAME "CARD.TRU"   !CARD.TRU contains result of card.exe
+!          INPUT #3: CARD$
+!          CLOSE #3
+!          LET CARD$ = UCASE$(CARD$)
+
+          LET CARD$ = "VGA"
+
+          IF CARD$ = "MCGA" OR CARD$ = "IBM 8514" OR CARD$ = "IBM 3270 PC" THEN
+            LET CARD$ = "VGA"
+          ELSE IF CARD$ = "64K EGA" THEN
+            LET CARD$ = "EGA"
+          END IF
+
+          IF CARD$ = "VGA" OR CARD$ = "EGA" OR CARD$ = "CGA" OR CARD$ = "HERCULES" OR CARD$ = "MONO EGA" THEN
+            ASK MAX COLOR COLNUM
+            IF CARD$ = "VGA" AND COLNUM > 1 THEN
+              LET CARD$ = "VGA-COLOR"
+              LET COLNUMBR = 7
+              LET COLOR$ = "YELLOW/BLUE"
+              LET AXIS$ = "GREEN"
+              LET GMODE$ = "EGAHIRES"
+            ELSE IF CARD$ = "EGA" AND COLNUM > 1 THEN
+              LET CARD$ = "EGA-COLOR"
+              LET COLNUMBR = 7
+              LET COLOR$ = "YELLOW/BLUE"
+              LET AXIS$ = "GREEN"
+              LET GMODE$ = "EGAHIRES"
+            ELSE IF CARD$ = "CGA" AND COLNUM > 1 THEN
+              LET CARD$ = "CGA-COLOR"
+              LET COLNUMBR = 1
+              LET COLOR$ = "CYAN/BLACK"
+              LET AXIS$ = "RED"
+              LET GMODE$ = "HIRES"
+            ELSE IF CARD$ = "HERCULES" THEN
+              LET CARD$ = "HERCULES"
+              LET COLNUMBR = 0
+              LET COLOR$ = "WHITE/BLACK"
+              LET AXIS$ = "XYZ"
+              LET GMODE$ = "HERCULES"
+            ELSE IF CARD$ = "VGA" AND COLNUM <= 1 THEN
+              LET CARD$ = "VGA-MONO"
+              LET COLNUMBR = 0
+              LET COLOR$ = "WHITE/BLACK"
+              LET AXIS$ = "XYZ"
+              LET GMODE$ = "EGAMONO"
+            ELSE IF CARD$ = "EGA" AND COLNUM <= 1 THEN
+              LET CARD$ = "EGA-MONO"
+              LET COLNUMBR = 0
+              LET COLOR$ = "WHITE/BLACK"
+              LET AXIS$ = "XYZ"
+              LET GMODE$ = "EGAMONO"
+            ELSE IF CARD$ = "MONO EGA" THEN
+              LET CARD$ = "EGA-MONO"
+              LET COLNUMBR = 0
+              LET COLOR$ = "WHITE/BLACK"
+              LET AXIS$ = "XYZ"
+              LET GMODE$ = "EGAHIRES"
+            ELSE IF CARD$ = "CGA" AND COLNUM <= 1 THEN
+              LET CARD$ = "CGA-MONO"
+              LET COLNUMBR = 0
+              LET COLOR$ = "WHITE/BLACK"
+              LET AXIS$ = "XYZ"
+              LET GMODE$ = "HIRES"
+            END IF
+
+            SET MODE GMODE$
+            CALL SETCOLOR( COLOR$ )
+            LET WXI$ = "SHOW"
+            LET CENTFREQ = 1
+
+            ! now writing to PARAMS03.TRU for the first time
+
+            CALL WRITESUB( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, TAXIS, FAXIS, WXI$, A$, CENTFREQ, CONCORFLAG, STORDATE )
+
+          ELSE
+            CLEAR
+            SOUND 500,.1
+            IF CARD$ = "AT&T 6300 PC" THEN
+              PRINT TAB(2,1);"YOUR GRAPHICS CARD READS ""AT&T 6300 PC"" WHICH WE DO NOT SUPPORT."
+            ELSE
+              PRINT TAB(2,1);"YOUR GRAPHICS CARD READS  & CARD$ &  WHICH WE DO NOT SUPPORT."
+            END IF
+
+            CALL MUSTUSE( 4, 1 )    !Must use manual mode
+
+          END IF
+
+        ELSE IF PFLAG$ = "ONE" THEN  !PARAMS03.TRU previously loaded.
+                                   !Both PC and read-only-networks.
+          CLOSE #2
+          OPEN #2: NAME "PARAMS03.TRU", ACCESS "INPUT", ORGANIZATION RECORD, RECSIZE 16, CREATE NEWOLD
+          SET  #2: RECORD 2
+
+          !This is where old values are read from PARAMS03.TRU
+          READ #2: CARD$
+          READ #2: COLNUMBR
+          READ #2: COLOR$
+          READ #2: AXIS$
+          READ #2: KLEEN$
+          READ #2: TAXIS
+          READ #2: FAXIS
+          READ #2: WXI$
+          READ #2: CENTFREQ
+          READ #2: CONCORFLAG
+          READ #2: STORDATE
+
+          CLOSE #2
+
+          IF CARD$ = "VGA-COLOR" THEN
+            LET GMODE$ = "EGAHIRES"
+          ELSE IF CARD$ = "EGA-COLOR" THEN
+            LET GMODE$ = "EGAHIRES"
+          ELSE IF CARD$ = "CGA-COLOR" OR CARD$ = "CGA-MONO" THEN
+            LET GMODE$ = "HIRES"
+          ELSE IF CARD$ = "HERCULES" THEN
+            LET GMODE$ = "HERCULES"
+          ELSE IF CARD$ = "VGA-MONO" OR CARD$ = "EGA-MONO" THEN
+            LET GMODE$ = "EGAMONO"
+          END IF
+
+          SET MODE GMODE$
+          CALL SETCOLOR( COLOR$ )
+
+        END IF
+      END IF
+    END IF
+  USE               !When all else fails...
+    SOUND 500,.1
+
+    CALL MUSTUSE(3,1)
+
+  END WHEN
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ERRORMESSAGE1( MESSAGE$ )
+
+  CLEAR
+  SOUND 500,.1
+  PRINT TAB(2,1);MESSAGE$
+  PRINT TAB(4,1);"AN ERROR HAS OCCURRED: THE ERROR MESSAGE READS"
+  LET MESSAGE2$ = EXTEXT$
+  PRINT TAB(6,1);"----------------------------------------------"
+  PRINT TAB(7,1);MESSAGE2$
+  PRINT TAB(8,1);"----------------------------------------------"
+
+  CALL MUSTUSE( 10, 1 )
+
+END SUB !ERRORMESSAGE1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB MUSTUSE( A, B )
+
+  SET CURSOR "ON"
+  PRINT TAB(A,B);"UNABLE TO DO AUTOMATIC CARD DETECTION... MUST USE MANUAL MODE."
+
+  CALL BOX48CFIX( A+2, B, A$ )
+
+  CALL SETUPMENU( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, ZFLAG, A$, TAXIS, FAXIS, WXI$, GMODE$, N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTRE(), IFFTIM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, CENTFREQ, CONCORFLAG, STORDATE )
+
+END SUB !MUSTUSE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END SUB !BOX1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB SETUPMENU( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, ZFLAG, A$, TAXIS, FAXIS, WXI$, GMODE$, N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTRE(), IFFTIM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, CENTFREQ, CONCORFLAG, STORDATE )
+
+  SET CURSOR "ON"
+
+  ! ZFLAG = 0 if called from MUSTUSE
+  ! ZFLAG = 1 if called from main menu/SETUP
+
+  DO
+    LET A = ZFLAG
+    CLEAR
+    PRINT TAB(3,16);      "ษออออออออออออออออออออออออออออออออออออออออออออออป"
+    PRINT TAB(4,16);      "บ                                              บ"
+    PRINT TAB(5,16);      "บ   TERMINAL IS VGA-COLOR ............... VC   บ"
+    PRINT TAB(6,16);      "บ               EGA-COLOR ............... EC   บ"
+    PRINT TAB(7,16);      "บ               CGA-COLOR ............... CC   บ"
+    PRINT TAB(8,16);      "บ               HERCULES ................ H    บ"
+    PRINT TAB(9,16);      "บ               VGA-MONO ................ VM   บ"
+    PRINT TAB(10,16);     "บ               EGA-MONO ................ EM   บ"
+    PRINT TAB(11,16);     "บ               CGA-MONO ................ CM   บ"
+    PRINT TAB(12,16);     "บ                                              บ"
+    PRINT TAB(12+A,16);   "บ                                              บ"
+    PRINT TAB(12+2*A,16); "บ                                              บ"
+    PRINT TAB(12+3*A,16); "บ                                              บ"
+    PRINT TAB(12+4*A,16); "บ                                              บ"
+    PRINT TAB(12+5*A,16); "บ                                              บ"
+    PRINT TAB(12+6*A,16); "บ                                              บ"
+    PRINT TAB(13+6*A,16); "บ                                              บ"
+    PRINT TAB(14+6*A,16); "ศออออออออออออออออออออออออออออออออออออออออออออออผ"
+
+    IF ZFLAG = 1 THEN
+      IF CARD$ = "VGA-COLOR" OR CARD$ = "EGA-COLOR" OR CARD$ = "CGA-COLOR" THEN
+        PRINT TAB(13,20); "SELECT NEXT COLOR .................... N"
+        PRINT TAB(14,20); "SELECT PREVIOUS COLOR ................ P"
+      END IF
+
+      IF KLEEN$ = "ONE" THEN
+        PRINT TAB(16,20); "CLEAN IS ON: TOGGLE IT OFF ........... T"
+      ELSE IF KLEEN$ = "ZERO" THEN
+        PRINT TAB(16,20); "CLEAN IS OFF: TOGGLE IT ON ........... T"
+      END IF
+
+      PRINT TAB(18,20);   "DEFAULT ITEMS ........................ D"
+
+    END IF
+
+    DO
+      LET ZEA = 0
+      IF AFLAG = 1 THEN SOUND 500,.1
+      LET ZIN = 0
+
+      IF ZFLAG = 0 AND CARDSELECTED = 1 THEN
+        LET FRAZ$ = "ณ SELECT OPTION ณ QUIT ... Q ณ  ?  "
+        LET B = 25
+      ELSE
+        LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+        LET B = 31
+      END IF
+
+      CALL APROMPT( 16+6*A, B, A$, FRAZ$, CAJ$ )
+
+      IF CAJ$ = "Q" THEN
+        LET ZVAX = 0
+      ELSE IF CAJ$ = "VC" THEN
+        LET ZVAX = 1
+      ELSE IF CAJ$ = "EC" THEN
+        LET ZVAX = 2
+      ELSE IF CAJ$ = "CC" THEN
+        LET ZVAX = 3
+      ELSE IF CAJ$ = "H" THEN
+        LET ZVAX = 4
+      ELSE IF CAJ$ = "VM" THEN
+        LET ZVAX = 5
+      ELSE IF CAJ$ = "EM" THEN
+        LET ZVAX = 6
+      ELSE IF CAJ$ = "CM" THEN
+        LET ZVAX = 7
+      ELSE IF CAJ$ = "N" THEN
+        LET ZVAX = 8
+      ELSE IF CAJ$ = "P" THEN
+        LET ZVAX = 9
+      ELSE IF CAJ$ = "T" THEN
+        LET ZVAX = 10
+      ELSE IF CAJ$ = "D" THEN
+        LET ZVAX = 11
+      ELSE
+        LET ZVAX = 12
+      END IF
+
+      IF ZFLAG = 0 THEN
+        IF ZVAX >= 0 AND ZVAX <= 7 THEN
+          LET ZIN = 1
+          IF ZVAX <> 0 THEN LET CARDSELECTED = 1
+        END IF
+      ELSE IF ZFLAG = 1 THEN
+        IF CARD$ = "VGA-COLOR" OR CARD$ = "EGA-COLOR" OR CARD$ = "CGA-COLOR" THEN
+          IF ZVAX >= 0 AND ZVAX <= 11 THEN LET ZIN = 1
+        ELSE
+          IF ((ZVAX >= 0 AND ZVAX <= 7) OR (ZVAX >= 10 AND ZVAX <= 11)) THEN LET ZIN = 1
+        END IF
+      END IF
+      LET AFLAG = 1
+    LOOP UNTIL ZIN = 1
+    LET AFLAG = 0
+
+    IF ZVAX <> 0 THEN
+      PRINT TAB(16+6*A,1);A$
+      PRINT TAB(16+6*A,28);
+      IF ZVAX >= 1 AND ZVAX <= 7 THEN
+        IF ZVAX = 1 THEN
+          LET CARD$ = "VGA-COLOR"
+          PRINT "OK: TERMINAL IS ";CARD$
+          PAUSE 1
+          LET COLNUMBR = 7
+          LET COLOR$ = "YELLOW/BLUE"
+          LET AXIS$ = "GREEN"
+          LET GMODE$ = "EGAHIRES"
+        ELSE IF ZVAX = 2 THEN
+          LET CARD$ = "EGA-COLOR"
+          PRINT "OK: TERMINAL IS ";CARD$
+          PAUSE 1
+          LET COLNUMBR = 7
+          LET COLOR$ = "YELLOW/BLUE"
+          LET AXIS$ = "GREEN"
+          LET GMODE$ = "EGAHIRES"
+        ELSE IF ZVAX = 3 THEN
+          LET CARD$ = "CGA-COLOR"
+          PRINT "OK: TERMINAL IS ";CARD$
+          PAUSE 1
+          LET COLOR$ = "CYAN"
+          LET COLNUMBR = 1
+          LET AXIS$ = "RED"
+          LET GMODE$ = "HIRES"
+        ELSE IF ZVAX = 4 THEN
+          LET CARD$ = "HERCULES"
+          PRINT "OK: TERMINAL IS ";CARD$
+          PAUSE 1
+          LET COLOR$ = "WHITE/BLACK"
+          LET COLNUMBR = 0
+          LET AXIS$ = "XYZ"
+          LET GMODE$ = "HERCULES"
+        ELSE IF ZVAX = 5 THEN
+          LET CARD$ = "VGA-MONO"
+          PRINT "OK: TERMINAL IS ";CARD$
+          PAUSE 1
+          LET COLOR$ = "WHITE/BLACK"
+          LET COLNUMBR = 0
+          LET AXIS$ = "XYZ"
+          LET GMODE$ = "EGAMONO"
+        ELSE IF ZVAX = 6 THEN
+          LET CARD$ = "EGA-MONO"
+          PRINT "OK: TERMINAL IS ";CARD$
+          PAUSE 1
+          LET COLOR$ = "WHITE/BLACK"
+          LET COLNUMBR = 0
+          LET AXIS$ = "XYZ"
+          LET GMODE$ = "EGAMONO"
+        ELSE IF ZVAX = 7 THEN
+          LET CARD$ = "CGA-MONO"
+          PRINT "OK: TERMINAL IS ";CARD$
+          PAUSE 1
+          LET COLOR$ = "WHITE/BLACK"
+          LET COLNUMBR = 0
+          LET AXIS$ = "XYZ"
+          LET GMODE$ = "HIRES"
+        END IF
+
+        SET MODE GMODE$
+        CALL SETCOLOR( COLOR$ )
+
+      ELSE IF ZVAX = 8 OR ZVAX = 9 THEN        !Trying to change color
+        IF SHUTFLAG = 0 THEN
+          LET SHUTFLAG = 1
+          WHEN ERROR IN
+            CLOSE #2
+            OPEN  #2: NAME "PARAMS03.TRU", ACCESS "INPUT", ORGANIZATION RECORD, RECSIZE 16, CREATE NEWOLD
+            SET   #2: RECORD 3
+            READ  #2: COLNUMBR
+            CLOSE #2
+            LET SKIP = 0
+            LET SKIPWRITE = 0
+          USE
+
+            CALL ERRORMESSAGE2    !We cannot read color number on your M/C
+
+            LET SKIP = 1
+            LET SKIPWRITE = 1
+          END WHEN
+        END IF
+
+        IF SKIP = 0 THEN        !Can read color number
+          WHEN ERROR IN
+            CLOSE #4
+            OPEN  #4: NAME "COLORS.TRU", ACCESS "INPUT", ORGANIZATION RECORD, RECSIZE 16
+            SET   #4: RECORD COLNUMBR
+            READ  #4: COLOR$
+            READ  #4: AXIS$
+            CLOSE #4
+
+            CALL SETCOLOR( COLOR$ )
+
+            IF ZVAX = 8 THEN
+              LET DELTA = 2
+            ELSE IF ZVAX = 9 THEN
+              LET DELTA = -2
+            END IF
+
+            LET COLNUMBR = COLNUMBR + DELTA
+            IF CARD$ = "VGA-COLOR" OR CARD$ = "EGA-COLOR" THEN
+              LET COLNUMBR = MOD(COLNUMBR,32)
+            ELSE IF CARD$ = "CGA-COLOR" THEN
+              LET COLNUMBR = MOD(COLNUMBR,10)
+            END IF
+          USE
+
+            CALL ERRORMESSAGE3   !Unable to read COLORS.TRU
+
+          END WHEN
+
+        END IF
+
+      ELSE IF ZVAX = 10 THEN
+        IF KLEEN$ = "ONE" THEN
+          PRINT "     OK: CLEAN IS OFF"
+          PAUSE 1
+          LET KLEEN$ = "ZERO"
+        ELSE IF KLEEN$ = "ZERO" THEN
+          PRINT "     OK: CLEAN IS ON"
+          PAUSE 1
+          LET KLEEN$ = "ONE"
+        END IF
+
+        CALL TESTXDATA( N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, KLEEN$ )
+        CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, NOCONV, HJWFLAG, KLEEN$ )
+        CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )
+
+      ELSE IF ZVAX = 11 THEN
+
+        CALL BOX78( TAXIS, FAXIS, A$, CENTFREQ, CONCORFLAG, CLEARVEX )   !Default items for PLOT
+
+        IF CLEARVEX = 1 THEN
+          LET CLEARVEX = 0
+
+          LET CONVFLAG = 0
+          MAT FFTRE = 0
+          MAT FFTIM = 0
+          IF HJWFLAG = 0 THEN
+            MAT FFT2RE = 0
+            MAT FFT2IM = 0
+          END IF
+          MAT IFFTRE = 0
+          MAT IFFTIM = 0
+          LET IFFTFLAG = 0
+          LET REALFLAGIFFT = 0
+
+          CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, NOCONV, HJWFLAG, KLEEN$ )
+
+          CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )
+
+        END IF
+      END IF
+    END IF
+
+    IF ZFLAG = 0 THEN
+      IF ZVAX = 0 AND CARDSELECTED = 1 THEN LET GETOUT = 1
+    ELSE IF ZFLAG = 1 THEN
+      IF ZVAX = 0 THEN LET GETOUT = 1
+    END IF
+
+    IF GETOUT = 1 THEN
+
+      CALL WRITESUB( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, TAXIS, FAXIS, WXI$, A$, CENTFREQ, CONCORFLAG, STORDATE )
+
+    END IF
+
+  LOOP UNTIL GETOUT = 1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ERRORMESSAGE2
+
+  CLEAR
+  SOUND 500,.1
+  PRINT TAB(2,1);"WE CANNOT READ THE STORED COLOR NUMBER ON YOUR MACHINE."
+  PRINT TAB(4,1);"AN ERROR HAS OCCURRED: THE ERROR MESSAGE READS"
+  LET MESSAGE2$ = EXTEXT$
+  PRINT TAB(6,1);"----------------------------------------------"
+  PRINT TAB(7,1);MESSAGE2$
+  PRINT TAB(8,1);"----------------------------------------------"
+
+  CALL BOX48CFIX(10, 1, A$ )
+
+END SUB !ERRORMESSAGE2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ERRORMESSAGE3
+
+  CLEAR
+  SOUND 500,.1
+  PRINT TAB(2,1);"UNABLE TO READ THE FILE ----> COLORS.TRU <---- "
+  PRINT TAB(4,1);"AN ERROR HAS OCCURRED: THE ERROR MESSAGE READS"
+  LET MESSAGE$ = EXTEXT$
+  PRINT TAB(6,1);"----------------------------------------------"
+  PRINT TAB(7,1);MESSAGE$
+  PRINT TAB(8,1);"----------------------------------------------"
+  PRINT TAB(10,1);"EITHER CONTINUE WITH COLORS AS THEY ARE"
+  PRINT TAB(12,1);"OR QUIT AND RE-INSTALL THE FFT SYSTEM."
+
+  LET FRAZ$ = "ณ CONTINUE ... C ณ QUIT ... Q ณ  ?  "
+
+  CALL APROMPT( 14, 1, A$, FRAZ$, XDB$ )
+
+  LET SKIP = 1
+  LET SKIPWRITE = 1
+
+  IF XDB$ = "Q" THEN
+    SET MODE "HISTORY"
+    STOP
+  END IF
+
+END SUB !ERRORMESSAGE3
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END SUB !SETUPMENU
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB WRITESUB( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, TAXIS, FAXIS, WXI$, A$, CENTFREQ, CONCORFLAG, STORDATE )
+
+  WHEN ERROR IN
+    CLOSE #2
+    OPEN #2:  NAME "PARAMS03.TRU", ACCESS "OUTPUT", ORGANIZATION RECORD, RECSIZE 16, CREATE NEWOLD
+    SET #2:   RECORD 2
+    WRITE #2: CARD$
+    WRITE #2: COLNUMBR
+    WRITE #2: COLOR$
+    WRITE #2: AXIS$
+    WRITE #2: KLEEN$
+    WRITE #2: TAXIS
+    WRITE #2: FAXIS
+    WRITE #2: WXI$
+    WRITE #2: CENTFREQ
+    WRITE #2: CONCORFLAG
+    WRITE #2: STORDATE
+    WRITE #2: EXPAND1
+    WRITE #2: EXPAND2
+    WRITE #2: EXPAND3
+    WRITE #2: EXPAND4
+    WRITE #2: EXPAND5
+    WRITE #2: EXPAND6
+
+    CLOSE #2
+  USE
+    CLEAR
+    SOUND 500,.1
+    PRINT TAB(2,1);"YOUR SELECTION(S) CANNOT BE RECORDED FOR FUTURE USE."
+    PRINT TAB(4,1);"AN ERROR HAS OCCURRED: THE ERROR MESSAGE READS"
+    LET MESSAGE$ = EXTEXT$
+    PRINT TAB(6,1);"----------------------------------------------"
+    PRINT TAB(7,1);MESSAGE$
+    PRINT TAB(8,1);"----------------------------------------------"
+
+    CALL BOX48CFIX(10, 1, A$ )
+
+  END WHEN
+
+END SUB !WRITESUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX3( N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, OPTION$, CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, FREEMEM, CALL$, A$, NOCONV, HJWFLAG, NKB, FILESTR$, CONCORFLAG )
+
+  SET CURSOR "ON"
+
+  IF CONCORFLAG = 1 THEN
+    LET WURD$ = "CONVOLUTION"
+  ELSE IF CONCORFLAG = 0 THEN
+    LET WURD$ = "CORRELATION"
+  END IF
+
+  CLEAR
+  PRINT TAB(2,3); "ษออออออออออออออออออออออออออออออออออออออป   ษออออออออออออออออออออออออออออออป"
+  PRINT TAB(3,3); "บ           FFT : MAIN MENU            บ   บ            STATUS            บ"
+  PRINT TAB(4,3); "ฬออออออออออออออออออออออออออออออออออออออน   ฬออออออออออออออออออออออออออออออน"
+  PRINT TAB(5,3); "บ                INPUT                 บ   บ                              บ"
+  PRINT TAB(6,3); "บ  CREATE VALUES .................. A  บ   บ                              บ"
+  PRINT TAB(7,3); "บ  LOAD FROM DISK .................    บ   บ                              บ"
+  PRINT TAB(8,3); "บ  EDIT FROM KEYBOARD ............. C  บ   บ                              บ"
+  PRINT TAB(9,3); "ฬออออออออออออออออออออออออออออออออออออออน   ฬออออออออออออออออออออออออออออออน"
+  PRINT TAB(10,3);"บ                ACTION                บ   บ                              บ"
+  PRINT TAB(11,3);"บ  RUN ANALYSIS ...................    บ   บ                              บ"
+  PRINT TAB(12,3);"บ  RUN SYNTHESIS ..................    บ   ฬออออออออออออออออออออออออออออออน"
+  PRINT TAB(13,3);"บ  RUN             ................    บ   บ                              บ"
+  PRINT TAB(13,10);WURD$
+  PRINT TAB(14,3);"บ  RUN POSTPROCESSORS .............    บ   บ                              บ"
+  PRINT TAB(15,3);"ฬออออออออออออออออออออออออออออออออออออออน   ฬออออออออออออออออออออออออออออออน"
+  PRINT TAB(16,3);"บ                OUTPUT                บ   บ                              บ"
+  PRINT TAB(17,3);"บ  DRAW PLOTS .....................    บ   บ                              บ"
+  PRINT TAB(18,3);"บ  SHOW NUMBERS ...................    บ   ฬออออออออออออออออออออออออออออออน"
+  PRINT TAB(19,3);"บ  SEND TO DISK ...................    บ   บ                              บ"
+  PRINT TAB(20,3);"ฬอออออออออออออออออออหออออออออออออออออออน   บ                              บ"
+  PRINT TAB(21,3);"บ  SETUP ....... S  บ  QUIT ....... Q  บ   บ                              บ"
+  PRINT TAB(22,3);"ศอออออออออออออออออออสออออออออออออออออออผ   บ                              บ"
+  PRINT TAB(23,3);"                                           ศออออออออออออออออออออออออออออออผ"
+
+  IF XFLAG = 1 OR X2FLAG = 1 OR FFTFLAG = 1 OR FFT2FLAG = 1 OR IFFTFLAG = 1 THEN
+    LET SOMEDATA = 1
+  ELSE
+    LET SOMEDATA = 0
+  END IF
+
+  IF CALL$ = "FFTMAX" THEN
+    PRINT TAB(3,14); "FFTMAX : MAIN MENU"
+    PRINT TAB(7,39);  "B"
+    LET B = 1
+    IF SOMEDATA = 1 THEN
+      PRINT TAB(19,39); "J"
+      LET J = 1
+    END IF
+  ELSE IF CALL$ = "FFT" THEN
+    PRINT TAB(3,15); "FFT : MAIN MENU"
+  END IF
+
+
+  IF XFLAG   = 1 THEN
+    PRINT TAB(11,39);  "D"
+    LET D = 1
+  END IF
+  IF FFTFLAG = 1 THEN
+    PRINT TAB(12,39);  "E"
+    LET E = 1
+  END IF
+
+  IF NOCONV  = 0 AND XFLAG = 1 AND X2FLAG = 1 THEN
+    PRINT TAB(13,39); "F"
+    LET F = 1
+  END IF
+
+  IF SOMEDATA = 1 THEN
+    PRINT TAB(14,39);  "G"
+    LET G = 1
+    PRINT TAB(17,39);  "H"
+    LET H = 1
+    PRINT TAB(18,39);  "I"
+    LET I = 1
+  END IF
+
+  IF N = 0 THEN PRINT TAB(5,59);"N = 0"
+
+  LET STRINGN$ = "N = " & STR$(N)
+  IF MODE$ = "DISC" OR MODE$ = "" THEN
+    LET COUNT = LEN(STRINGN$)
+    LET START = 62 - ROUND(COUNT/2)
+    PRINT TAB(5,START); STRINGN$
+
+  ELSE IF MODE$ = "SAMP" THEN
+    LET STRINGT$ = "T = " & STR$(T)
+    LET STRINGNT$ = STRINGN$ & "   " & STRINGT$
+    LET COUNT = LEN(STRINGNT$)
+    IF COUNT > 26 THEN
+      LET STRINGN$ = "N=" & STR$(N)
+      LET STRINGT$ = "T=" & STR$(T)
+      LET STRINGNT$ = STRINGN$ & "  " & STRINGT$
+      LET COUNT = LEN(STRINGNT$)
+    END IF
+    LET START = 62 - ROUND(COUNT/2)
+    PRINT TAB(5,START); STRINGNT$
+
+    LET STRINGTS$ = "Ts = " & STR$(T/N)
+    LET COUNT = LEN(STRINGTS$)
+    LET START = 62 - ROUND(COUNT/2)
+    PRINT TAB(6,START); STRINGTS$
+
+    IF T <> 0 THEN
+      LET OMEGAs = 2*PI/T
+      LET STRINGOM$ = "๊ = " & STR$(OMEGAs)
+      LET COUNT = LEN(STRINGOM$)
+      LET START = 62 - ROUND(COUNT/2)
+      PRINT TAB(7,START); STRINGOM$
+    END IF
+  END IF
+
+  IF MODE$ = "SAMP" THEN
+    PRINT TAB (8,47);
+    IF TYPE$ = "PER" THEN
+      PRINT "       SAMPLED PERIODIC       "
+    ELSE IF TYPE$ = "PUL" THEN
+      PRINT "        SAMPLED PULSE         "
+    END IF
+  ELSE IF MODE$ = "DISC" THEN
+    PRINT TAB (7,47);"           DISCRETE           "
+  END IF
+
+  PRINT TAB(10,47);
+  IF XFLAG = 0 AND X2FLAG = 0 THEN
+    PRINT     "     X ZERO       X2 ZERO     "
+  ELSE IF XFLAG = 1 AND X2FLAG = 0 THEN
+    PRINT     "     X NONZERO    X2 ZERO     "
+  ELSE IF XFLAG = 0 AND X2FLAG = 1 THEN
+    PRINT     "     X ZERO    X2 NONZERO     "
+  ELSE IF XFLAG = 1 AND X2FLAG = 1 THEN
+    PRINT     "    X NONZERO   X2 NONZERO    "
+  END IF
+
+  PRINT TAB(11,47);
+  IF XFLAG = 1 OR X2FLAG = 1 THEN
+    IF REALFLAGX = 1 THEN
+      PRINT   "  BOTH  X  VECTORS ARE REAL   "
+    ELSE IF REALFLAGX = 0 THEN
+      PRINT   "  X  OR  X2  OR BOTH COMPLEX  "
+    END IF
+  ELSE IF XFLAG = 0 AND X2FLAG = 0 THEN
+    PRINT     "                              "
+  END IF
+
+  PRINT TAB(13,47);
+  IF FFTFLAG = 0 AND FFT2FLAG = 0 THEN
+    PRINT     "     F ZERO       F2 ZERO     "
+  ELSE IF FFTFLAG = 1 AND FFT2FLAG = 0 THEN
+    PRINT     "     F NONZERO    F2 ZERO     "
+  ELSE IF FFTFLAG = 0 AND FFT2FLAG = 1 AND HJWFLAG = 0 THEN
+    PRINT     "     F ZERO    F2 NONZERO     "
+  ELSE IF FFTFLAG = 0 AND FFT2FLAG = 1 AND HJWFLAG = 1 THEN
+    PRINT     "    F ZERO    F2 IS LOCKED    "
+  ELSE IF FFTFLAG = 1 AND FFT2FLAG = 1 AND HJWFLAG = 0 THEN
+    PRINT     "    F NONZERO   F2 NONZERO    "
+  ELSE IF FFTFLAG = 1 AND FFT2FLAG = 1 AND HJWFLAG = 1 THEN
+    PRINT     "   F NONZERO   F2 IS LOCKED   "
+  END IF
+
+  PRINT TAB(14,47);
+  IF FFTFLAG = 1 OR FFT2FLAG = 1 THEN
+    IF SYMMFLAG = 1 THEN
+      PRINT "  F's HAVE EVEN/ODD SYMMETRY  "
+    ELSE IF SYMMFLAG = 0 THEN
+      PRINT "  F's LACK EVEN/ODD SYMMETRY  "
+    END IF
+  ELSE IF FFTFLAG = 0 AND FFT2FLAG = 0 THEN
+    PRINT   "                              "
+  END IF
+
+  PRINT TAB(16,47);
+  IF IFFTFLAG = 0 THEN
+    PRINT   "            Y ZERO            "
+  ELSE IF IFFTFLAG = 1 THEN
+    IF REALFLAGIFFT = 1 THEN
+      PRINT "       Y  NONZERO, REAL       "
+    ELSE IF REALFLAGIFFT = 0 THEN
+      PRINT "     Y  NONZERO, COMPLEX      "
+    END IF
+  END IF
+
+  IF CALL$ = "FFT" THEN
+
+    PRINT TAB(17,47);
+    IF NOCONV = 1 THEN
+      PRINT "   DECLARED: NO " & WURD$
+    ELSE IF CONVFLAG = 1 THEN
+      PRINT "   " & WURD$ & " HAS BEEN RUN   "
+    END IF
+
+  ELSE IF CALL$ = "FFTMAX" THEN
+    LET COUNT = LEN(FILESTR$)
+    LET START = 62 - ROUND(COUNT/2)
+    PRINT TAB(17,START); FILESTR$
+  END IF
+
+  LET COUNT = LEN(STRING$)
+  LET STRING$ = CARD$ & "   " & COLOR$
+  LET COUNT = LEN(STRING$)
+  LET START = 62 - ROUND(COUNT/2)
+  PRINT TAB(19,START); STRING$
+
+  PRINT TAB(20,47);
+  IF KLEEN$ = "ONE" THEN
+    PRINT "         CLEAN IS ON          "
+  ELSE IF KLEEN$ = "ZERO" THEN
+    PRINT "         CLEAN IS OFF         "
+  END IF
+
+  LET STRING$ = "FREE MEMORY = " & STR$(FREEMEM) & " BYTES"
+  LET COUNT = LEN(STRING$)
+  LET START = 62 - ROUND(COUNT/2)
+  PRINT TAB(21,START);STRING$
+
+  PRINT TAB(22,47);
+  IF NKB > 0 THEN
+    PRINT     "    EXTENDED MEMORY IS ON     "
+  ELSE
+    PRINT     "    EXTENDED MEMORY IS OFF    "
+  END IF
+
+  DO
+    DO
+      WHEN ERROR IN
+        LET SDZ = 0
+        IF AFLAG = 1 THEN SOUND 500,.1
+
+        CLOSE #2
+        OPEN #2: SCREEN .1625,.4625,.08,.12
+
+        CALL SETCOLOR( COLOR$ )
+
+        CLEAR
+        LET PROMPT$ = "ณ SELECT OPTION ณ  ?  "
+        INPUT PROMPT PROMPT$  :  OPTION$
+        LET OPTION$ = UCASE$(OPTION$)
+
+        IF OPTION$ = "A" OR (OPTION$ = "B" AND B = 1) OR OPTION$ = "C" OR (OPTION$ = "D" AND D = 1) OR (OPTION$ = "E" AND E = 1) OR (OPTION$ = "F" AND F = 1) OR (OPTION$ = "G" AND G = 1) OR (OPTION$ = "H" AND H = 1) OR (OPTION$ = "I" AND I = 1) OR (OPTION$ = "J" AND J = 1) OR OPTION$ = "Q" OR OPTION$ = "S" THEN LET VAR1 = 1
+
+        LET AFLAG = 1
+      USE
+        SOUND 500,.1
+        CLOSE #2
+        LET SDZ = 1
+      END WHEN
+    LOOP WHILE SDZ = 1
+  LOOP UNTIL VAR1 = 1
+
+  CLOSE #2
+
+END SUB !BOX3
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX39
+
+  SET CURSOR "OFF"
+
+  DO
+    LET EXIT = 0
+    LET GOBACK = 0
+    CLEAR
+
+    PRINT TAB(3,30); "SYSTEM FLOW DIAGRAM"
+    PRINT TAB(5,4);  "ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป"
+    PRINT TAB(6,4);  "บ     time domain     ณ     frequency domain     ณ     time domain     บ"
+    PRINT TAB(7,4);  "บ                                                                      บ"
+    PRINT TAB(8,4);  "บ                     ณ                          ณ                     บ"
+    PRINT TAB(9,4);  "บ             ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ           ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ             บ"
+    PRINT TAB(10,4); "บ       X     ณ              ณ     F     ณ               ณ      Y      บ"
+    PRINT TAB(11,4); "บ  ฤฤฤฤฤ>ฤฤฤฤฤด   ANALYSIS   รฤฤฤฤฤ>ฤฤฤฤฤด   SYNTHESIS   รฤฤฤฤฤฤ>ฤฤฤฤ  บ"
+    PRINT TAB(12,4); "บ             ณ              ณ           ณ               ณ             บ"
+    PRINT TAB(13,4); "บ       X2    ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤู     F2    ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู             บ"
+    PRINT TAB(14,4); "บ  ฤฤฤฤฤฤฤฤฤฤ         ณ        ฤฤฤฤฤฤฤฤฤ         ณ                     บ"
+    PRINT TAB(15,4); "บ                                                                      บ"
+    PRINT TAB(16,4); "บ                     ณ                          ณ                     บ"
+    PRINT TAB(17,4); "ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ"
+
+    PRINT TAB(19,20);"press --->  I  <--- to get the info page"
+
+    PRINT TAB(21,27);"press spacebar to continue"
+
+    DO
+      GET KEY INKEY
+      IF INKEY = 32 THEN
+        LET EXIT = 1
+      ELSE IF INKEY = 073 OR INKEY = 105 THEN
+        CALL BOX138
+        LET EXIT = 1
+        LET GOBACK = 1
+      ELSE
+        SOUND 500,.1
+      END IF
+    LOOP UNTIL EXIT = 1
+  LOOP WHILE GOBACK = 1
+
+END SUB !BOX39
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX78( TAXIS, FAXIS, A$, CENTFREQ, CONCORFLAG, CLEARVEX )
+
+  LET OLDCONCORFLAG = CONCORFLAG
+
+  CLEAR
+  CALL BOXU(2,4,32,8)
+  CALL LINEU(9,4,32)
+  CALL BOXU(2,41,34,8)
+  CALL LINEU(9,41,34)
+  CALL BOXU(12,4,32,8)
+  CALL LINEU(19,4,32)
+  CALL BOXU(12,41,34,8)
+  CALL LINEU(19,41,34)
+
+  PRINT TAB(3,8);  "THE HORIZONTAL AXIS IN THE"
+  PRINT TAB(4,8);  "   TIME-DOMAIN PLOTS IS   "
+  PRINT TAB(6,8);  "TIME ................... T"
+  PRINT TAB(8,8);  "k ...................... K"
+
+  PRINT TAB(3,44); "  THE HORIZONTAL AXIS IN THE "
+  PRINT TAB(4,44); "  FREQUENCY-DOMAIN PLOTS IS  "
+  PRINT TAB(6,44); " OMEGA .................... G"
+  PRINT TAB(8,44); " n ........................ N"
+
+  PRINT TAB(13,8); "    THE ORIGIN IN THE     "
+  PRINT TAB(14,8); "FREQUENCY DOMAIN PLOTS IS "
+  PRINT TAB(16,8); "CENTER ................. C"
+  PRINT TAB(18,8); "LEFT ................... L"
+
+  PRINT TAB(13,44); "   MAIN MENU OPTION  F  IS   "
+  PRINT TAB(14,44); "                             "
+  PRINT TAB(16,44); " CONVOLUTION .............. V"
+  PRINT TAB(18,44); " CORRELATION .............. R"
+
+  DO
+    PRINT TAB(10,7); "                           "
+    IF TAXIS = 1 THEN
+      PRINT TAB(10,10); "CURRENT SETTING IS  k"
+    ELSE IF TAXIS = 2 THEN
+      PRINT TAB(10,9); "CURRENT SETTING IS  TIME"
+    END IF
+
+    PRINT TAB(10,45); "                           "
+    IF FAXIS = 1 THEN
+      PRINT TAB(10,48); "CURRENT SETTING IS  n"
+    ELSE IF FAXIS = 2 THEN
+      PRINT TAB(10,46); "CURRENT SETTING IS  OMEGA"
+    END IF
+
+    PRINT TAB(20,7); "                           "
+    IF CENTFREQ = 1 THEN
+      PRINT TAB(20,8); "CURRENT SETTING IS  CENTER"
+    ELSE IF CENTFREQ = 0 THEN
+      PRINT TAB(20,9); "CURRENT SETTING IS  LEFT"
+    END IF
+
+    PRINT TAB(20,48);   "                      "
+    IF CONCORFLAG = 1 THEN
+      PRINT TAB(20,48); "CURRENTLY  CONVOLUTION"
+    ELSE IF CONCORFLAG = 0 THEN
+      PRINT TAB(20,48); "CURRENTLY  CORRELATION"
+    END IF
+
+    DO
+
+      LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+      DO
+        LET SXC = 0
+        WHEN ERROR IN
+          PRINT TAB(23,1);A$
+          PRINT TAB(23,31);
+          INPUT PROMPT FRAZ$ : RTZ$
+        USE
+          SOUND 500,.1
+          LET SXC = 1
+        END WHEN
+      LOOP WHILE SXC = 1
+
+      LET RTZ$ = UCASE$(RTZ$)
+
+      IF RTZ$ <> "T" AND RTZ$ <> "K" AND RTZ$ <> "G" AND RTZ$ <> "N" AND RTZ$ <> "C" AND RTZ$ <> "L" AND RTZ$ <> "R" AND RTZ$ <> "V" AND RTZ$ <> "Q" THEN SOUND 500,.1
+    LOOP UNTIL RTZ$ = "T" OR RTZ$ = "K" OR RTZ$ = "G" OR RTZ$ = "N" OR RTZ$ = "C" OR RTZ$ = "L" OR RTZ$ = "R" OR RTZ$ = "V" OR RTZ$ = "Q"
+
+    IF RTZ$ = "K" THEN
+      LET TAXIS = 1
+    ELSE IF RTZ$ = "T" THEN
+      LET TAXIS = 2
+    ELSE IF RTZ$ = "N" THEN
+      LET FAXIS = 1
+    ELSE IF RTZ$ = "G" THEN
+      LET FAXIS = 2
+    ELSE IF RTZ$ = "C" THEN
+      LET CENTFREQ = 1
+    ELSE IF RTZ$ = "L" THEN
+      LET CENTFREQ = 0
+    END IF
+
+    IF RTZ$ = "V" OR RTZ$ = "R" THEN
+      IF RTZ$ = "V" THEN
+        LET CONCORFLAG = 1
+      ELSE IF RTZ$ = "R" THEN
+        LET CONCORFLAG = 0
+      END IF
+   END IF
+
+  LOOP UNTIL RTZ$ = "Q"
+
+  IF CONCORFLAG <> OLDCONCORFLAG THEN LET CLEARVEX = 1
+
+END SUB !BOX78
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX107( WXY$, CALL$, A$ )
+
+  DO
+    CLEAR
+    IF CALL$ = "FFT" THEN
+      CALL BOXU(8,22,31,5)
+      PRINT TAB(10,25);"QUIT THE FFT SYSTEM ... Y/N"
+      PRINT TAB(12,25);"SYSTEM FLOW DIAGRAM ..... S"
+      LET AA = 34
+    ELSE IF CALL$ = "FFTMAX" THEN
+      CALL BOXU(8,20,34,5)
+      PRINT TAB(10,23);"QUIT THE FFTMAX SYSTEM ... Y/N"
+      PRINT TAB(12,23);"SYSTEM FLOW DIAGRAM ........ S"
+      LET AA = 34
+    END IF
+
+    LET FRAZ$ = "Y/N/S ? "
+
+    DO
+
+      CALL APROMPT( 16, AA, A$, FRAZ$, WXY$ )
+
+      IF WXY$ <> "Y" AND WXY$ <> "N" AND WXY$ <> "S" THEN SOUND 500,.1
+
+    LOOP UNTIL WXY$ = "Y" OR WXY$ = "N" OR WXY$ = "S"
+
+    IF WXY$ = "S" THEN CALL BOX39
+
+  LOOP UNTIL WXY$ = "Y" OR WXY$ = "N"
+
+END SUB !BOX107
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOXQ( WXI$, A$ )
+
+  SET CURSOR "ON"
+  CLEAR
+
+  CALL BOXU(1,8,63,19)
+  CALL LINEU(7,8,63)
+  CALL LINEU(18,8,63)
+
+!  PRINT TAB(1,8);  "ษอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป"
+!  PRINT TAB(2,8);  "บ                                                               บ"
+!  PRINT TAB(3,8);  "บ (1) WHEREVER A MENU HAS AN ALPHA RESPONSE YOU CAN USE EITHER  บ"
+!  PRINT TAB(4,8);  "บ                                                               บ"
+!  PRINT TAB(5,8);  "บ          ----> UPPER CASE    OR    ----> lower case           บ"
+!  PRINT TAB(6,8);  "บ                                                               บ"
+!  PRINT TAB(7,8);  "ฬอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออน"
+!  PRINT TAB(8,8);  "บ                                                               บ"
+!  PRINT TAB(9,8);  "บ (2) ALMOST EVERY MENU OR DIALOG BOX HAS THE HIDDEN OPTION     บ"
+!  PRINT TAB(10,8); "บ                                                               บ"
+!  PRINT TAB(11,8); "บ                      ----> Q  (QUIT)                          บ"
+!  PRINT TAB(12,8); "บ                                                               บ"
+!  PRINT TAB(13,8); "บ   THIS WILL ABORT WHAT YOU ARE DOING AND YOU WILL BE TAKEN    บ"
+!  PRINT TAB(14,8); "บ           BACK TO THE CLOSEST-POSSIBLE PREVIOUS MENU.         บ"
+!  PRINT TAB(15,8); "บ      REPEATING  Q  WILL EVENTUALLY TAKE YOU BACK TO THE       บ"
+!  PRINT TAB(16,8); "บ                MAIN MENU AND OUT OF THE SYSTEM.               บ"
+!  PRINT TAB(17,8); "บ                                                               บ"
+!  PRINT TAB(18,8); "ฬอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออน"
+!  PRINT TAB(19,8); "บ  HIDE THIS BOX FROM NOW ON ............................... H  บ"
+!  PRINT TAB(20,8); "บ  CONTINUE (AND DO NOT HIDE) .............................. C  บ"
+!  PRINT TAB(21,8); "ศอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ"
+
+
+  PRINT TAB(3,10);  "(1) WHEREVER A MENU HAS AN ALPHA RESPONSE YOU CAN USE EITHER"
+  PRINT TAB(5,10);  "         ----> UPPER CASE    OR    ----> lower case."
+  PRINT TAB(9,10);  "(2) ALMOST EVERY MENU OR DIALOG BOX HAS THE HIDDEN OPTION"
+  PRINT TAB(11,10); "                     ----> Q  (QUIT)"
+  PRINT TAB(13,10); "  THIS WILL ABORT WHAT YOU ARE DOING AND YOU WILL BE TAKEN"
+  PRINT TAB(14,10); "         BACK TO THE CLOSEST-POSSIBLE PREVIOUS MENU."
+  PRINT TAB(15,10); "     REPEATING  Q  WILL EVENTUALLY TAKE YOU BACK TO THE"
+  PRINT TAB(16,10); "               MAIN MENU AND OUT OF THE SYSTEM."
+  PRINT TAB(19,10); " HIDE THIS BOX FROM NOW ON ............................... H"
+  PRINT TAB(20,10); " CONTINUE (AND DO NOT HIDE) .............................. C"
+
+  DO
+
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 23, 30, A$, FRAZ$, WXI$ )
+
+    IF WXI$ <> "H" AND WXI$ <> "C" THEN SOUND 500,.1
+  LOOP UNTIL WXI$ = "H" OR WXI$ = "C"
+
+END SUB !BOXQ
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX2( A$ )
+
+  SET CURSOR "OFF"
+  DO
+    LET EXIT = 0
+    LET GOBACK = 0
+    CLEAR
+    PRINT TAB(3,16); "ษออออออออออออออออออออออออออออออออออออออออออออออป"
+    PRINT TAB(4,16); "บ                                              บ"
+    PRINT TAB(5,16); "บ              THIS IS A COMPLETE              บ"
+    PRINT TAB(6,16); "บ                                              บ"
+    PRINT TAB(7,16); "บ         FAST-FOURIER-TRANSFORM SYSTEM        บ"
+    PRINT TAB(8,16); "บ                                              บ"
+    PRINT TAB(9,16); "บ    A DETAILED DISCUSSION IS CONTAINED IN     บ"
+    PRINT TAB(10,16);"บ                                              บ"
+    PRINT TAB(11,16);"บ     ""INTRODUCTION TO FOURIER ANALYSIS""       บ"
+    PRINT TAB(12,16);"บ                                              บ"
+    PRINT TAB(13,16);"บ               Norman Morrison                บ"
+    PRINT TAB(14,16);"บ                                              บ"
+    PRINT TAB(15,16);"บ              JOHN WILEY & SONS               บ"
+    PRINT TAB(16,16);"บ                                              บ"
+    PRINT TAB(17,16);"ศออออออออออออออออออออออออออออออออออออออออออออออผ"
+
+    PRINT TAB(19,20);"press --->  I  <--- to get the info page"
+
+    PRINT TAB(21,27);"press spacebar to continue"
+
+    DO
+      GET KEY INKEY
+      IF INKEY = 32 THEN
+        LET EXIT = 1
+      ELSE IF INKEY = 073 OR INKEY = 105 THEN
+        CALL BOX138
+        LET EXIT = 1
+        LET GOBACK = 1
+      ELSE
+        SOUND 500,.1
+      END IF
+    LOOP UNTIL EXIT = 1
+  LOOP WHILE GOBACK = 1
+
+END SUB !BOX2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOXEXPIRE
+
+  SET CURSOR "OFF"
+  CLEAR
+  SOUND 500,.1
+
+  !CALL BOXU(2, 9, 62, 19)      !will crash if this is in
+
+  PRINT TAB(4,14);"THIS SOFTWARE VERSION IS NOW MORE THAN SIX MONTHS OLD"
+  PRINT TAB(7,12); "If you would like to find out if there is a later release:"
+  PRINT TAB(9,14);"Please obtain the version number of this release from"
+  PRINT TAB(11,23);"the info page (see below) and then"
+  PRINT TAB(13,21);"contact JOHN WILEY in New York City or"
+  PRINT TAB(15,20);"send an email to the author in Cape Town"
+  PRINT TAB(17,17);"(both addresses are displayed on the info page)"
+  PRINT TAB(20,14);"(This reminder will appear again in three months time)"
+  PRINT TAB(23,26);"press  I  to get the info page"
+
+
+  DO
+    GET KEY INKEY
+    IF INKEY = 73 OR INKEY = 105 THEN
+      LET EXIT2 = 1
+    ELSE
+      SOUND 500,.1
+    END IF
+  LOOP UNTIL EXIT2 = 1
+
+  CALL BOX138
+
+END SUB !BOXEXPIRE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX138
+
+  SET CURSOR "OFF"
+  CLEAR
+
+  CALL BOXU(2,14,52,18)
+
+  CALL SHOWINFO
+
+  PRINT TAB(23,29);"press spacebar to exit"
+
+  DO
+    GET KEY INKEY
+    IF INKEY = 32 THEN
+      LET EXIT2 = 1
+    ELSE
+      SOUND 500,.1
+    END IF
+  LOOP UNTIL EXIT2 = 1
+
+END SUB !BOX138
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

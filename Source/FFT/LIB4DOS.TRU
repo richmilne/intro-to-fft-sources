@@ -1,0 +1,426 @@
+EXTERNAL             !LIB4DOS
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX21( ZAZ, Z11$, A$ )
+
+  CLEAR
+  CALL BOXU(6,20,40,5)
+  PRINT TAB(8,23);
+  IF ZAZ = 1 THEN
+    PRINT "TIME DOMAIN ( X AND Y ) .......... X"
+  ELSE IF ZAZ = 2 THEN
+    PRINT "TIME DOMAIN ( X2 ) ............... X"
+  END IF
+  PRINT TAB(10,23);
+  IF ZAZ = 1 THEN
+    PRINT "FREQUENCY DOMAIN ( F ) ........... F"
+  ELSE IF ZAZ = 2 THEN
+    PRINT "FREQUENCY DOMAIN ( F2 ) .......... F"
+  END IF
+
+  DO
+    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
+
+    CALL APROMPT( 14, 31, A$, FRAZ$, Z11$ )
+
+    IF Z11$ <> "X" AND Z11$ <> "F" AND Z11$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL Z11$ = "X" OR Z11$ = "F" OR Z11$ = "Q"
+
+
+END SUB !BOX21
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX22( TYPE$, CR$, A$ )
+
+  CLEAR
+  CALL BOXU(6,19,42,7)
+  CALL LINEU(8,19,42)
+  PRINT TAB(7,22); "WHICH FORM OF THE SPECTRUM DO YOU WANT"
+  IF TYPE$ = "PER" THEN
+    PRINT TAB(10,22);"COMPLEX FORM   A(n) and B(n) ....... C"
+    PRINT TAB(12,22);"REAL FORM      a(n) and b(n) ....... R"
+  ELSE IF TYPE$ = "PUL" THEN
+    PRINT TAB(10,22);"SINGLE PULSE ....................... S"
+    PRINT TAB(12,22);"ETERNAL TRAIN ...................... E"
+  END IF
+
+  DO
+    LET ASD = 0
+    IF SDT = 1 THEN SOUND 500,.1
+
+    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
+
+    CALL APROMPT( 16, 31, A$, FRAZ$, CR$ )
+
+    IF TYPE$ = "PER" THEN
+      IF CR$ = "C" OR CR$ = "R" OR CR$ = "Q" THEN LET ASD = 1
+    ELSE IF TYPE$ = "PUL" THEN
+      IF CR$ = "S" OR CR$ = "E" OR CR$ = "Q" THEN LET ASD = 1
+    END IF
+    LET SDT = 1
+  LOOP UNTIL ASD = 1
+
+  IF CR$ = "E" THEN LET CR$ = "I"
+
+END SUB !BOX22
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX45( ZAZ )
+
+  IF ZAZ = 1 THEN
+    PRINT " n       A(n)           B(n)         ³ F(n) ³         é(n)       ³ F(n) ³ý"
+  ELSE IF ZAZ = 2 THEN
+    PRINT " n       A2(n)          B2(n)        ³ F2(n) ³        é2(n)      ³ F2(n) ³ý"
+  END IF
+
+END SUB !BOX45
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX50( ZAZ )
+
+  IF ZAZ = 1 THEN
+    PRINT " n       A(n)           B(n)          ³ F(n) ³        é(n)         POWER(n)"
+  ELSE IF ZAZ = 2 THEN
+    PRINT " n       A2(n)          B2(n)         ³ F2(n) ³      é2(n)        POWER2(n)"
+  END IF
+
+END SUB !BOX50
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX51( ZAZ )
+
+  IF ZAZ = 1 THEN
+    PRINT " n        A(n)           B(n)          ³ F(n) ³        é(n)        ENERGY(n)"
+  ELSE IF ZAZ = 2 THEN
+    PRINT " n        A2(n)          B2(n)        ³ F2(n) ³       é2(n)        ENERGY2(n)"
+  END IF
+
+END SUB !BOX51
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX61( N, Z3$, A$, VECFLAG, TAG )
+
+  IF N < 16 THEN
+    LET LINE = N + 8
+  ELSE IF N = 16 THEN
+    LET LINE = N + 7
+  END IF
+
+  IF TAG = 1 THEN   !VIEWING  X & Y
+    IF VECFLAG = 1 THEN
+      LET FRAZ$ = "³ X2 ... X2 ³ F ... F ³ ? "
+    ELSE IF VECFLAG = 0 THEN
+      LET FRAZ$ = "³ F ... F ³ ? "
+    END IF
+    LET COUNT = LEN(FRAZ$)
+    LET START = 40 - ROUND(COUNT/2)
+
+    DO
+      IF RSE = 1 THEN SOUND 500,.1
+
+      CALL APROMPT( LINE, START, A$, FRAZ$, Z3$ )
+
+      IF (VECFLAG = 1 AND Z3$ = "X2") OR Z3$ = "F" OR Z3$ = "Q" THEN LET QRS = 1
+      LET RSE = 1
+    LOOP UNTIL QRS = 1
+
+  ELSE IF TAG = 2 THEN   !VIEWING  X2
+    IF VECFLAG = 1 THEN
+      LET FRAZ$ = "³ X & Y ... X ³ F2 ... F2 ³ ? "
+    ELSE IF VECFLAG = 0 THEN
+      LET FRAZ$ = "³ X & Y ... X ³ ? "
+    END IF
+    LET COUNT = LEN(FRAZ$)
+    LET START = 21 - ROUND(COUNT/2)
+
+    DO
+      IF RUF = 1 THEN SOUND 500,.1
+
+      CALL APROMPT( LINE, START, A$, FRAZ$, Z3$ )
+
+      IF Z3$ = "X" OR (VECFLAG = 1 AND Z3$ = "F2") OR Z3$ = "Q" THEN LET RWE = 1
+      LET RUF = 1
+    LOOP UNTIL RWE = 1
+
+  ELSE IF TAG = 3 THEN    !VIEWING  F
+    IF VECFLAG = 1 THEN
+      LET FRAZ$ = "³ F2 ... F2 ³ X AND Y ... X ³ ? "
+    ELSE IF VECFLAG = 0 THEN
+      LET FRAZ$ = "³ X AND Y ... X ³ ? "
+    END IF
+    LET COUNT = LEN(FRAZ$)
+    LET START = 40 - ROUND(COUNT/2)
+
+    DO
+      IF SUX = 1 THEN SOUND 500,.1
+
+      CALL APROMPT( LINE, START, A$, FRAZ$, Z3$ )
+
+      IF (VECFLAG = 1 AND Z3$ = "F2") OR Z3$ = "X" OR Z3$ = "Q" THEN LET QRS = 1
+      LET SUX = 1
+    LOOP UNTIL QRS = 1
+
+  ELSE IF TAG = 4 THEN       !VIEWING  F2
+    IF VECFLAG = 1 THEN
+      LET FRAZ$ = "³ F ... F ³ X2 ... X2 ³ ? "
+    ELSE IF VECFLAG = 0 THEN
+      LET FRAZ$ = "³ F ... F ³ ? "
+    END IF
+    LET COUNT = LEN(FRAZ$)
+    LET START = 40 - ROUND(COUNT/2)
+
+    DO
+      IF RAT = 1 THEN SOUND 500,.1
+
+      CALL APROMPT( LINE, START, A$, FRAZ$, Z3$ )
+
+      IF Z3$ = "F" OR (VECFLAG = 1 AND Z3$ = "X2") OR Z3$ = "Q" THEN LET PEW = 1
+      LET RAT = 1
+    LOOP UNTIL PEW = 1
+  END IF
+
+END SUB !BOX61
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX67( TAG, X2FLAG, FFT2FLAG )
+
+  LET FRAZ$ = "³ UP/DOWN/HOME ... U/D/H ³ ANY INTEGER "
+  PRINT TAB(24,1);
+
+  IF TAG = 1 THEN
+    IF X2FLAG = 1 THEN
+      PRINT FRAZ$ & "³ X2 ... X2 ³ F ... F ³ ? "
+    ELSE IF (X2FLAG = 0 OR NOCONV = 1) THEN
+      PRINT FRAZ$ & "³ F ... F ³ ? "
+    END IF
+
+  ELSE IF TAG = 2 THEN
+    IF FFT2FLAG = 1 THEN
+      PRINT FRAZ$ & "³ X & Y ... X ³ F2 ... F2 ³ ? "
+    ELSE IF FFT2FLAG = 0 THEN
+      PRINT FRAZ$ & "³ X & Y ... X ³ ? "
+    END IF
+
+  ELSE IF TAG = 3 THEN
+    IF FFT2FLAG = 1 THEN
+      PRINT FRAZ$ & "³ F2 ... F2 ³ X & Y ... X ³ ? "
+    ELSE IF FFT2FLAG = 0 OR NOCONV = 1 THEN
+      PRINT FRAZ$ & "³ X & Y ... X ³ ? "
+    END IF
+
+  ELSE IF TAG = 4 THEN
+    IF X2FLAG = 1 THEN
+      PRINT FRAZ$ & "³ F ... F ³ X2 ... X2 ³ ? "
+    ELSE IF X2FLAG = 0 THEN
+      PRINT FRAZ$ & "³ F ... F ³ ? "
+    END IF
+  END IF
+
+END SUB !BOX67
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX68( Z3$, A$, VECFLAG, VALUE, NUMFLAG, COLGROUP$, COLOR$, TAG )
+
+  !IF TAG = 1 THEN VECFLAG IS X2FLAG
+  !IF TAG = 2 THEN VECFLAG IS FFT2FLAG
+  !IF TAG = 3 THEN VECFLAG IS FFT2FLAG
+  !IF TAG = 4 THEN VECFLAG IS X2FLAG
+
+  LET FRAZ$ = "³ UP/DOWN/HOME ... U/D/H ³ ANY INTEGER "
+
+  DO
+    LET SAR = 0
+    WHEN ERROR IN
+      DO
+
+        IF COLGROUP$ = "A" THEN
+          OPEN #2: SCREEN 0, 1, .041666, .083333
+        ELSE
+          OPEN #2: SCREEN 0, 1, .08, .12
+        END IF
+        LET OPEN = 1
+
+        CALL SETCOLOR( COLOR$ )
+        CLEAR
+
+        LET FAT = 0
+        IF TAG = 1 THEN                !IF TAG = 1 THEN VECFLAG IS X2FLAG
+          IF VECFLAG = 1 THEN
+            INPUT PROMPT FRAZ$ & "³ X2 ... X2 ³ F ... F ³ ? " : Z3$
+          ELSE IF VECFLAG = 0 THEN
+            INPUT PROMPT FRAZ$ & "³ F ... F ³ ? " : Z3$
+          END IF
+          LET Z3$ = UCASE$(Z3$)
+          IF Z3$ = "U" OR Z3$ = "D" OR Z3$ = "H" OR (VECFLAG = 1 AND Z3$ = "X2") OR Z3$ = "F" OR Z3$ = "Q" THEN LET FAT = 1
+
+        ELSE IF TAG = 2 THEN           !IF TAG = 2 THEN VECFLAG IS FFT2FLAG
+          IF VECFLAG = 1 THEN
+            INPUT PROMPT FRAZ$ & "³ X & Y ... X ³ F2 ... F2 ³ ? " : Z3$
+          ELSE IF VECFLAG = 0 THEN
+            INPUT PROMPT FRAZ$ & "³ X & Y ... X ³ ? " : Z3$
+          END IF
+          LET Z3$ = UCASE$(Z3$)
+          IF Z3$ = "U" OR Z3$ = "D" OR Z3$ = "H" OR Z3$ = "X" OR (VECFLAG = 1 AND Z3$ = "F2") OR Z3$ = "Q" THEN LET FAT = 1
+
+        ELSE IF TAG = 3 THEN           !IF TAG = 3 THEN VECFLAG IS FFT2FLAG
+          IF VECFLAG = 1 THEN
+            INPUT PROMPT FRAZ$ & "³ F2 ... F2 ³ X & Y ... X ³ ? " : Z3$
+          ELSE IF VECFLAG = 0 THEN
+            INPUT PROMPT FRAZ$ & "³ X & Y ... X ³ ? ": Z3$
+          END IF
+          LET Z3$ = UCASE$(Z3$)
+          IF Z3$ = "U" OR Z3$ = "D" OR Z3$ = "H" OR (VECFLAG = 1 AND Z3$ = "F2") OR Z3$ = "X"  OR Z3$ = "Q" THEN LET FAT = 1
+
+        ELSE IF TAG = 4 THEN           !IF TAG = 4 THEN VECFLAG IS X2FLAG
+          IF VECFLAG = 1 THEN
+            INPUT PROMPT FRAZ$ & "³ F ... F ³ X2 ... X2 ³ ? " : Z3$
+          ELSE IF VECFLAG = 0 THEN
+            INPUT PROMPT FRAZ$ & "³ F ... F ³ ? " :  Z3$
+          END IF
+          LET Z3$ = UCASE$(Z3$)
+          IF Z3$ = "U" OR Z3$ = "D" OR Z3$ = "H" OR Z3$ = "F" OR (VECFLAG = 1 AND Z3$ = "X2") OR Z3$ = "Q" THEN LET FAT = 1
+        END IF
+
+        LET Z3$ = UCASE$(Z3$)
+
+        IF FAT = 1 THEN
+          LET NUMFLAG = 0
+          LET QRS = 1
+        ELSE
+          CALL TEXTVALUE2( Z3$, QRS, VALUE, NUMFLAG )
+        END IF
+        IF OPEN = 1 THEN CLOSE #2
+      LOOP UNTIL QRS = 1
+    USE
+      SOUND 500,.1
+      IF OPEN = 1 THEN
+        CLOSE #2
+        LET OPEN = 0
+      END IF
+      LET SAR = 1
+    END WHEN
+  LOOP WHILE SAR = 1
+
+END SUB !BOX68
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX72( ZAZ, WURDD$ )
+
+  IF ZAZ = 1 THEN
+    PRINT TAB(2,20);"( " & WURDD$ & " run:  F  multiplied by  F2 )"
+    PRINT TAB(3,24);"( and result multiplied by T/Ný )"
+  ELSE IF ZAZ = 2 THEN
+    PRINT TAB(2,24);"( F2  has been multiplied by  1/N )"
+  END IF
+
+END SUB !BOX72
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX73( ZAZ, WURDD$ )
+
+  IF ZAZ = 1 THEN
+    PRINT TAB(2,20);"( " & WURDD$ & " run: F  multiplied by  F2 )"
+    PRINT TAB(3,23);"( and result multiplied by (T/N)ý )"
+  ELSE IF ZAZ = 2 THEN
+    PRINT TAB(2,24);"( F2  has been multiplied by  T/N )"
+  END IF
+
+END SUB !BOX73
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX74( ZAZ )
+
+  IF ZAZ = 1 THEN
+    PRINT TAB(2,24);"( F  has been multiplied by 2ã/N )        (ETERNAL TRAIN)"
+  ELSE IF ZAZ = 2 THEN
+    PRINT TAB(2,23);"( F2  has been multiplied by 2ã/N )        (ETERNAL TRAIN)"
+  END IF
+
+END SUB !BOX74
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX75( ZAZ, WURDD$ )
+
+  IF ZAZ = 1 THEN
+    PRINT TAB(2,20);"( " & WURDD$ & " run:  F  multiplied by  F2 )"
+    PRINT TAB(3,23);"( and result multiplied by (2ã/N)ý )"
+  ELSE IF ZAZ = 2 THEN
+    PRINT TAB(2,23);"( F2  has been multiplied by 2ã/N )"
+  END IF
+
+END SUB !BOX75
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX76( ZAZ )
+
+  IF ZAZ = 1 THEN
+    PRINT " n      a(n)           b(n)           H(n)           è(n)         H(n)^2"
+  ELSE IF ZAZ = 2 THEN
+    PRINT " n      a2(n)          b2(n)          H2(n)          è2(n)        H2(n)^2"
+  END IF
+
+END SUB !BOX76
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB TEXTVALUE2( Z3$, QRS, VALUE, NUMFLAG )
+
+  DECLARE DEF EVAL         !LEAVE ALONE.... DON'T TOUCH...... HANDS OFF
+
+  LET NUMFLAG = 0
+
+  WHEN ERROR IN
+    LET VALUE = EVAL(Z3$)
+    IF VALUE = INT(VALUE) THEN
+      LET QRS = 1
+      LET NUMFLAG = 1
+    ELSE
+      SOUND 500,.1
+      LET QRS = 0
+    END IF
+  USE
+    LET QRS = 0
+    SOUND 500,.1
+  END WHEN
+
+END SUB !TEXTVALUE2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

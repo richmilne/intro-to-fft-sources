@@ -1,0 +1,1282 @@
+EXTERNAL             !LIB3DOS
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX4( N, T, TYPE$, Z1$, A$ )
+
+  CLEAR
+  CALL BOXU(2,16,48,17)
+  PRINT TAB(3,33); "PARAMETERS MENU"
+  CALL LINEU(4,16,48)
+  CALL LINEU(8,16,48)
+  CALL LINEU(18,16,48)
+
+  LET STRING$ = "N = " & STR$(N)
+  LET COUNT = LEN(STRING$)
+  LET START = 29 - ROUND((COUNT + 1)/2)
+  PRINT TAB(5,START); STRING$
+
+  LET STRING$ = "T = " & STR$(T)
+  LET COUNT = LEN(STRING$)
+  LET START = 53 - ROUND((COUNT + 1)/2)
+  PRINT TAB(5,START); STRING$
+
+  LET STRING$ = "MODE = SAMPLED"
+  LET COUNT = LEN(STRING$)
+  LET START = 29 - ROUND((COUNT + 1)/2)
+  PRINT TAB(7,START); STRING$
+
+  IF TYPE$ = "PER" THEN
+    LET STRING$ = "TYPE = PERIODIC"
+  ELSE IF TYPE$ = "PUL" THEN
+    LET STRING$ = "TYPE = PULSE"
+  END IF
+  LET COUNT = LEN(STRING$)
+  LET START = 53 - ROUND((COUNT + 1)/2)
+  PRINT TAB(7,START); STRING$
+
+  PRINT TAB(10,19);"CHANGE  N ................................ N"
+  PRINT TAB(12,19);"CHANGE  T ................................ T"
+  PRINT TAB(14,19);"CHANGE  MODE ............................. D"
+  PRINT TAB(16,19);"CHANGE  TYPE ............................. P"
+  PRINT TAB(19,19);"CONTINUE ................................. C"
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 22, 31, A$, FRAZ$, Z1$ )
+
+    IF Z1$ <> "N" AND Z1$ <> "T" AND Z1$ <> "D" AND Z1$ <> "P" AND Z1$ <> "C" AND Z1$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL Z1$ = "N" OR Z1$ = "T" OR Z1$ = "D" OR Z1$ = "P" OR Z1$ = "C" OR Z1$ = "Q"
+
+END SUB !BOX4
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX5( N, Z1$, A$ )
+
+  CLEAR
+  CALL BOXU(3,21,37,13)
+  CALL LINEU(5,21,37)
+  CALL LINEU(9,21,37)
+  CALL LINEU(15,21,37)
+
+  PRINT TAB(4,33); "PARAMETERS MENU"
+
+  LET STRING$ = "N = " & STR$(N)
+  LET COUNT = LEN(STRING$)
+  LET START = 41 - ROUND((COUNT + 1)/2)
+  PRINT TAB(6,START); STRING$
+
+  LET STRING$ = "MODE = DISCRETE"
+  PRINT TAB(8,33); STRING$
+  PRINT TAB(11,24);"CHANGE  N ..................... N"
+  PRINT TAB(13,24);"CHANGE  MODE .................. D"
+  PRINT TAB(16,24);"CONTINUE ...................... C"
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 19, 31, A$, FRAZ$, Z1$ )
+
+    IF Z1$ <> "N" AND Z1$ <> "D" AND Z1$ <> "C" AND Z1$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL Z1$ = "N" OR Z1$ = "D" OR Z1$ = "C" OR Z1$ = "Q"
+
+END SUB !BOX5
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX6( N, NN, A$, FLAGN )
+
+  CLEAR
+  CALL BOXU(4,10,59,11)
+  CALL LINEU(12,10,59)
+  PRINT TAB(6,14); "THE FFT RUNS FASTEST WHEN  N  IS AN EXACT POWER OF  2"
+  PRINT TAB(8,14); "NEXT FASTEST IS WHEN  N  IS A HIGHLY COMPOSITE NUMBER"
+  PRINT TAB(10,18);"SLOWEST RUNNING IS WHEN  N  IS A PRIME NUMBER"
+
+  LET STR1$ = "THE CURRENT VALUE OF  N  IS  " & STR$(N)
+  LET COUNT = LEN(STR1$)
+  LET START = 40 - ROUND(COUNT/2)
+  PRINT TAB(14,START); STR1$
+
+  DO
+   ! LET PROMPT$ = "ณ REQUIRED VALUE  (1 < N < 10000) ณ  ?  "
+  LET PROMPT$ = "ณ REQUIRED VALUE  (INTEGER > 1) ณ  ?  "
+
+    CALL TEXTVALUEQ( PROMPT$, FDG, FLAGN, 18, 22, A$ )
+
+    IF FLAGN = 0 THEN        ! FLAGN = 1 IF "QUIT" IS ENTERED
+      LET NN = FDG
+     ! IF NN = INT(NN) AND NN > 1 AND NN < 10000 THEN
+      IF NN = INT(NN) AND NN > 1 THEN
+        LET HAR = 1
+      ELSE IF NN <> INT(NN) OR NN <= 1 OR NN >= 10000 THEN
+        LET HAR = 0
+        SOUND 500,.1
+      END IF
+    END IF
+  LOOP UNTIL FLAGN = 1 OR HAR = 1
+
+END SUB !BOX6
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB POWERTEST( VALN, CNR, POT )
+
+  LET CNR = 0
+  DO
+    LET VALN = VALN/2
+    LET CNR = CNR + 1
+    IF VALN = 1 THEN
+      LET POT = 1
+      EXIT DO
+    ELSE IF VALN < 1 THEN
+      LET POT = 2
+      EXIT DO
+    END IF
+  LOOP
+
+END SUB !POWEROF2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX7( MODE$, SDR$, A$ )
+
+  CLEAR
+  CALL BOXU(4,10,59,7)
+  CALL LINEU(8,10,59)
+  PRINT TAB(6,23); "MODE  MEANS  DISCRETE  OR  SAMPLED"
+  IF MODE$ = "DISC" THEN
+    PRINT TAB(10,23); "MODE IS CURRENTLY SET AS  DISCRETE"
+  ELSE IF MODE$ = "SAMP" THEN
+    PRINT TAB(10,24); "MODE IS CURRENTLY SET AS  SAMPLED"
+  ELSE
+    PRINT TAB(10,28); "MODE IS CURRENTLY NOT SET"
+  END IF
+
+  DO
+    LET FRAZ$ = "ณ DISCRETE ...... D ณ SAMPLED ...... S ณ  ?  "
+
+    CALL APROMPT( 14, 19, A$, FRAZ$, SDR$ )
+
+    IF SDR$ <> "D" AND SDR$ <> "S" AND SDR$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL SDR$ = "D" OR SDR$ = "S" OR SDR$ = "Q"
+
+END SUB !BOX7
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX8( T, TT, FLAGT, A$ )
+
+  CLEAR
+  LET LOOPBACK = 0
+  CALL BOXU(4,10,58,7)
+  CALL LINEU(8,10,58)
+  PRINT TAB(6,19); "T  IS THE TIME INTERVAL THAT  N  REPRESENTS"
+  LET STRING1$ = STR$(T)
+  LET STRING1$ = "THE CURRENT VALUE OF  T  IS  " & STRING1$
+  LET COUNT1 = LEN(STRING1$)
+  LET START1 = 40 - ROUND(COUNT1 / 2)
+  PRINT TAB(10,START1); STRING1$
+
+  DO
+    LET STRING$ = "ณ REQUIRED VALUE  (A POSITIVE NUMBER) ณ  ?  "
+
+    CALL TEXTVALUEQ( STRING$, FDG, FLAGT, 14, 19, A$ )
+
+    IF FLAGT = 0 THEN
+      LET TT = FDG
+      IF TT <= 0 THEN SOUND 500,.1
+    END IF
+  LOOP UNTIL FLAGT = 1 OR TT > 0
+
+END SUB !BOX8
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX9( TYPE$, SGR$, A$ )
+
+  CLEAR
+  CALL BOXU(4,10,59,7)
+  CALL LINEU(8,10,59)
+  PRINT TAB(6,24); "TYPE  MEANS  PERIODIC  OR  PULSE"
+  IF TYPE$ = "PER" THEN
+    PRINT TAB(10,23); "TYPE IS CURRENTLY SET AS  PERIODIC"
+  ELSE IF TYPE$ = "PUL" THEN
+    PRINT TAB(10,24); "TYPE IS CURRENTLY SET AS  PULSE"
+  ELSE
+    PRINT TAB(10,28); "TYPE IS CURRENTLY NOT SET"
+  END IF
+
+  DO
+    LET FRAZ$ = "ณ PERIODIC ...... R ณ PULSE ...... L ณ  ?  "
+
+    CALL APROMPT( 14, 20, A$, FRAZ$, SGR$ )
+
+    IF SGR$ <> "R" AND SGR$ <> "L" AND SGR$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL SGR$ = "R" OR SGR$ = "L" OR SGR$ = "Q"
+
+END SUB !BOX9
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX12( N, ORG$, ORG2$, X2FLAG, FFT2FLAG, TYPE$, MODE$, PULSESCALE, A$ )
+
+!    PRINT TAB(4,3);  "ษออออออออออออออออออออออหออออออออออออออออออออออหอออออออออออออออออออออออออออป"
+!    PRINT TAB(5,3);  "บ                      บ                      บ                           บ"
+!    PRINT TAB(6,3);  "บ                      บ                      บ    THE PULSE WHICH HAS    บ"
+!    PRINT TAB(7,3);  "บ                      บ                      บ     BEEN SUBMITTED IS     บ"
+!    PRINT TAB(8,3);  "บ                      บ                      บ                           บ"
+!    PRINT TAB(9,3);  "บ                      บ                      บ      A SINGLE  PULSE      บ"
+!    PRINT TAB(10,3); "บ                      บ                      บ                           บ"
+!    PRINT TAB(11,3); "บ    THE  X  AND  Y    บ        THE  X2       บ     AN ETERNAL TRAIN      บ"
+!    PRINT TAB(12,3); "บ                      บ                      บ                           บ"
+!    PRINT TAB(13,3); "บ     ORIGINS ARE      บ       ORIGIN IS      บ   TOGGLE IT ........ T3   บ"
+!    PRINT TAB(14,3); "บ                      บ                      บ                           บ"
+!    PRINT TAB(15,3); "ฬออออออออออออออออออออออฮออออออออออออออออออออออฮอออออออออออออออออออออออออออน"
+!    PRINT TAB(16,3); "บ                      บ                      บ                           บ"
+!    PRINT TAB(17,3); "ศออออออออออออออออออออออสออออออออออออออออออออออสอออออออออออออออออออออออออออผ"
+
+  CLEAR
+  IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+    IF X2FLAG = 1 OR FFT2FLAG = 1 THEN
+      LET AA = 0
+      LET BB = 0
+    ELSE IF X2FLAG = 0 AND FFT2FLAG = 0 THEN
+      LET AA = 10
+      LET BB = 0
+    END IF
+  ELSE
+    IF X2FLAG = 1 OR FFT2FLAG = 1 THEN
+      LET AA = 15
+      LET BB = 3
+    ELSE IF X2FLAG = 0 AND FFT2FLAG = 0 THEN
+      LET AA = 27
+      LET BB = 3
+    END IF
+  END IF
+
+  CALL BOXU(4,3+AA,22,12)
+  CALL LINEU(15,3+AA,22)
+
+  PRINT TAB(12,8+AA);   "THE  X  AND  Y"
+  PRINT TAB(13,8+AA);   " ORIGINS ARE "
+
+  IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+    CALL BOXU(4,49-AA,27,12)
+    CALL LINEU(15,49-AA,27)
+
+    PRINT TAB(6,54-AA);    "THE PULSE WHICH HAS"
+    PRINT TAB(7,55-AA);     "BEEN SUBMITTED IS"
+    PRINT TAB(9,56-AA);      "A SINGLE  PULSE"
+    PRINT TAB(11,52-AA); "   AN ETERNAL TRAIN"
+    PRINT TAB(13,52-AA); "  TOGGLE IT ........ T"
+  END IF
+
+  IF X2FLAG = 1 OR FFT2FLAG = 1 THEN
+    CALL BOXU(4,26+AA,22,12)
+    CALL LINEU(15,26+AA,22)
+
+    PRINT TAB(4,26+AA);"ห"
+
+    PRINT TAB(15,26+AA);"ฮ"
+
+    PRINT TAB(17,26+AA);"ส"
+
+    PRINT TAB(12,33+AA);      "  THE  X2 "
+    PRINT TAB(13,32+AA);     "  ORIGIN IS  "
+
+    IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+      PRINT TAB(4,49+AA);"ห"
+
+      PRINT TAB(15,49+AA);"ฮ"
+
+      PRINT TAB(17,49+AA);"ส"
+    END IF
+  END IF
+
+  CALL PRINTSUB
+
+  LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+  DO
+    LET TORG$  = ORG$
+    LET TORG2$ = ORG2$
+
+    LET RSB = 0
+    LET RWS = 0
+    DO
+      IF RWS = 1 THEN SOUND 500,.1
+
+      CALL APROMPT( 19, 29+BB, A$, FRAZ$, ZUP$ )
+
+      IF (MODE$ = "SAMP" AND TYPE$ = "PUL" AND ZUP$ = "T") OR ZUP$ = "Q" THEN LET RSB = 1
+      LET RWS = 1
+    LOOP UNTIL RSB = 1
+
+    IF ZUP$ = "T" THEN
+      IF PULSESCALE = 1 THEN
+        LET PULSESCALE = 2
+      ELSE IF PULSESCALE = 2 THEN
+        LET PULSESCALE = 1
+      END IF
+    END IF
+
+    CALL PRINTSUB
+
+  LOOP UNTIL ZUP$ = "Q"
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PRINTSUB
+
+  IF ORG$ = "C" THEN
+    PRINT TAB(16,7+AA);" AT THE CENTER  "
+  ELSE IF ORG$ = "L" THEN
+    PRINT TAB(16,7+AA);"  AT THE LEFT   "
+  END IF
+
+  IF X2FLAG = 1 OR FFT2FLAG = 1 THEN
+    IF ORG2$ = "C" THEN
+      PRINT TAB(16,30+AA);" AT THE CENTER  "
+    ELSE IF ORG2$ = "L" THEN
+      PRINT TAB(16,30+AA);"  AT THE LEFT   "
+    END IF
+  END IF
+
+  IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+    IF PULSESCALE = 1 THEN
+      PRINT TAB(16,54-AA); "    SINGLE PULSE    "
+    ELSE IF PULSESCALE = 2 THEN
+      PRINT TAB(16,54-AA); "   ETERNAL TRAIN    "
+    END IF
+  END IF
+
+END SUB !PRINTSUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END SUB !BOX12
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX17( MODE$, TYPE$, OPTION$, A$, XFLAG, FFTFLAG, X2FLAG, FFT2FLAG, IFFTFLAG, REALFLAGX, REALFLAGIFFT )
+
+  CLEAR
+
+  PRINT TAB(2,21);               "ษออออออออออออออออออออออออออออออออออออออป"
+  PRINT TAB(3,21);               "บ         PRIMARY VECTOR PLOTS         บ"
+  PRINT TAB(4,21);               "ฬออออออออออออออออออออออออออออออออออออออน"
+  IF XFLAG = 1 THEN
+    IF REALFLAGX = 0 THEN
+      LET W = 1
+      PRINT TAB(5,21);           "บ  REAL PART OF X ................. A  บ"
+      PRINT TAB(5+W,21);         "บ  IMAGINARY PART OF X ............ B  บ"
+      PRINT TAB(5+2*W,21);       "บ  MODULUS OF X ................... C  บ"
+    ELSE IF REALFLAGX = 1 THEN
+      PRINT TAB(5,21);           "บ  X VECTOR ....................... A  บ"
+    END IF
+  ELSE IF XFLAG = 0 THEN
+    PRINT TAB(5,21);             "บ                                      บ"
+  END IF
+  PRINT TAB(6+2*W,21);           "ฬออออออออออออออออออออออออออออออออออออออน"
+  IF FFTFLAG = 1 THEN
+    PRINT TAB(7+2*W,21);         "บ  REAL PART OF F ................. D  บ"
+    PRINT TAB(8+2*W,21);         "บ  IMAGINARY PART OF F ............ E  บ"
+
+    IF MODE$ = "DISC" THEN
+      PRINT TAB(9+2*W,21);       "บ  MODULUS OF F ................... F  บ"
+    ELSE IF MODE$ = "SAMP" THEN
+      PRINT TAB(9+2*W,21);       "บ  MAGNITUDE SPECTRUM ............. F  บ"
+    END IF
+
+    IF MODE$ = "DISC" THEN
+      PRINT TAB(10+2*W,21);      "บ  PHASE OF F ..................... G  บ"
+    ELSE IF MODE$ = "SAMP" THEN
+      PRINT TAB(10+2*W,21);      "บ  PHASE SPECTRUM ................. G  บ"
+    END IF
+
+    IF MODE$ = "DISC" THEN
+      PRINT TAB(11+2*W,21);      "บ  MOD F SQUARED .................. H  บ"
+    ELSE IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN
+      PRINT TAB(11+2*W,21);      "บ  POWER SPECTRUM ................. H  บ"
+    ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+      PRINT TAB(11+2*W,21);      "บ  ENERGY SPECTRUM ................ H  บ"
+    END IF
+  ELSE IF FFTFLAG = 0 THEN
+    PRINT TAB(7+2*W,21);         "บ                                      บ"
+    PRINT TAB(8+2*W,21);         "บ                                      บ"
+    PRINT TAB(9+2*W,21);         "บ                                      บ"
+    PRINT TAB(10+2*W,21);        "บ                                      บ"
+    PRINT TAB(11+2*W,21);        "บ                                      บ"
+  END IF
+  PRINT TAB(12+2*W,21);          "ฬออออออออออออออออออออออออออออออออออออออน"
+  IF IFFTFLAG = 1 THEN
+    IF REALFLAGIFFT = 0 THEN
+      LET Z = 1
+      PRINT TAB(13+2*W,21);      "บ  REAL PART OF Y ................. I  บ"
+      PRINT TAB(13+2*W+Z,21);    "บ  IMAGINARY PART OF Y ............ J  บ"
+      PRINT TAB(13+2*W+2*Z,21);  "บ  MODULUS OF Y ................... K  บ"
+    ELSE IF REALFLAGIFFT = 1 THEN
+      PRINT TAB(13+2*W,21);      "บ  Y VECTOR ....................... I  บ"
+    END IF
+  ELSE IF IFFTFLAG = 0 THEN
+    PRINT TAB(13+2*W,21);        "บ                                      บ"
+  END IF
+  PRINT TAB(14+2*W+2*Z,21);      "ฬออออออออออออออออออออออออออออออออออออออน"
+  IF X2FLAG <> 0 OR FFT2FLAG <> 0 THEN
+    LET V = 1
+    PRINT TAB(15+2*W+2*Z,21);    "บ  SECONDARY VECTOR PLOTS ......... S  บ"
+    PRINT TAB(16+2*W+2*Z,21);    "บ  TOGGLE ......................... T  บ"
+  ELSE IF X2FLAG = 0 AND FFT2FLAG = 0 THEN
+    PRINT TAB(15+2*W+2*Z,21);    "บ  TOGGLE ......................... T  บ"
+  END IF
+  PRINT TAB(16+2*W+2*Z+V,21);    "ศออออออออออออออออออออออออออออออออออออออผ"
+
+  LET SXY = 16+2*W+2*Z+V+2
+
+  LET AFLAG = 0
+  DO
+    IF AFLAG = 1 THEN SOUND 500,.1
+
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( SXY, 31, A$, FRAZ$, OPTION$ )
+
+    LET AFLAG = 1
+
+    IF REALFLAGX = 0 AND REALFLAGIFFT = 0 THEN   !X AND Y ARE COMPLEX
+      IF (XFLAG = 1 AND (OPTION$ = "A" OR OPTION$ = "B" OR OPTION$ = "C")) OR (FFTFLAG = 1 AND (OPTION$ = "D" OR OPTION$ = "E" OR OPTION$ = "F" OR OPTION$ = "G" OR OPTION$ = "H")) OR (IFFTFLAG = 1 AND (OPTION$ = "I" OR OPTION$ = "J" OR OPTION$ = "K")) OR OPTION$ = "S" OR OPTION$ = "T" OR OPTION$ = "Q" THEN LET TESTT = 1
+
+    ELSE IF REALFLAGX = 1 AND REALFLAGIFFT = 0 THEN    !X IS REAL, Y IS COMPLEX
+      IF (XFLAG = 1 AND OPTION$ = "A") OR (FFTFLAG = 1 AND (OPTION$ = "D" OR OPTION$ = "E" OR OPTION$ = "F" OR OPTION$ = "G" OR OPTION$ = "H")) OR (IFFTFLAG = 1 AND (OPTION$ = "I" OR OPTION$ = "J" OR OPTION$ = "K")) OR OPTION$ = "S" OR OPTION$ = "T" OR OPTION$ = "Q" THEN LET TESTT = 1
+
+    ELSE IF REALFLAGX = 0 AND REALFLAGIFFT = 1 THEN   !X IS COMPLEX, Y IS REAL
+      IF (XFLAG = 1 AND (OPTION$ = "A" OR OPTION$ = "B" OR OPTION$ = "C")) OR (FFTFLAG = 1 AND (OPTION$ = "D" OR OPTION$ = "E" OR OPTION$ = "F" OR OPTION$ = "G" OR OPTION$ = "H")) OR (IFFTFLAG = 1 AND OPTION$ = "I") OR OPTION$ = "S" OR OPTION$ = "T" OR OPTION$ = "Q" THEN LET TESTT = 1
+
+    ELSE IF REALFLAGX = 1 AND REALFLAGIFFT = 1 THEN   !BOTH X AND Y ARE REAL
+      IF (XFLAG = 1 AND OPTION$ = "A") OR (FFTFLAG = 1 AND (OPTION$ = "D" OR OPTION$ = "E" OR OPTION$ = "F" OR OPTION$ = "G" OR OPTION$ = "H")) OR (IFFTFLAG = 1 AND OPTION$ = "I") OR OPTION$ = "S" OR OPTION$ = "T" OR OPTION$ = "Q" THEN LET TESTT = 1
+
+    END IF
+    IF X2FLAG = 0 AND FFT2FLAG = 0 AND OPTION$ = "S" THEN LET TESTT = 0
+
+  LOOP UNTIL TESTT = 1
+
+END SUB !BOX17
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX18( MODE$, TYPE$, OPTION$, A$, X2FLAG, FFT2FLAG, REALFLAGX )
+
+  IF REALFLAGX   = 0 THEN LET W = 1
+
+  CLEAR
+  PRINT TAB(2,21);           "ษออออออออออออออออออออออออออออออออออออออป"
+  PRINT TAB(3,21);           "บ        SECONDARY VECTOR PLOTS        บ"
+  PRINT TAB(4,21);           "ฬออออออออออออออออออออออออออออออออออออออน"
+  IF X2FLAG = 1 THEN
+    IF REALFLAGX = 0 THEN
+      PRINT TAB(5,21);       "บ  REAL PART OF X2  ............... A  บ"
+      PRINT TAB(5+W,21);     "บ  IMAGINARY PART OF X2 ........... B  บ"
+      PRINT TAB(5+2*W,21);   "บ  MODULUS OF X2 .................. C  บ"
+    ELSE IF REALFLAGX = 1 THEN
+      PRINT TAB(5,21);       "บ  X2 VECTOR ...................... A  บ"
+    END IF
+  ELSE IF X2FLAG = 0 THEN
+    PRINT TAB(5,21);         "บ                                      บ"
+    PRINT TAB(5+W,21);       "บ                                      บ"
+    PRINT TAB(5+2*W,21);     "บ                                      บ"
+  END IF
+  PRINT TAB(6+2*W,21);       "ฬออออออออออออออออออออออออออออออออออออออน"
+  IF FFT2FLAG = 1 THEN
+    PRINT TAB(7+2*W,21);     "บ  REAL PART OF F2 ................ D  บ"
+    PRINT TAB(8+2*W,21);     "บ  IMAGINARY PART OF F2 ........... E  บ"
+
+    IF MODE$ = "DISC" THEN
+      PRINT TAB(9+2*W,21);   "บ  MODULUS OF F2 .................. F  บ"
+    ELSE IF MODE$ = "SAMP" THEN
+      PRINT TAB(9+2*W,21);   "บ  MAGNITUDE SPECTRUM ............. F  บ"
+    END IF
+
+    IF MODE$ = "DISC" THEN
+      PRINT TAB(10+2*W,21);  "บ  PHASE OF F2 .................... G  บ"
+    ELSE IF MODE$ = "SAMP" THEN
+      PRINT TAB(10+2*W,21);  "บ  PHASE SPECTRUM ................. G  บ"
+    END IF
+
+    IF MODE$ = "DISC" THEN
+      PRINT TAB(11+2*W,21);  "บ  MOD F2 SQUARED ................. H  บ"
+    ELSE IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN
+      PRINT TAB(11+2*W,21);  "บ  POWER SPECTRUM ................. H  บ"
+    ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+      PRINT TAB(11+2*W,21);  "บ  ENERGY SPECTRUM ................ H  บ"
+    END IF
+  ELSE IF FFT2FLAG = 0 THEN
+    PRINT TAB(7+2*W,21);     "บ                                      บ"
+    PRINT TAB(8+2*W,21);     "บ                                      บ"
+    PRINT TAB(9+2*W,21);     "บ                                      บ"
+    PRINT TAB(10+2*W,21);    "บ                                      บ"
+    PRINT TAB(11+2*W,21);    "บ                                      บ"
+  END IF
+        PRINT TAB(12+2*W,21);"ฬออออออออออออออออออออออออออออออออออออออน"
+        PRINT TAB(13+2*W,21);"บ  PRIMARY VECTOR PLOTS ........... P  บ"
+        PRINT TAB(14+2*W,21);"บ  TOGGLE ......................... T  บ"
+        PRINT TAB(15+2*W,21);"ศออออออออออออออออออออออออออออออออออออออผ"
+
+  LET BFLAG = 0
+  DO
+    IF BFLAG = 1 THEN SOUND 500,.1
+
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 17+2*W, 31, A$, FRAZ$, OPTION$ )
+
+    LET BFLAG = 1
+
+    IF REALFLAGX = 0 THEN
+      IF (X2FLAG = 1 AND (OPTION$ = "A" OR OPTION$ = "B" OR OPTION$ = "C")) OR (FFT2FLAG = 1 AND (OPTION$ = "D" OR OPTION$ = "E" OR OPTION$ = "F" OR OPTION$ = "G" OR OPTION$ = "H")) OR OPTION$ = "P" OR OPTION$ = "T" OR OPTION$ = "Q" THEN LET TESTT = 1
+    ELSE IF REALFLAGX = 1 THEN
+      IF (X2FLAG = 1 AND OPTION$ = "A") OR (FFT2FLAG = 1 AND (OPTION$ = "D" OR OPTION$ = "E" OR OPTION$ = "F" OR OPTION$ = "G" OR OPTION$ = "H")) OR OPTION$ = "P" OR OPTION$ = "T" OR OPTION$ = "Q" THEN LET TESTT = 1
+    END IF
+  LOOP UNTIL TESTT = 1
+
+END SUB !BOX18
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX19( PLOTRANGE, FRAC, A$, N, WORD$ )
+
+  LET WORD$ = "XYZ"
+  CLEAR
+  CALL BOXU(4,17,46,6)
+  PRINT TAB(6,29); "WHAT ZOOM DO YOU WANT ?"
+
+  IF N >= 16 THEN
+    LET NOR = INT(N/4)
+  ELSE
+    LET NOR = 4
+  END IF
+  IF PLOTRANGE = 2 THEN
+    LET PHRASE$ = "A NUMBER BETWEEN  0.5  AND  " & STR$(NOR) & "  INCLUSIVE"
+    LET LLIM = 0.5
+  ELSE IF PLOTRANGE = 1 THEN
+    LET PHRASE$ = "A NUMBER BETWEEN  1  AND  " & STR$(NOR) & "  INCLUSIVE"
+    LET LLIM = 1
+  END IF
+
+  LET COUNT = LEN(PHRASE$)
+  LET START = 41 - ROUND(COUNT/2)
+  PRINT TAB(9,START); PHRASE$
+
+  DO
+    LET STRING$ = "ณ ZOOM = ... ณ  ?  "
+    CALL TEXTVALUEQ( STRING$, FDG, FLAG, 13, 31, A$ )
+    IF FLAG = 0 THEN
+      LET FRAC = FDG
+      IF FRAC < LLIM OR FRAC > NOR THEN SOUND 500,.1
+    ELSE IF FLAG = 1 THEN
+      LET WORD$ = "Q"
+    END IF
+  LOOP UNTIL FRAC >= LLIM AND FRAC <= NOR OR WORD$ = "Q"
+
+  IF FLAG = 0 THEN LET FRAC = 1/FRAC
+
+END SUB !BOX19
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX40( MESG$, Z0$, A$, CALL$ )
+
+  SOUND 500,.1
+  CLEAR
+  CALL BOXU(1,3,74,20)
+  PRINT TAB(2,18);  "AN ERROR HAS OCCURRED. THE ERROR MESSAGE READS:"
+  PRINT TAB(3,6);   "----------------------------------------------------------------------"
+  PRINT TAB(5,6);   "----------------------------------------------------------------------"
+  PRINT TAB(6,6);   "(WE WERE ABLE TO TRAP IT THIS TIME. SOMETIMES WE WILL NOT BE ABLE TO.)"
+  PRINT TAB(8,18);  "HERE ARE YOUR OPTIONS FOR CLEARING THE PROBLEM:"
+  PRINT TAB(10,6);  "(A) DECLARE THAT YOU DO NOT INTEND TO RUN CONVOLUTION or CORRELATION"
+  PRINT TAB(11,6);  "    WHICH MEANS THAT THE  X2  AND  F2  VECTORS WILL NOT BE CREATED,"
+  PRINT TAB(12,6);  "    THEREBY FREEING UP SOME MEMORY SPACE."
+  PRINT TAB(14,6);  "(B) REDUCE THE VALUE OF  N."
+  PRINT TAB(15,6);  "    OR: USE AN EXACT POWER OF 2 FOR  N."
+  PRINT TAB(16,6);  "    OR: BOTH."
+  PRINT TAB(18,6);  "(C) EXIT FROM  FFT  AND CLEAR OUT ANY MEMORY-RESIDENT PROGRAMS SUCH AS"
+  PRINT TAB(19,6);  "    DOS SHELL, WINDOWS ETC. THEN TRY AGAIN."
+
+  LET COUNT = LEN(MESG$)
+  LET START = 40 - ROUND(COUNT/2)
+  PRINT TAB(4,START);MESG$
+
+  IF CALL$ = "FFTMAX" THEN
+    PRINT TAB(21,6); "(D) EXIT AND RESTART FROM  FFT."
+    LET PROMPT$ = "ณ (A) ... A ณ (B) ... B ณ (C) ... C ณ (D) ... D ณ ?  "
+  ELSE IF CALL$ = "FFT" THEN
+    LET PROMPT$ = "      ณ (A) ... A ณ (B) ... B ณ (C) ... C ณ  ?  "
+  END IF
+
+  DO
+    IF AFLAG = 1 THEN SOUND 500,.1
+    LET CFLAG = 0
+
+    CALL APROMPT( 23, 15, A$, PROMPT$, Z0$ )
+
+    IF CALL$ = "FFTMAX" THEN
+      IF Z0$ = "A" OR Z0$ ="B" OR Z0$ = "C" OR Z0$ = "D" THEN LET CFLAG = 1
+    ELSE IF CALL$ = "FFT" THEN
+      IF Z0$ = "A" OR Z0$ ="B" OR Z0$ = "C" THEN LET CFLAG = 1
+    END IF
+    LET AFLAG = 1
+  LOOP UNTIL CFLAG = 1
+
+END SUB !BOX40
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX40B( MESG$, A$ )
+
+  SOUND 500,.1
+  CLEAR
+
+  LET FRAZ1$ = "AN ERROR HAS OCCURRED. THE ERROR MESSAGE READS"
+  LET COUNT1 = LEN(FRAZ1$)
+  LET COUNT2 = LEN(MESG$)
+  LET COUNT = MAX(COUNT1,COUNT2)
+  LET STARTB = 37 - ROUND(COUNT/2)
+  CALL BOXU(4, STARTB, COUNT+4, 7)
+
+  LET START1 = 40 - ROUND(COUNT1/2)
+  PRINT TAB(6,START1); FRAZ1$
+  LET DLIN$ = REPEAT$("-",COUNT)
+  PRINT TAB(8,STARTB+3);  DLIN$
+  PRINT TAB(10,STARTB+3); DLIN$
+  LET START2 = 40 - ROUND(COUNT2/2)
+  PRINT TAB(9,START2); MESG$
+
+  CALL BOX48CFIX( 14, 31, A$ )
+
+END SUB !BOX40B
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX41( N, FORM$, NU, A$ )
+
+  CLEAR
+  CALL BOXU(4,19,41,7)
+  LET STR0$ = "THE NUMBER YOU ENTERED IS " & STR$(N)
+  LET COUNT = LEN(STR0$)
+  LET START = 40 - ROUND(COUNT/2)
+  PRINT TAB(6,START);STR0$
+  IF FORM$ = "POWEROF2" THEN
+    PRINT TAB(8,26);"THIS IS AN EXACT POWER OF 2"
+    LET STR1$ = STR$(N) & " IS 2 RAISED TO THE POWER " & STR$(NU)
+    LET COUNT = LEN(STR1$)
+    LET START = 40 - ROUND(COUNT/2)
+    PRINT TAB(10,START);STR1$
+  ELSE IF FORM$ = "PRIME" THEN
+    PRINT TAB(8,30);"THIS IS A PRIME NUMBER"
+    PRINT TAB(10,23);"YOU SURE ARE DOING IT THE HARD WAY !"
+  END IF
+
+  CALL BOX48CFIX( 14, 30, A$ )
+
+END SUB !BOX41
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX42( N, Q, R(), A$ )
+
+  CLEAR
+  CALL BOXU(2,22,34,15)
+  CALL LINEU(8,22,34)
+
+  LET STR0$ = "THE NUMBER YOU ENTERED IS " & STR$(N)
+  LET SAL0 = LEN(STR0$)
+  LET START0 = 40 - ROUND(SAL0/2)
+  PRINT TAB(4,START0); STR0$
+
+  LET STR1$ = "THIS IS A COMPOSITE NUMBER"
+  LET SAL1 = LEN(STR1$)
+  LET START1 = 40 - ROUND(SAL1/2)
+  PRINT TAB(6,START1); STR1$
+
+  LET STR2$ = "HERE IS A BREAKDOWN OF " & STR$(N)
+  LET SAL2 = LEN(STR2$)
+  LET START2 = 40 - ROUND(SAL2/2)
+  PRINT TAB(10,START2); STR2$
+
+  LET STR3$ = "NUMBER OF FACTORS = " & STR$(Q)
+  LET SAL3 = LEN(STR3$)
+  LET START3 = 40 - ROUND(SAL3/2)
+  PRINT TAB(12,START3); STR3$
+
+  LET STR4$ = "THE FACTORS ARE:"
+  LET SAL4 = LEN(STR4$)
+  LET START4 = 40 - ROUND(SAL4/2)
+  PRINT TAB(14,START4); STR4$
+
+  FOR K = 1 TO Q-1
+    LET GF$ = GF$ & STR$( R(K) ) & ", "
+  NEXT K
+  LET GF$ = GF$ & STR$(R(Q))
+
+  LET SAL5 = LEN(GF$)
+  LET START5 = 40 - ROUND(SAL5/2)
+  PRINT TAB(16,START5);GF$
+
+  CALL BOX48CFIX( 20, 31, A$)
+
+END SUB !BOX42
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX43( RYT$, A$ )
+
+  CLEAR
+  SOUND 500,.5
+  CALL BOXU(4,4,71,11)
+  PRINT TAB(6,10); "YOU HAVE DECLARED THAT YOU DO NOT INTEND TO RUN CONVOLUTION"
+  PRINT TAB(7,12); "AND SO THE VECTORS  X2  AND  F2  HAVE NOT BEEN CREATED."
+  PRINT TAB(9,7);  "ALL FEATURES INVOLVING THE USE OF THESE VECTORS HAVE BEEN DISABLED."
+  PRINT TAB(11,7); "IF YOU WISH TO CANCEL THE DECLARATION THEN ENTER A NEW VALUE FOR  N"
+  PRINT TAB(12,31);"EITHER NOW OR LATER."
+  PRINT TAB(14,7); "----> YOU WILL NOT GET THIS MESSAGE AGAIN DURING THIS SESSION <----"
+
+  DO
+    IF AFLAG = 1 THEN SOUND 500,.1
+    LET CFLAG = 0
+
+    LET FRAZ$ = "ณ CONTINUE ... C ณ NEW VALUE FOR ... N ณ  ?  "
+
+    CALL APROMPT( 18, 19, A$, FRAZ$, RYT$ )
+
+    IF RYT$ = "C" OR RYT$ = "N" THEN LET CFLAG = 1
+    LET AFLAG = 1
+  LOOP UNTIL CFLAG = 1
+
+END SUB !BOX43
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX46( PMODE$, A$ )
+
+  CLEAR
+  CALL BOXU(4,17,44,5)
+
+  IF PMODE$ = "X" THEN
+    PRINT TAB(6,20); "ALL  X  VALUES ARE ZERO ..."
+  ELSE IF PMODE$ = "F" THEN
+    PRINT TAB(6,20); "ALL  F  VALUES ARE ZERO ..."
+  ELSE IF PMODE$ = "Y" THEN
+    PRINT TAB(6,20); "THE  Y  VECTOR IS ZERO ..."
+  END IF
+
+  PRINT TAB(8,20); "POINTLESS RUNNING THE     POST-PROCESSOR"
+  PRINT TAB(8,43);PMODE$
+
+  LET FRAS$ = "ณ CONTINUE ... C ณ  ?  "
+  DO
+    IF FER = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( 12, 29, A$, FRAS$, GYW$ )
+
+    IF GYW$ = "C" OR GYW$ = "Q" THEN LET QAZ = 1
+    LET FER = 1
+  LOOP UNTIL QAZ = 1
+
+END SUB !BOX46
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX49( XFLAG, X2FLAG, FFTFLAG, FFT2FLAG, ZAZ, Z2$, SKIP, A$ )  !ALL VALUES OF THIS VARIABLE ARE ZERO...
+
+!           ษออออออออออออออออออออออออออออออออออออออออป
+!           บ                                        บ
+!           บ  ALL VALUES OF THAT VARIABLE ARE ZERO  บ
+!           บ                                        บ
+!           บ           CANNOT DRAW A PLOT           บ
+!           บ                                        บ
+!           ศออออออออออออออออออออออออออออออออออออออออผ
+
+  CLEAR
+  SOUND 500,.1
+
+  CALL BOXU(4,19,40,5)
+
+  PRINT TAB(6,22);"ALL VALUES OF THAT VARIABLE ARE ZERO"
+  PRINT TAB(8,31);"CANNOT DRAW A PLOT"
+
+  IF ZAZ = 1 THEN
+    IF X2FLAG = 1 OR FFT2FLAG = 1 THEN
+      LET FRAZ$ = "ณ PRIMARY PLOT ... P ณ SECONDARY PLOT ... S ณ ? "
+      LET XC = 17
+    ELSE
+      LET FRAZ$ = "ณ ANOTHER PLOT ... P ณ ? "
+      LET XC = 29
+    END IF
+  ELSE IF ZAZ = 2 THEN
+    LET FRAZ$ = "ณ PRIMARY PLOT ... P ณ SECONDARY PLOT ... S ณ ? "
+    LET XC = 17
+  END IF
+
+  DO
+    IF SD = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( 12, XC, A$, FRAZ$, Z2$ )
+
+    IF (XC = 17 AND (Z2$ = "P" OR Z2$ = "S")) OR (XC = 29 AND Z2$ = "P") OR Z2$ = "Q" THEN LET PHD = 1
+    LET SD = 1
+  LOOP UNTIL PHD = 1
+
+  IF Z2$ = "P" THEN
+    LET ZAZ = 1
+  ELSE IF Z2$ = "S" THEN
+    LET ZAZ = 2
+  ELSE IF Z2$ = "Q" THEN
+    LET SKIP = 1
+  END IF
+
+END SUB !BOX49
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX66( CARD$, COLOR$, OPTION$, ZAZ, PULSESCALE, MODE$, TYPE$, A$, MMENU, X2FLAG, FFT2FLAG, FREQPLOT, TOGGLE, N )
+
+  DO
+    LET CXS = 0
+    WHEN ERROR IN
+      !PUTTING IN THE TITLE UNDER THE PLOT
+      OPEN #2: SCREEN 0, 1, 0, 0.12
+      LET OPEN = 1
+      WINDOW #2
+      SET WINDOW 1, 80, 0, 3
+      PRINT TAB(1,1)
+
+      CALL SETCOLOR( COLOR$ )
+
+      LET XX = 40
+      LET YY = 3
+      SET TEXT JUSTIFY "CENTER", "BASE"
+
+      IF OPTION$ = "A" THEN
+        IF ZAZ = 1 THEN
+          IF REALFLAGX = 1 THEN
+            LET L$ = "X VECTOR"
+          ELSE IF REALFLAGX = 0 THEN
+            LET L$ = "REAL PART OF  X  VECTOR"
+          END IF
+        ELSE IF ZAZ = 2 THEN
+          IF REALFLAGX = 1 THEN
+            LET L$ = "X2 VECTOR"
+          ELSE IF REALFLAGX = 0 THEN
+            LET L$ = "REAL PART OF  X2  VECTOR"
+          END IF
+        END IF
+      ELSE IF OPTION$ = "B" THEN
+        IF ZAZ = 1 THEN
+          LET L$ = "IMAGINARY PART OF  X  VECTOR"
+        ELSE IF ZAZ = 2 THEN
+          LET L$ = "IMAGINARY PART OF  X2  VECTOR"
+        END IF
+      ELSE IF OPTION$ = "C" THEN
+        IF ZAZ = 1 THEN
+          LET L$ = "MODULUS OF  X  VECTOR"
+        ELSE IF ZAZ = 2 THEN
+          LET L$ = "MODULUS OF  X2  VECTOR"
+        END IF
+      ELSE IF OPTION$ = "D" THEN
+        IF ZAZ = 1 THEN
+          IF PULSESCALE <> 2 THEN
+            LET L$ = "REAL PART OF  F  VECTOR"
+          ELSE IF PULSESCALE = 2 THEN
+            LET L$ = "REAL PART OF  F  VECTOR (WEIGHTS)"
+          END IF
+        ELSE IF ZAZ = 2 THEN
+          IF PULSESCALE <> 2 THEN
+            LET L$ = "REAL PART OF  F2  VECTOR"
+          ELSE IF PULSESCALE = 2 THEN
+            LET L$ = "REAL PART OF  F2  VECTOR (WEIGHTS)"
+          END IF
+        END IF
+      ELSE IF OPTION$ = "E" THEN
+        IF ZAZ = 1 THEN
+          IF PULSESCALE <> 2 THEN
+            LET L$ = "IMAGINARY PART OF  F  VECTOR"
+          ELSE IF PULSESCALE = 2 THEN
+            LET L$ = "IMAGINARY PART OF  F  VECTOR (WEIGHTS)"
+          END IF
+        ELSE IF ZAZ = 2 THEN
+          IF PULSESCALE <> 2 THEN
+            LET L$ = "IMAGINARY PART OF  F2  VECTOR"
+          ELSE IF PULSESCALE = 2 THEN
+            LET L$ = "IMAGINARY PART OF  F2  VECTOR (WEIGHTS)"
+          END IF
+        END IF
+      ELSE IF OPTION$ = "F" THEN
+        IF ZAZ = 1 THEN
+          IF MODE$ = "DISC" THEN
+            LET L$ = "MODULUS OF  F  VECTOR"
+          ELSE IF MODE$ = "SAMP" THEN
+            IF PULSESCALE <> 2 THEN
+              LET L$ = "MAGNITUDE SPECTRUM (PRIMARY)"
+            ELSE IF PULSESCALE = 2 THEN
+              LET L$ = "MAGNITUDE SPECTRUM (PRIMARY, WEIGHTS)"
+            END IF
+          END IF
+        ELSE IF ZAZ = 2 THEN
+          IF MODE$ = "DISC" THEN
+            LET L$ = "MODULUS OF  F2  VECTOR"
+          ELSE IF MODE$ = "SAMP" THEN
+            IF PULSESCALE <> 2 THEN
+              LET L$ = "MAGNITUDE SPECTRUM (SECONDARY)"
+            ELSE IF PULSESCALE = 2 THEN
+              LET L$ = "MAGNITUDE SPECTRUM (SECONDARY, WEIGHTS)"
+            END IF
+          END IF
+        END IF
+      ELSE IF OPTION$ = "G" THEN
+        IF ZAZ = 1 THEN
+          IF PULSESCALE <> 2 THEN
+            LET L$ = "PHASE SPECTRUM (PRIMARY)"
+          ELSE IF PULSESCALE = 2 THEN
+            LET L$ = "PHASE SPECTRUM (PRIMARY, WEIGHTS)"
+          END IF
+        ELSE IF ZAZ = 2 THEN
+          IF PULSESCALE <> 2 THEN
+            LET L$ = "PHASE SPECTRUM (SECONDARY)"
+          ELSE IF PULSESCALE = 2 THEN
+            LET L$ = "PHASE SPECTRUM (SECONDARY, WEIGHTS)"
+          END IF
+        END IF
+      ELSE IF OPTION$ = "H" THEN
+        IF ZAZ = 1 THEN
+          IF MODE$ = "DISC" THEN
+            LET L$ = "MODULUS SQUARED OF  F  VECTOR"
+          ELSE IF MODE$ = "SAMP" THEN
+            IF TYPE$ = "PER" THEN
+              LET L$ = "POWER SPECTRUM (PRIMARY)"
+            ELSE IF TYPE$ = "PUL" THEN
+              IF PULSESCALE <> 2 THEN
+                LET L$ = "ENERGY SPECTRUM (PRIMARY)"
+              ELSE IF PULSESCALE = 2 THEN
+                LET L$ = "ENERGY SPECTRUM (PRIMARY, WEIGHTS)"
+              END IF
+            END IF
+          END IF
+        ELSE IF ZAZ = 2 THEN
+          IF MODE$ = "DISC" THEN
+            LET L$ = "MODULUS SQUARED OF  F2  VECTOR"
+          ELSE IF MODE$ = "SAMP" THEN
+            IF TYPE$ = "PER" THEN
+              LET L$ = "POWER SPECTRUM (SECONDARY)"
+            ELSE IF TYPE$ = "PUL" THEN
+              IF PULSESCALE <> 2 THEN
+                LET L$ = "ENERGY SPECTRUM (SECONDARY)"
+              ELSE IF PULSESCALE = 2 THEN
+                LET L$ = "ENERGY SPECTRUM (SECONDARY, WEIGHTS)"
+              END IF
+            END IF
+          END IF
+        END IF
+      ELSE IF OPTION$ = "I" THEN
+        IF REALFLAGIFFT = 1 THEN
+          LET L$ = "Y VECTOR"
+        ELSE IF REALFLAGIFFT = 0 THEN
+          LET L$ = "REAL PART OF  Y  VECTOR"
+        END IF
+      ELSE IF OPTION$ = "J" THEN
+        LET L$ = "IMAGINARY PART OF  Y  VECTOR"
+      ELSE IF OPTION$ = "K" THEN
+        LET L$ = "MODULUS OF  Y  VECTOR"
+      END IF
+      PLOT TEXT, AT XX, YY: L$
+
+      DO
+        DO
+          IF URS = 1 THEN SOUND 500,.1
+          PRINT TAB(2,1);A$
+          IF X2FLAG = 1 OR FFT2FLAG = 1 THEN
+            IF FREQPLOT = 0 AND N/2 = INT(N/2) THEN
+              PRINT TAB(2,11);
+              INPUT PROMPT "ณ PRIMARY PLOT ... P ณ SECONDARY PLOT ... S ณ TOGGLE ... T ณ ? ":GO$
+              LET GO$ = UCASE$(GO$)
+              IF GO$ = "P" OR GO$ = "S" OR GO$ = "T" OR GO$ = "Q" THEN LET QEX = 1
+            ELSE IF FREQPLOT = 1 OR N/2 <> INT(N/2) THEN
+              PRINT TAB(2,18);
+              INPUT PROMPT "ณ PRIMARY PLOT ... P ณ SECONDARY PLOT ... S ณ ? ":GO$
+              LET GO$ = UCASE$(GO$)
+              IF GO$ = "P" OR GO$ = "S" OR GO$ = "Q" THEN LET QEX = 1
+            END IF
+          ELSE
+            IF FREQPLOT = 0 AND N/2 = INT(N/2) THEN
+              PRINT TAB(2,22);
+              INPUT PROMPT "ณ ANOTHER PLOT ... P ณ TOGGLE ... T ณ ? ":GO$
+              LET GO$ = UCASE$(GO$)
+              IF GO$ = "P" OR GO$ = "T" OR GO$ = "Q" THEN LET QEX = 1
+            ELSE IF FREQPLOT = 1 OR N/2 <> INT(N/2) THEN
+              PRINT TAB(2,29);
+              INPUT PROMPT "ณ ANOTHER PLOT ... P ณ ? ":GO$
+              LET GO$ = UCASE$(GO$)
+              IF GO$ = "P" OR GO$ = "Q" THEN LET QEX = 1
+            END IF
+          END IF
+          LET URS = 1
+        LOOP UNTIL QEX = 1
+
+        IF GO$ = "P" THEN
+          LET ZAZ = 1
+        ELSE IF GO$ = "S" THEN
+          LET ZAZ = 2
+        ELSE IF GO$ = "T" THEN
+          LET TOGGLE = 1
+        ELSE IF GO$ = "Q" THEN
+          LET MMENU = 0
+        END IF
+      LOOP UNTIL GO$ = "P" OR GO$ = "S" OR GO$ = "T" OR GO$ = "Q"
+      IF OPEN = 1 THEN CLOSE #2
+    USE
+      SOUND 500,.1
+      IF OPEN = 1 THEN
+        CLOSE #2
+        LET OPEN = 0
+      END IF
+      LET CXS = 1
+    END WHEN
+  LOOP WHILE CXS = 1
+
+END SUB !BOX66
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX11( OPTION4$, A$, XFLAG, X2FLAG, FFTFLAG, FFT2FLAG, IFFTFLAG )
+
+  LET XOK = 1
+  LET FFTOK = 1
+  LET IFFTOK = 1
+
+  CLEAR
+  CALL BOXU(4,10,55,7)
+  PRINT TAB(6,13); "RUN X POSTPROCESSOR ............................. X"
+  PRINT TAB(8,13); "RUN F POSTPROCESSOR ............................. F"
+  PRINT TAB(10,13);"RUN Y POSTPROCESSOR ............................. Y"
+
+  IF XFLAG = 0 AND X2FLAG = 0 THEN
+    PRINT TAB(6,63); " "
+    LET XOK = 0
+  END IF
+
+  IF FFTFLAG = 0 AND FFT2FLAG = 0 THEN
+    PRINT TAB(8,63); " "
+    LET FFTOK = 0
+  END IF
+
+  IF IFFTFLAG = 0 THEN
+    PRINT TAB(10,63); " "
+    LET IFFTOK = 0
+  END IF
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 14, 28, A$, FRAZ$, OPTION4$ )
+
+    IF (XOK = 0 OR OPTION4$ <> "X") AND (FFTOK = 0 OR OPTION4$ <> "F") AND (IFFTOK = 0 OR OPTION4$ <> "Y") AND OPTION4$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL (XOK = 1 AND OPTION4$ = "X") OR (FFTOK = 1 AND OPTION4$ = "F") OR (IFFTOK = 1 AND OPTION4$ = "Y") OR OPTION4$ = "Q"
+
+END SUB !BOX11
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOXXPOST( Z0$, A$, NOCONV, MODE$ )
+
+  CLEAR
+  PRINT TAB(3,1);  "ษออออออออออออออออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออป"
+  PRINT TAB(4,1);  "บ COPY X ออออ> X2 ..............  CX บ MULTIPLY X  BY A CONSTANT .......... MX บ"
+  PRINT TAB(5,1);  "บ COPY X2 อออ> X ............... CX2 บ MULTIPLY X2 BY A CONSTANT ......... MX2 บ"
+  PRINT TAB(6,1);  "บ COPY X ออออ> F ............... CXF บ REAL-MULTIPLY XRE & X2RE อออ> XRE .. RM บ"
+  PRINT TAB(7,1);  "บ COPY F ออออ> X ............... CFX บ COMPLEX-MULTIPLY X & X2 ออออ> X .... CM บ"
+  PRINT TAB(8,1);  "บ COPY Y ออออ> X ............... CYX บ MULTIPLY X BY exp(j wo t) ......... EXP บ"
+  PRINT TAB(9,1);  "บ                                    บ MULT X2 BY cos(wo t) ออออ> X ..... COSM บ"
+  PRINT TAB(10,1); "บ                                    บ                                         บ"
+  PRINT TAB(11,1); "บ ADD X  TO X2 .................. AX บ SET XIM TO ZERO .................... ZI บ"
+  PRINT TAB(12,1); "บ ADD X2 TO X .................. AX2 บ SET XRE TO ZERO .................... ZR บ"
+  PRINT TAB(13,1); "บ                                    บ                                         บ"
+  PRINT TAB(14,1); "บ SWOP X:X2 ..................... SW บ SAMPLE X ........................... SX บ"
+  PRINT TAB(15,1); "บ SWOP X:X2  F:F2 .............. SWS บ                                         บ"
+  PRINT TAB(16,1); "บ SWOP X:F ..................... SXF บ CLEAN X ........................... CLX บ"
+  PRINT TAB(17,1); "บ SWOP X:F  X2:F2 .............. SWO บ CLEAN X2 ......................... CLX2 บ"
+  PRINT TAB(18,1); "ศออออออออออออออออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออผ"
+
+  IF NOCONV = 1 THEN
+    PRINT TAB(4,34);  "   "
+    PRINT TAB(5,34);  "   "
+    PRINT TAB(10,34); "   "
+    PRINT TAB(11,34); "   "
+    PRINT TAB(13,34); "   "
+    PRINT TAB(14,34); "   "
+    PRINT TAB(16,34); "   "
+
+    PRINT TAB(5,76);  "   "
+    PRINT TAB(6,76);  "   "
+    PRINT TAB(7,76);  "   "
+    PRINT TAB(9,74);  "   "
+    PRINT TAB(16,75); "    "
+  END IF
+
+  IF MODE$ = "DISC" THEN
+    PRINT TAB(10,76); "   "
+  END IF
+
+  DO
+    IF SEC = 1 THEN SOUND 500,.1
+
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 20, 31, A$, FRAZ$, Z0$ )
+
+    IF (NOCONV = 0 AND (Z0$ = "CX" OR Z0$ = "CX2" OR Z0$ = "AX" OR Z0$ = "AX2" OR Z0$ = "SW" OR Z0$ = "SWS" OR Z0$ = "SWO" OR Z0$ = "MX2" OR Z0$ = "RM" OR Z0$ = "CM" OR Z0$ = "CLX2")) OR Z0$ = "CXF" OR Z0$ = "CFX" OR Z0$ = "CYX" OR Z0$ = "SXF" OR Z0$ = "MX" OR Z0$ = "CLX" OR (MODE$ = "SAMP" AND Z0$ = "EXP") OR (MODE$ = "SAMP" AND Z0$ = "COSM") OR Z0$ = "SX" OR Z0$ = "ZI" OR Z0$ = "ZR" OR Z0$ = "Q" THEN LET LOOPUP = 1
+
+    LET SEC = 1
+  LOOP WHILE LOOPUP = 0
+
+END SUB !BOXXPOST
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOXFPOST( Z0$, A$, NOCONV, MODE$, TYPE$ )
+
+  CLEAR
+  PRINT TAB(1,1);  "ษออออออออออออออออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออป"
+  PRINT TAB(2,1);  "บ COPY F ออออ> F2 ............... CF บ CONJUGATE F ....................... CJF บ"
+  PRINT TAB(3,1);  "บ COPY F2 อออ> F ............... CF2 บ CONJUGATE F2 ..................... CJF2 บ"
+  PRINT TAB(4,1);  "บ COPY F ออออ> X ............... CFX บ                                         บ"
+  PRINT TAB(5,1);  "บ COPY X ออออ> F ............... CXF บ SHAVE F ............................ SH บ"
+  PRINT TAB(6,1);  "บ COPY FRE ออ> FIM ............. CFI บ LOW-PASS  FILTER F ................ LPF บ"
+  PRINT TAB(7,1);  "บ                                    บ HIGH-PASS FILTER F ................ HPF บ"
+  PRINT TAB(8,1);  "บ ADD F  TO F2 .................. AF บ                                         บ"
+  PRINT TAB(9,1);  "บ ADD F2 TO F .................. AF2 บ SET FIM TO ZERO .................... ZI บ"
+  PRINT TAB(10,1); "บ                                    บ SET FRE TO ZERO .................... ZR บ"
+  PRINT TAB(11,1); "บ SWOP F:F2 ..................... SW บ                                         บ"
+  PRINT TAB(12,1); "บ SWOP X:X2  F:F2 .............. SWS บ BACKWRD-DIFF 1st ................... BD บ"
+  PRINT TAB(13,1); "บ SWOP X:F ..................... SXF บ FORWARD-DIFF 1st ................... FD บ"
+  PRINT TAB(14,1); "บ SWOP X:F  X2:F2 .............. SWO บ CENTRAL-DIFF 1st ................... CD บ"
+  PRINT TAB(15,1); "บ SWOP FRE:FIM ................. SWI บ CENTRAL-DIFF 2nd .................. CD2 บ"
+  PRINT TAB(16,1); "บ                                    บ                                         บ"
+  PRINT TAB(17,1); "บ MULTIPLY F  BY A CONSTANT ..... MF บ .................................... EP บ"
+  PRINT TAB(18,1); "บ MULTIPLY F2 BY A CONSTANT .... MF2 บ SAMPLE F ........................... SF บ"
+  PRINT TAB(19,1); "บ COMPLEX-MULT F & F2 อออ> F ...  CM บ POWER F ............................ PF บ"
+  PRINT TAB(20,1); "บ COMPLEX-DIV F BY F2 อออ> F ...  CD บ                                         บ"
+  PRINT TAB(21,1); "บ MULTIPLY F by exp(j w ็) ..... EXP บ LOCK F2 ........................... LF2 บ"
+  PRINT TAB(22,1); "ศออออออออออออออออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออผ"
+
+  IF TYPE$ = "PER" THEN
+    PRINT TAB(17,40); "POWER "
+  ELSE IF TYPE$ = "PUL" THEN
+    PRINT TAB(17,40); "ENERGY "
+  END IF
+
+  IF NOCONV = 1 THEN
+    PRINT TAB(2,34);  "   "
+    PRINT TAB(3,34);  "   "
+
+    PRINT TAB(8,34);  "   "
+    PRINT TAB(9,34);  "   "
+
+    PRINT TAB(11,34); "   "
+    PRINT TAB(12,34); "   "
+    PRINT TAB(14,34); "   "
+
+    PRINT TAB(18,34); "   "
+    PRINT TAB(19,34); "   "
+    PRINT TAB(20,34); "   "
+    PRINT TAB( 3,75); "    "
+    PRINT TAB(20,76); "   "
+  END IF
+
+  IF MODE$ = "DISC" THEN
+    PRINT TAB(3,76); "   "
+    PRINT TAB(17,76);"   "
+  END IF
+
+  DO
+    IF DIA = 1 THEN SOUND 500,.1
+
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 23, 31, A$, FRAZ$, Z0$ )
+
+    IF Z0$ = "INTEG" OR CFX$ = "CFX" OR Z0$ = "CXF" OR Z0$ = "SXF" OR Z0$ = "MF" OR Z0$ = "CFI" OR Z0$ = "SWI" OR (MODE$ = "SAMP" AND (Z0$ = "EXP" OR Z0$ = "EP")) OR Z0$ = "CJF" OR Z0$ = "SH" OR Z0$ = "LPF" OR Z0$ = "HPF" OR Z0$ = "ZI" OR Z0$ = "ZR" OR Z0$ = "BD" OR Z0$ = "FD" OR Z0$ = "CD" OR Z0$ = "CD2" OR Z0$ = "SF" OR Z0$ = "Q" OR (NOCONV = 0 AND (Z0$ = "CF" OR Z0$ = "CF2" OR Z0$ = "AF" OR Z0$ = "AF2" OR Z0$ = "MF2" OR Z0$ = "CM" OR Z0$ = "CD" OR Z0$ = "SW" OR Z0$ = "SWS" OR Z0$ = "SWO" OR Z0$ = "LF2" OR Z0$ = "CJF2")) OR Z0$ = "PF" THEN LET URS = 1
+    LET DIA = 1
+  LOOP WHILE URS = 0
+
+END SUB !BOXFPOST
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOXYPOST( Z0$, A$ )
+
+  CLEAR
+  CALL BOXU(4,12,56,9)
+
+  PRINT TAB(6,16);  "MULTIPLY Y x CONSTANT ......................... MY"
+  PRINT TAB(8,16);  "SHAVE Y ....................................... SH"
+  PRINT TAB(10,16); "SAMPLE Y ...................................... SY"
+  PRINT TAB(12,16); "COPY Y TO X .................................. CYX"
+
+  DO
+    LET LOOPUP = 0
+
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 16, 31, A$, FRAZ$, Z0$ )
+
+    IF Z0$ <> "MY" AND Z0$ <> "SH" AND Z0$ <> "SY" AND Z0$ <> "CYX" AND Z0$ <> "Q" THEN
+      SOUND 500,.1
+      LET LOOPUP = 1
+    END IF
+  LOOP WHILE LOOPUP = 1
+
+END SUB !BOXYPOST
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

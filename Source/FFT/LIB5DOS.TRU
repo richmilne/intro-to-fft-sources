@@ -1,0 +1,688 @@
+EXTERNAL             !LIB5DOS
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX25( PNUM, QNUM, N, ZT$, A$, CONCORFLAG )
+
+  CLEAR
+  SOUND 500,.1
+  CALL BOXU(4,11,57,13)
+
+  IF CONCORFLAG = 1 THEN
+    LET FRAZ$ = "CONVOLUTION"
+  ELSE IF CONCORFLAG = 0 THEN
+    LET FRAZ$ = "CORRELATION"
+  END IF
+
+  PRINT TAB(6,14);  "YOU ARE PERFORMING CIRCULAR " & FRAZ$ & " ON TWO PULSES"
+  PRINT TAB(8,22);  "WHOSE SPANS ARE"
+  PRINT TAB(10,18); "THUS  p + q ="
+  PRINT TAB(12,20); "AND SO THEY VIOLATE THE SPAN RESTRICTION"
+  PRINT TAB(14,24); "(REFER TO CHAPTER 14 IN THE TEXT)"
+  PRINT TAB(16,15); "THEREFORE THEIR " & FRAZ$ & " PRODUCT WILL BE ALIASED"
+
+  PRINT TAB(8, 39);"p ="; PNUM; " AND  q ="; QNUM
+  PRINT TAB(10,31); PNUM + QNUM; " WHICH EXCEEDS  N + 1 ="; N + 1
+
+  DO
+    LET FRAZ2$ = "ณ RUN " & FRAZ$ & " REGARDLESS ... Y ณ QUIT ... Q ณ  ?  "
+
+    CALL APROMPT( 20, 13, A$, FRAZ2$, ZT$ )
+
+    IF ZT$ <> "Y" AND ZT$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL ZT$ = "Y" OR ZT$ = "Q"
+
+END SUB !BOX25
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX28( VAR$, N, Z4$, A$, NUMBERR )
+
+  CLEAR
+  CALL BOXU(5,13,51,9)
+  PRINT TAB(7,16); "YOU ARE NOW CREATING VALUES FOR THE"
+  PRINT TAB(9,24); "ALL ELEMENTS ARE CURRENTLY ZERO"
+  PRINT TAB(13,16);"YOU WILL BE ABLE TO TERMINATE WHENEVER YOU LIKE"
+
+  IF VAR$ = "X" THEN
+    IF NUMBERR = 1 THEN
+      PRINT TAB(7,53);"X  VECTOR"
+    ELSE IF NUMBERR = 2 THEN
+      PRINT TAB(7,53);"X2  VECTOR"
+    END IF
+  ELSE IF VAR$ = "FFT" THEN
+    IF NUMBERR = 1 THEN
+      PRINT TAB(7,53);"F  VECTOR"
+    ELSE IF NUMBERR = 2 THEN
+      PRINT TAB(7,53);"F2  VECTOR"
+    END IF
+  END IF
+
+  PRINT TAB(11,18);"YOU CAN CREATE UP TO ";N;" COMPLEX ELEMENTS"
+
+  DO
+    LET FRAZ$ = "VALUES ARE ณ REAL ... R ณ COMPLEX ... C ณ  ?  "
+
+    CALL APROMPT( 17, 18, A$, FRAZ$, Z4$ )
+
+    IF Z4$ <> "R" AND Z4$ <> "C" AND Z4$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL Z4$ = "R" OR Z4$ = "C" OR Z4$ = "Q"
+
+END SUB !BOX28
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX29( TOT1, TOT2, N, Z1$, Z3$, A$, Z4$, NUMBERR, SUB )
+
+  LET M = N
+
+  IF Z4$ = "C" THEN
+    LET M = 2*N
+  END IF
+
+  IF NUMBERR = 1 THEN
+    LET VAL = TOT1
+  ELSE IF NUMBERR = 2 THEN
+    LET VAL = TOT2
+  END IF
+
+  CLEAR
+  CALL BOXU(4,10,59,5)
+
+  IF SUB = 1 THEN
+    PRINT TAB(6,24);"O K : YOU HAVE CREATED "; VAL ;" VALUES"
+  ELSE IF SUB = 2 THEN
+    PRINT TAB(6,24);"O K : YOU HAVE CHANGED "; VAL ;" VALUES"
+  END IF
+
+  PRINT TAB(8,13); "TO INSPECT THEM TAKE OPTION  H  OR  I  ON THE MAIN MENU"
+
+  DO
+    LET FRAZ$ = "ณ CONTINUE ... C ณ  ?  "
+
+    CALL APROMPT( 12, 29, A$, FRAZ$, Z3$ )
+
+    IF Z3$ <> "C" AND Z3$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL Z3$ = "C" OR Z3$ = "Q"
+
+END SUB !BOX29
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX30( Z2$, A$ )
+
+  CLEAR
+  CALL BOXU(4,16,48,11)
+  CALL LINEU(6,16,48)
+  PRINT TAB(5,30); "CREATE OR CHANGE DATA"
+  PRINT TAB(8,19); "CREATE THE  X  VECTORS ................... A"
+  PRINT TAB(10,19);"CHANGE THE  X  VECTORS ................... B"
+  PRINT TAB(12,19);"CREATE THE  F  VECTORS ................... C"
+  PRINT TAB(14,19);"CHANGE THE  F  VECTORS ................... D"
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 18, 31, A$, FRAZ$, Z2$ )
+
+    IF Z2$ <> "A" AND Z2$ <> "B" AND Z2$ <> "C" AND Z2$ <> "D" AND Z2$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL Z2$ = "A" OR Z2$ = "B" OR Z2$ = "C" OR Z2$ = "D" OR Z2$ = "Q"
+
+END SUB !BOX30
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX31( N, VAR$, Z1$, A$, NOCONV )
+
+  CLEAR
+  CALL BOXU(4,12,56,10)
+  PRINT TAB(6,37); "N = "
+  PRINT TAB(6,41); N
+  PRINT TAB(8,15);
+  IF VAR$ = "X" THEN
+    PRINT "CREATE ONLY THE  X  VECTOR"
+  ELSE IF VAR$ = "FFT" THEN
+    PRINT "CREATE ONLY THE  F  VECTOR"
+  END IF
+  PRINT TAB(10,15);
+  IF VAR$ = "X" THEN
+    PRINT "(X2  VECTOR WILL BE ALL ZEROS) ................... X"
+  ELSE IF VAR$ = "FFT" THEN
+    PRINT "(F2  VECTOR WILL BE ALL ZEROS) ................... F"
+  END IF
+  PRINT TAB(13,15);
+  IF VAR$ = "X" THEN
+    PRINT "CREATE BOTH THE  X  AND  X2  VECTORS ............. B"
+  ELSE IF VAR$ = "FFT" THEN
+    PRINT "CREATE BOTH THE  F  AND  F2  VECTORS ............. B"
+  END IF
+
+  IF NOCONV = 1 THEN PRINT TAB(13,66);" "
+
+  DO
+    IF ZWQ = 1 THEN SOUND 500,.1
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 17, 31, A$, FRAZ$, Z1$ )
+
+    IF VAR$ = "X" THEN
+      IF Z1$ = "X" OR (NOCONV = 0 AND Z1$ = "B") OR Z1$ = "Q" THEN LET RSO = 1
+    ELSE IF VAR$ = "FFT" THEN
+      IF Z1$ = "F" OR (NOCONV = 0 AND Z1$ = "B") OR Z1$ = "Q" THEN LET RSO = 1
+    END IF
+    LET ZWQ = 1
+  LOOP UNTIL RSO = 1
+
+END SUB !BOX31
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX32( N, VAR$, Z1$, A$, NOCONV )
+
+  CLEAR
+  CALL BOXU(5,16,48,9)
+  PRINT TAB(7,37); "N ="
+  PRINT TAB(7,41); N
+  PRINT TAB(9,19);
+  IF VAR$ = "X" THEN
+    PRINT "CHANGE THE  X  VECTOR .................... X"
+  ELSE IF VAR$ = "FFT" THEN
+    PRINT "CHANGE THE  F  VECTOR .................... F"
+  END IF
+  PRINT TAB(11,19);
+  IF VAR$ = "X" THEN
+    PRINT "CHANGE THE  X2  VECTOR .................. X2"
+  ELSE IF VAR$ = "FFT" THEN
+    PRINT "CHANGE THE  F2  VECTOR .................. F2"
+  END IF
+  PRINT TAB(13,19);
+  IF VAR$ = "X" THEN
+    PRINT "CHANGE BOTH THE  X  AND  X2  VECTORS ..... B"
+  ELSE IF VAR$ = "FFT" THEN
+    PRINT "CHANGE BOTH THE  F  AND  F2  VECTORS ..... B"
+  END IF
+
+  IF NOCONV = 1 THEN
+    PRINT TAB(11,61);"  "
+    PRINT TAB(13,62);" "
+  END IF
+
+  DO
+    IF SQI = 1 THEN SOUND 500,.1
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 17, 31, A$, FRAZ$, Z1$ )
+
+    IF VAR$ = "X" THEN
+      IF Z1$ = "X" OR (NOCONV = 0 AND (Z1$ = "X2" OR Z1$ = "B")) OR Z1$ = "Q" THEN LET OSS = 1
+    ELSE IF VAR$ = "FFT" THEN
+      IF Z1$ = "F" OR (NOCONV = 0 AND (Z1$ = "F2" OR Z1$ = "B")) OR Z1$ = "Q" THEN LET OSS = 1
+    END IF
+    LET SQI = 1
+  LOOP UNTIL OSS = 1
+
+END SUB !BOX32
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX33( VAR$, A$ )
+
+  CLEAR
+  SOUND 500,.1
+  CALL BOXU(5,15,49,7)
+  PRINT TAB(7,30); "ALL ELEMENTS OF BOTH"
+  PRINT TAB(8,26);
+  IF VAR$ = "X" THEN
+    PRINT "X  AND  X2  VECTORS ARE ZERO"
+  ELSE IF VAR$ = "FFT" THEN
+    PRINT "F  AND  F2  VECTORS ARE ZERO"
+  END IF
+  PRINT TAB(10,19);"TAKE MAIN-MENU  A  OR  C  TO CREATE VALUES"
+  PRINT TAB(11,19);"  OR TAKE OPTION  B  TO LOAD A DISK FILE"
+
+  CALL BOX48CFIX( 15, 30, A$ )
+
+END SUB !BOX33
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX34( N, VAR$, Z2$, A$, VEX )
+
+  CLEAR
+  CALL BOXU(2,20,40,15)
+  CALL LINEU(8,20,40)
+  CALL LINEU(16,20,40)
+
+  PRINT TAB(4,37); "N ="
+  PRINT TAB(4,41); N
+  PRINT TAB(6,30);
+  IF VEX = 1 THEN
+    IF VAR$ = "X" THEN
+      PRINT "CHANGE THE  X  VECTOR"
+    ELSE IF VAR$ = "FFT" THEN
+      PRINT "CHANGE THE  F  VECTOR"
+    END IF
+  ELSE IF VEX = 2 THEN
+    IF VAR$ = "X" THEN
+      PRINT "CHANGE THE  X2  VECTOR"
+    ELSE IF VAR$ = "FFT" THEN
+      PRINT "CHANGE THE  F2  VECTOR"
+    END IF
+  END IF
+  PRINT TAB(10,23);"CHANGE REAL PART ................. R"
+  PRINT TAB(12,23);"CHANGE IMAGINARY PART ............ I"
+  PRINT TAB(14,23);"CHANGE BOTH PARTS ................ B"
+  PRINT TAB(17,23);"SKIP ............................. P"
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 20, 31, A$, FRAZ$, Z2$ )
+
+    IF Z2$ <> "R" AND Z2$ <> "I" AND Z2$ <> "B" AND Z2$ <> "P" AND Z2$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL Z2$ = "R" OR Z2$ = "I" OR Z2$ = "B" OR Z2$ = "P" OR Z2$ = "Q"
+
+  IF Z2$ = "P" THEN LET Z2$ = "C"
+
+END SUB !BOX34
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX35( N, NEWK, VEX, Z3$, Z2$, VAR$, A$ )  !USE OR SPECIFY K
+
+  LET STRE$ = "YOU ARE CHANGING "
+  IF VEX = 1 THEN
+    LET V1RE$ = "XRE(k)"
+    LET V1IM$ = "XIM(k)"
+    LET V2RE$ = "FRE(k)"
+    LET V2IM$ = "FIM(k)"
+  ELSE IF VEX = 2 THEN
+    LET V1RE$ = "X2RE(k)"
+    LET V1IM$ = "X2IM(k)"
+    LET V2RE$ = "F2RE(k)"
+    LET V2IM$ = "F2IM(k)"
+  END IF
+
+  CLEAR
+  LET FRAZ1$ = "N = " & STR$(N)
+  LET COUNT = LEN(FRAZ1$)
+  LET START = 40 - ROUND(COUNT/2)
+  PRINT TAB(2,START); FRAZ1$
+
+  IF Z2$ = "R" THEN
+    IF VAR$ = "X" THEN
+      LET FRAZ2$ = STRE$ & V1RE$
+    ELSE IF VAR$ = "FFT" THEN
+      LET FRAZ2$ = STRE$ & V2RE$
+    END IF
+  ELSE IF Z2$ = "I" THEN
+    IF VAR$ = "X" THEN
+      LET FRAZ2$ = STRE$ & V1IM$
+    ELSE IF VAR$ = "FFT" THEN
+      LET FRAZ2$ = STRE$ & V2IM$
+    END IF
+  ELSE IF Z2$ = "B" THEN
+    IF VAR$ = "X" THEN
+      LET FRAZ2$ = STRE$ & "BOTH " & V1RE$ & " AND " & V1IM$
+    ELSE IF VAR$ = "FFT" THEN
+      LET FRAZ2$ = STRE$ & "BOTH " & V2RE$ & " AND " & V2IM$
+    END IF
+  END IF
+  LET COUNT = LEN(FRAZ2$)
+  LET START = 40 - ROUND(COUNT/2)
+  PRINT TAB(4,START); FRAZ2$
+
+  CALL BOXU(6,19,40,9)
+  CALL LINEU(14,19,40)
+  LET FRAZ3$ = "THE CURRENT VALUE OF  k  IS  " & STR$(NEWK)
+  LET COUNT = LEN(FRAZ3$)
+  LET START = 40 - ROUND(COUNT/2)
+  PRINT TAB(8,START); FRAZ3$
+  PRINT TAB(10,22);"USE  k  AS IS .................... U"
+  PRINT TAB(12,22);"SPECIFY  k  ...................... S"
+  PRINT TAB(15,22);"SKIP ............................. P"
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 18, 30, A$, FRAZ$, Z3$ )
+
+    IF Z3$ <> "U" AND Z3$ <> "S" AND Z3$ <> "P" AND Z3$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL Z3$ = "U" OR Z3$ = "S" OR Z3$ = "P" OR Z3$ = "Q"
+
+  IF Z3$ = "P" THEN LET Z3$ = "C"
+
+END SUB !BOX35
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX38( Z1$, A$ )
+
+  CLEAR
+  CALL BOXU(4,16,48,13)
+  CALL LINEU(6,16,48)
+  CALL LINEU(16,16,48)
+  PRINT TAB(5,31); "H(jw)  OPTIONS MENU"
+  PRINT TAB(8,19); "CREATE .................................. CR"
+  PRINT TAB(10,19);"DISPLAY .................................. D"
+  PRINT TAB(12,19);"CHANGE .................................. CH"
+  PRINT TAB(14,19);"LOAD ..................................... L"
+  PRINT TAB(17,19);"MAIN MENU ................................ M"
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 20, 31, A$, FRAZ$, Z1$ )
+
+    IF Z1$ <> "CR" AND Z1$ <> "D" AND Z1$ <> "CH" AND Z1$ <> "L" AND Z1$ <> "Q" AND Z1$ <> "M" THEN SOUND 500,.1
+  LOOP UNTIL Z1$ = "CR" OR Z1$ = "D" OR Z1$ = "CH" OR Z1$ = "L" OR Z1$ = "Q" OR Z1$ = "M"
+
+END SUB !BOX38
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX57A( TOTALTIME, A$, CONCORFLAG )
+
+  CLEAR
+  CALL BOXU(5,21,36,5)
+  IF CONCORFLAG = 1 THEN
+    PRINT TAB(7,27); "CONVOLUTION RUN COMPLETED"
+  ELSE IF CONCORFLAG = 0 THEN
+    PRINT TAB(7,27); "CORRELATION RUN COMPLETED"
+  END IF
+
+  LET FRAZ$ = "ELAPSED TIME = " & STR$(TOTALTIME) & " SECONDS"
+  LET COUNT = LEN(FRAZ$)
+  LET START = 39 - ROUND(COUNT/2)
+  PRINT TAB(9,START);FRAZ$
+
+  CALL BOX48MFIX( 13, 30, A$ )
+
+END SUB !BOX57A
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX59( CRT$, A$ )
+
+!5     ษอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+!6     บ                                                               บ
+!7     บ   YOU HAVE LOADED A SPECTRUM INTO  F2  WHICH IS NOW LOCKED    บ
+!8     บ                                                               บ
+!9     บ  IF YOU PROCEED FURTHER IT WILL BE ALTERED AND  F2  UNLOCKED  บ
+!0     บ                                                               บ
+!1     ศอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+  CLEAR
+  SOUND 500,.1
+  CALL BOXU(5,8,63,5)
+  PRINT TAB(7,12);  "YOU HAVE LOADED A SPECTRUM INTO  F2  WHICH IS NOW LOCKED"
+  PRINT TAB(9,11); "IF YOU PROCEED FURTHER IT WILL BE ALTERED AND  F2  UNLOCKED"
+
+  DO
+    LET FRAZ$ = "ณ PROCEED ... P ณ QUIT ... Q ณ  ?  "
+
+    CALL APROMPT( 13, 25, A$, FRAZ$, CRT$ )
+
+    IF CRT$ <> "P" AND CRT$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL CRT$ = "P" OR CRT$ = "Q"
+
+END SUB !BOX59
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX60( HJWFLAG, A$, SUB, VAR$, Z3$ )
+
+  CLEAR
+
+  IF HJWFLAG = 1 THEN LET SIG = 2
+  CALL BOXU(4,15,48,5+SIG)
+
+  IF SUB = 1 AND VAR$ = "X" THEN
+    PRINT TAB(6,18); "ALL VALUES THAT YOU CREATED HAVE BEEN LOADED"
+    IF HJWFLAG = 0 THEN
+      PRINT TAB(8,23); "F, F2 AND Y HAVE BEEN SET TO ZERO"
+    ELSE IF HJWFLAG = 1 THEN
+      PRINT TAB(8,25); "F AND Y HAVE BEEN SET TO ZERO"
+    END IF
+
+  ELSE IF SUB = 1 AND VAR$ = "FFT" THEN
+    PRINT TAB(6,18); "ALL VALUES THAT YOU CREATED HAVE BEEN LOADED"
+    PRINT TAB(8,29); "Y HAS BEEN SET TO ZERO"
+
+  ELSE IF SUB = 2 AND VAR$ = "X" THEN
+    PRINT TAB(6,18); "ALL VALUES THAT YOU CHANGED HAVE BEEN LOADED"
+    IF HJWFLAG = 0 THEN
+      PRINT TAB(8,23); "F, F2 AND Y HAVE BEEN SET TO ZERO"
+    ELSE IF HJWFLAG = 1 THEN
+      PRINT TAB(8,25); "F AND Y HAVE BEEN SET TO ZERO"
+    END IF
+
+  ELSE IF SUB = 2 AND VAR$ = "FFT" THEN
+    PRINT TAB(6,18); "ALL VALUES THAT YOU CHANGED HAVE BEEN LOADED"
+    PRINT TAB(8,29); "Y HAS BEEN SET TO ZERO"
+  END IF
+
+  IF HJWFLAG = 1 THEN
+    PRINT TAB(10,29); "F2 HAS NOT BEEN ALTERED"
+  END IF
+
+  CALL BOX48CFIX( 12+SIG, 30, A$ )
+
+END SUB !BOX60
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX111
+
+  CLEAR
+  CALL BOXU(4, 12, 55, 3)
+  PRINT TAB(6,15);"H(jw)  HAS NOT YET BEEN CREATED... PLEASE CREATE IT"
+
+  DO
+    LET FRAZ$ = "ณ CONTINUE ... C ณ  ?  "
+
+    CALL APROMPT( 10, 30, A$, FRAZ$, ZZA$ )
+
+    IF ZZA$ <> "C" AND ZZA$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL ZZA$ = "C" OR ZZA$ = "Q"
+
+END SUB !BOX111
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX112( RVO$, A$ )
+
+  CLEAR
+  CALL BOXU(4, 12, 56, 11 )
+  CALL LINEU(10, 12, 56 )
+
+  PRINT TAB(6,15);"YOU HAVE NOT YET LOADED  H(jw)  INTO  F2"
+  PRINT TAB(8,15);"TO DO SO YOU MUST RETURN TO THE  H(jw)  OPTIONS MENU"
+  PRINT TAB(12,15);"H(jw) OPTIONS MENU ..............................  H"
+  PRINT TAB(14,15);"MAIN MENU .......................................  M"
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 18, 32, A$, FRAZ$, RVO$ )
+
+    IF RVO$ <> "H" AND RVO$ <> "M" AND RVO$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL RVO$ = "H" OR RVO$ = "M" OR RVO$ = "Q"
+
+  IF RVO$ = "Q" THEN LET RVO$ = "H"
+
+END SUB !BOX112
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX113( DUMMY1$, A$ )
+
+  CLEAR
+  CALL BOXU( 4, 24, 31, 5 )
+  PRINT TAB(6,27);"CHANGE NUMERATOR ........ N"
+  PRINT TAB(8,27);"CHANGE DENOMINATOR ...... D"
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ ? "
+
+    CALL APROMPT( 12, 31, A$, FRAZ$, DUMMY1$ )
+
+    IF DUMMY1$ <> "N" AND DUMMY1$ <> "D" AND DUMMY1$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL DUMMY1$ = "N" OR DUMMY1$ = "D" OR DUMMY1$ = "Q"
+
+END SUB !BOX113
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX114B(A$)
+
+  CLEAR
+  SOUND 500,.1
+
+  CALL BOXU(4, 9, 65, 5)
+
+  PRINT TAB(6,12);"THAT WILL LEAD TO A DIVISION BY ZERO AND YOU WON'T LIKE THAT!"
+  PRINT TAB(8,28);"ENTER A NONZERO VALUE PLEASE"
+  LET LINE = 12
+
+  DO
+    LET FRAZ$ = "ณ CONTINUE ... C ณ  ?  "
+
+    CALL APROMPT( LINE, 33, A$, FRAZ$, ZXC$ )
+
+    IF ZXC$ <> "C" AND ZXC$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL ZXC$ = "C" OR ZXC$ = "Q"
+
+END SUB !BOX114B
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX114C(CBOT(), A$)
+
+  CLEAR
+  SOUND 500,.1
+
+  CALL BOXU(4, 12, 56, 7)
+
+  LET FRAZ$ = "YOU SAID YOU WERE ENTERING A POLYNOMIAL OF DEGREE " & STR$(CBOT(-1))
+  PRINT TAB(6,15);FRAZ$
+  PRINT TAB(8,27); "SO THAT VALUE CAN'T BE ZERO!"
+  PRINT TAB(10,27);"ENTER A NONZERO VALUE PLEASE"
+  LET LINE = 14
+
+  DO
+    LET FRAZ$ = "ณ CONTINUE ... C ณ  ?  "
+
+    CALL APROMPT( LINE, 31, A$, FRAZ$, ZXC$ )
+
+    IF ZXC$ <> "C" AND ZXC$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL ZXC$ = "C" OR ZXC$ = "Q"
+
+END SUB !BOX114B
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX115( BACKOUT, A, A$ )
+
+  CLEAR
+  CALL BOXU(4, 18, 43, 7)
+  PRINT TAB(6,23); "WE ARE NOW LOADING  H(jw)  INTO  F2"
+  PRINT TAB(8,21); "WHAT ALIASING LEVEL (ALPHA) DO YOU WANT"
+  PRINT TAB(10,24);"(REFER TO CHAPTER 12 IN THE TEXT)"
+  LET FRAZ$ = "ณ AN INTEGER >= 0 ณ  ?  "
+
+  DO
+    CALL TEXTVALUEQ( FRAZ$, FDG, FLAG, 14, 29, A$ )
+
+    IF FLAG = 1 THEN
+      LET BACKOUT = 1
+    ELSE IF FLAG = 0 THEN
+      LET A = FDG
+      IF A <> INT(A) OR A < 0 THEN SOUND 500,.1
+    END IF
+  LOOP UNTIL FLAG = 1 OR (A = INT(A) AND A >= 0)
+
+END SUB !BOX115
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX116( WCT$, A$ )
+
+  CLEAR
+  CALL BOXU(4, 24, 31, 5)
+  PRINT TAB(6,27);"RESUME CALCULATION ...... R"
+  PRINT TAB(8,27);"NEW ALPHA ............... N"
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 12, 31, A$, FRAZ$, WCT$ )
+
+    IF WCT$ <> "R" AND WCT$ <> "N" AND WCT$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL WCT$ = "R" OR WCT$ = "N" OR WCT$ = "Q"
+
+END SUB !BOX116
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX117( NEWK, GOBACK, A$ )
+
+  CLEAR
+  CALL BOXU(4, 22, 36, 3 )
+  PRINT TAB(6,25);"WHAT IS THE REQUIRED VALUE OF  k"
+
+  LET FRAZ$ = "ณ AN INTEGER ณ  ?  "
+  DO
+    CALL TEXTVALUEQ( FRAZ$, FDG, FLAG, 10, 32, A$ )
+    IF FLAG = 1 THEN
+      LET GOBACK = 1
+    ELSE IF FLAG = 0 THEN
+      LET GOBACK = 0
+      LET NEWK = FDG
+      IF NEWK <> INT(NEWK) THEN SOUND 500,.1
+    END IF
+  LOOP UNTIL FLAG = 1 OR NEWK = INT(NEWK)
+
+END SUB !BOX117
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

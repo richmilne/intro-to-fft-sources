@@ -1,0 +1,889 @@
+EXTERNAL             !LIB2DOS
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX77( MODE$, Z2$, A$, OLDVARS$(,), NOCONV )
+
+  CLEAR
+  PRINT TAB(3,4);  "ษอออออออออออออออออออออออออออออออออออป   ษอออออออออออออออออออออออออออออออป"
+  PRINT TAB(4,4);  "บ         CREATE NEW VALUES         บ   บ          OLD-PROBLEM          บ"
+  PRINT TAB(5,4);  "ฬอออออออออออออออออออออออออออออออออออน   ฬอออออออออออออออออออออออออออออออน"
+  PRINT TAB(6,4);  "บ                                   บ   บ                               บ"
+  PRINT TAB(7,4);  "บ  CREATE  X ................... X  บ   บ  USE THE OLD-PROBLEM .....    บ"
+  PRINT TAB(8,4);  "บ                                   บ   บ                               บ"
+  PRINT TAB(9,4);  "บ  CREATE BOTH  X  AND  X2 .... BX  บ   บ  OLD-PROBLEM TO DISK ....     บ"
+  PRINT TAB(10,4); "บ                                   บ   บ                               บ"
+  PRINT TAB(11,4); "บ  CREATE  F ...................    บ   บ  OLD-PROBLEM FROM DISK .. FD  บ"
+  PRINT TAB(12,4); "บ                                   บ   บ                               บ"
+  PRINT TAB(13,4); "บ  CREATE BOTH  F  AND  F2 ....     บ   ศอออออออออออออออออออออออออออออออผ"
+  PRINT TAB(14,4); "บ                                   บ"
+  PRINT TAB(15,4); "บ  CREATE ONLY DIRAC DELTAS ....    บ"
+  PRINT TAB(16,4); "บ                                   บ"
+  PRINT TAB(17,4); "บ  CREATE  H(jw)  IN  F2 .......    บ"
+  PRINT TAB(18,4); "บ                                   บ"
+  PRINT TAB(19,4); "ศอออออออออออออออออออออออออออออออออออผ"
+
+
+  IF OLDVARS$(1,1) <> "" THEN
+    PRINT TAB(7,73); "U"
+    PRINT TAB(9,72); "TD"
+  END IF
+
+  IF MODE$ = "SAMP" THEN
+    PRINT TAB(11,37); "F"
+    PRINT TAB(13,36);"BF"
+    PRINT TAB(15,37); "D"
+    PRINT TAB(17,37); "H"
+  END IF
+
+  IF NOCONV = 1 THEN
+    PRINT TAB(9,36);  "  "
+    PRINT TAB(13,36); "  "
+    PRINT TAB(17,37); " "
+  END IF
+
+  DO
+    IF AFLAG = 1 THEN SOUND 500,.1
+    LET QQ = 0
+
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 21, 32, A$, FRAZ$, Z2$ )
+
+    IF OLDVARS$(1,1) <> "" THEN
+      IF Z2$ = "X" OR (NOCONV = 0 AND Z2$ = "BX") OR (MODE$ = "SAMP" AND Z2$ = "F") OR (MODE$ = "SAMP" AND NOCONV = 0 AND Z2$ = "BF") OR (MODE$ = "SAMP" AND Z2$ = "D") OR (MODE$ = "SAMP" AND NOCONV = 0 AND Z2$ = "H") OR Z2$ = "U" OR Z2$ = "FD" OR Z2$ = "TD" OR Z2$ = "Q" THEN LET QQ = 1
+    ELSE IF OLDVARS$(1,1) = "" THEN
+      IF Z2$ = "X" OR (NOCONV = 0 AND Z2$ = "BX") OR (MODE$ = "SAMP" AND Z2$ = "F") OR (MODE$ = "SAMP" AND NOCONV = 0 AND Z2$ = "BF") OR (MODE$ = "SAMP" AND Z2$ = "D") OR (MODE$ = "SAMP" AND NOCONV = 0 AND Z2$ = "H") OR Z2$ = "FD" OR Z2$ = "Q" THEN LET QQ = 1
+    END IF
+    LET AFLAG = 1
+  LOOP UNTIL QQ = 1
+
+END SUB !BOX77
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX101( Z2$, SUT$, A$ )
+
+  CLEAR
+  CALL BOXU(4,20,35,7)
+  CALL LINEU(6,20,35)
+  IF Z2$ = "X" THEN
+    PRINT TAB(5,29); "THE  X  FUNCTION IS"
+    PRINT TAB(8,23); "REAL ........................ R"
+    PRINT TAB(10,23);"COMPLEX ..................... C"
+  ELSE
+    PRINT TAB(5,23); "THE  X  AND  X2  FUNCTIONS ARE"
+    PRINT TAB(8,23); "BOTH REAL ................... R"
+    PRINT TAB(10,23);"ONE OR BOTH COMPLEX ......... C"
+  END IF
+
+  DO
+
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 14, 29, A$, FRAZ$, SUT$ )
+
+    IF SUT$ <> "R" AND SUT$ <> "C" AND SUT$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL SUT$ = "R" OR SUT$ = "C" OR SUT$ = "Q"
+
+END SUB !BOX101
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX102( VECTOR$, DVU$, A$ )
+
+  CLEAR
+  CALL BOXU(4,23,33,9)
+  CALL LINEU(6,23,33)
+  IF VECTOR$ = "X" THEN
+    PRINT TAB(5,31); "THE  X  FUNCTION IS"
+  ELSE IF VECTOR$ = "X2" THEN
+    PRINT TAB(5,30); "THE  X2  FUNCTION IS"
+  END IF
+  PRINT TAB(8,26); "EVEN ...................... E"
+  PRINT TAB(10,26);"ODD ....................... O"
+  PRINT TAB(12,26);"NEITHER ................... N"
+
+  DO
+
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 16, 31, A$, FRAZ$, DVU$ )
+
+    IF DVU$ <> "E" AND DVU$ <> "O" AND DVU$ <> "N" AND DVU$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL DVU$ = "E" OR DVU$ = "O" OR DVU$ = "N" OR DVU$ = "Q"
+
+END SUB !BOX102
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX103( EXI$, A$ )
+
+  CLEAR
+  CALL BOXU(4,11,57,7)
+  PRINT TAB(6,14); "FOR EVEN OR ODD FUNCTIONS WE REQUIRE THAT  N  BE EVEN"
+  PRINT TAB(8,27); "AND IN THIS CASE  N  IS ODD."
+  PRINT TAB(10,14);"CHANGE N .......................................... C"
+
+  DO
+
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 14, 31, A$, FRAZ$, EXI$ )
+
+    IF EXI$ <> "C" AND EXI$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL EXI$ = "C" OR EXI$ = "Q"
+
+END SUB !BOX103
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX104( STR7$, ORF$, A$ )
+
+  CLEAR
+  CALL BOXU(4,19,41,11)
+  CALL LINEU(10,19,41)
+  PRINT TAB(6,22); "WHERE DO YOU WANT TO PLACE THE ORIGIN"
+  PRINT TAB(8,22); "FOR THE  " & STR7$ & "  FUNCTION ?"
+  PRINT TAB(12,22); "LEFT SIDE OF SCREEN ............... L"
+  PRINT TAB(14,22); "CENTER OF SCREEN .................. C"
+
+  DO
+
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 18, 31, A$, FRAZ$, ORF$ )
+
+    IF ORF$ <> "L" AND ORF$ <> "C" AND ORF$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL ORF$ = "L" OR ORF$ = "C" OR ORF$ = "Q"
+
+END SUB !BOX104
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX105( AZO$, A$ )
+
+  CLEAR
+
+  CALL BOXU(4,18,43,5)
+
+  PRINT TAB(6,23);"YOU HAVE NOW CREATED THE FUNCTION(S)"
+  PRINT TAB(8,21);"BUT THE VALUES HAVE NOT YET BEEN LOADED"
+
+  LET FRAZ$ = "ณ CONTINUE ... C ณ  ?  "
+
+  DO
+
+    CALL APROMPT( 12, 30, A$, FRAZ$, AZO$ )
+
+    IF AZO$ <> "Q" AND AZO$ <> "C" THEN SOUND 500,.1
+
+  LOOP UNTIL AZO$ = "Q" OR AZO$ = "C"
+
+END SUB !BOX105
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX105B( AZO$, A$ )
+
+!2 ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+!3 บ                                                                          บ
+!4 บ  IF YOU PROCEED WITH YOUR ---> QUIT <--- THEN THE FUNCTION(S) THAT YOU   บ
+!5 บ                                                                          บ
+!6 บ                HAVE JUST CREATED WILL BE COMPLETELY ERASED.              บ
+!7 บ                                                                          บ
+!8 บ                                                                          บ
+!9 บ  IF YOU WANT TO MAKE CHANGES IN THE ALGEBRAIC EXPRESSIONS THAT YOU USED  บ
+!0 บ                                                                          บ
+!1 บ        IT WOULD BE BETTER TO CONTINUE FORWARD TO THE END AND THEN        บ
+!2 บ                                                                          บ
+!3 บ    TAKE OPTION U  "USE THE OLD-PROBLEM"  FROM WHERE YOU WILL BE ABLE     บ
+!4 บ                                                                          บ
+!5 บ                      TO MAKE CHANGES AND CORRECTIONS.                    บ
+!6 บ                                                                          บ
+!7 ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+!9                 "ณ CONTINUE FORWARD ... C ณ QUIT ... Q ณ  ?  "
+
+  SOUND 500,.1
+  CLEAR
+
+  CALL BOXU( 4, 3, 74, 14 )
+
+  PRINT TAB(6,6);"IF YOU PROCEED WITH YOUR ---> QUIT <--- THEN THE FUNCTION(S) THAT YOU"
+  PRINT TAB(8,20);"HAVE JUST CREATED WILL BE COMPLETELY ERASED."
+  PRINT TAB(11,6);"IF YOU WANT TO MAKE CHANGES IN THE ALGEBRAIC EXPRESSIONS THAT YOU USED"
+  PRINT TAB(13,12);"IT WOULD BE BETTER TO CONTINUE FORWARD TO THE END AND THEN"
+  PRINT TAB(15,9);"TAKE OPTION U (USE THE OLD-PROBLEM) FROM WHERE YOU WILL BE ABLE"
+  PRINT TAB(17,26);"TO MAKE CHANGES AND CORRECTIONS."
+
+  LET FRAZ$ = "ณ CONTINUE FORWARD ... C ณ QUIT ... Q ณ  ?  "
+
+  DO
+
+    CALL APROMPT( 21, 20, A$, FRAZ$, AZO$ )
+
+    IF AZO$ <> "Q" AND AZO$ <> "C" THEN SOUND 500,.1
+  LOOP UNTIL AZO$ = "Q" OR AZO$ = "C"
+
+END SUB !BOX105
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX106( SBP$, A$, TDOM, FDOM )
+
+  DO
+    LET GOBACK = 0
+    CLEAR
+    CALL BOXU(4,15,49,13)
+    CALL LINEU(12,15,49)
+    PRINT TAB(6,18); "CREATE DIRAC DELTAS IN ANY OF THE FOLLOWING ? "
+    PRINT TAB(8,20); "(DIRAC DELTAS FOR THE FFT ARE DISCUSSED IN"
+    PRINT TAB(10,30);"CHAPTER 15 IN THE TEXT)"
+    PRINT TAB(14,18);"TIME DOMAIN ............................... T"
+    PRINT TAB(16,18);"FREQUENCY DOMAIN .......................... F"
+
+    DO
+      LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+      CALL APROMPT( 20, 30, A$, FRAZ$, SBP$ )
+
+      IF SBP$ <> "T" AND SBP$ <> "F" AND SBP$ <> "Q" THEN SOUND 500,.1
+    LOOP UNTIL SBP$ = "T" OR SBP$ = "F" OR SBP$ = "Q"
+
+
+    IF (SBP$ = "T" AND FDOM = 1) OR (SBP$ = "F" AND TDOM = 1) THEN
+      CLEAR
+      SOUND 500,.1
+      IF SBP$ = "T" AND FDOM = 1 THEN
+
+        CALL BOXU(4,13,52,12)
+
+        PRINT TAB(6,22); "YOU HAVE ALREADY LOADED ONE OR MORE"
+        PRINT TAB(8,22); "DIRAC DELTAS IN THE FREQUENCY DOMAIN"
+        PRINT TAB(10,16);"AND SO YOU CANNOT NOW ADD ONE IN THE TIME DOMAIN."
+        PRINT TAB(13,16);"IF YOU REALLY WANT TO SWITCH TO THE TIME DOMAIN"
+        PRINT TAB(15,17);"THEN GO BACK TO THE MAIN MENU AND START AGAIN."
+      ELSE IF SBP$ = "F" AND TDOM = 1 THEN
+
+        CALL BOXU(4,11,57,12)
+
+        PRINT TAB(6,23); "YOU HAVE ALREADY LOADED ONE OR MORE"
+        PRINT TAB(8,25); "DIRAC DELTAS IN THE TIME DOMAIN"
+        PRINT TAB(10,14);"AND SO YOU CANNOT NOW ADD ONE IN THE FREQUENCY DOMAIN."
+        PRINT TAB(13,14);"IF YOU REALLY WANT TO SWITCH TO THE FREQUENCY DOMAIN"
+        PRINT TAB(15,18);"THEN GO BACK TO THE MAIN MENU AND START AGAIN."
+      END IF
+      LET FRAZ$ = "ณ MAIN MENU ... M ณ CONTINUE FORWARD ... C ณ  ?  "
+      DO
+
+        CALL APROMPT( 19, 18, A$, FRAZ$, SBQ$ )
+
+        IF SBQ$ <> "M" AND SBQ$ <> "C" AND SBQ$ <> "Q" THEN SOUND 500,.1
+      LOOP UNTIL SBQ$ = "M" OR SBQ$ = "C" OR SBQ$ = "Q"
+      IF SBQ$ = "C" OR SBQ$ = "Q" THEN
+        LET GOBACK = 1
+      ELSE IF SBQ$ = "M" THEN
+        LET SBP$ = "M"
+      END IF
+    END IF
+  LOOP WHILE GOBACK = 1
+
+END SUB !BOX106
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX108( DSW$, A$ )
+
+  CLEAR
+  CALL BOXU(4,14,51,3)
+  PRINT TAB(6,17);"SORRY, WE CANNOT ACCEPT SPECTRA WHEN  N  IS ODD"
+
+  DO
+    LET FRAZ$ = "ณ CHANGE  N ... C ณ  ?  "
+
+    CALL APROMPT( 10, 29, A$, FRAZ$, DSW$ )
+
+    IF DSW$ <> "C" AND DSW$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL DSW$ = "C" OR DSW$ = "Q"
+
+END SUB !BOX108
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX109( VECTOR$, SUF$, A$ )
+
+  CLEAR
+  CALL BOXU(4,24,32,9)
+  CALL LINEU(6,24,32)
+  PRINT TAB(5,31);"THE  " & VECTOR$ & "  FUNCTION IS"
+  PRINT TAB(8,27); "REAL ..................... R"
+  PRINT TAB(10,27);"IMAGINARY ................ I"
+  PRINT TAB(12,27);"COMPLEX .................. C"
+
+  DO
+    LET FRAZ$ = "ณ SELECT OPTION ณ  ?  "
+
+    CALL APROMPT( 16, 32, A$, FRAZ$, SUF$ )
+
+    IF SUF$ <> "R" AND SUF$ <> "I" AND SUF$ <> "C" AND SUF$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL SUF$ = "R" OR SUF$ = "I" OR SUF$ = "C" OR SUF$ = "Q"
+
+END SUB !BOX109
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX110( A$ )
+
+  CALL BOXU(4,9,61,10)
+  PRINT TAB(6,25);"WE HAVE NOW LOADED YOUR VALUES"
+  PRINT TAB(8,14);"WE HAVE ALSO RECORDED THIS PROBLEM AS THE OLD-PROBLEM"
+  PRINT TAB(11,19);"TO SEE WHAT YOU HAVE CREATED AND RECORDED..."
+  PRINT TAB(13,12);"TAKE MAIN-MENU OPTION H (PLOT) OR OPTION I (SHOW NUMBERS)"
+
+  CALL BOX48MFIX(17,30,A$)
+
+END SUB !BOX110
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX118( ALPHA, FLAG, A$ )
+
+!  4       ษอออออออออออออออออออออออออออออออออออออออออออออป
+!  5       บ                                             บ
+!  6       บ  YOU HAVE ENTERED A CFT SPECTRUM THAT MUST  บ
+!  7       บ                                             บ
+!  8       บ        NOW BE CONVERTED TO A DFT ONE.       บ
+!  9       บ                                             บ
+!  0       บ                                             บ
+!  1       บ          THAT WILL REQUIRE ALIASING.        บ
+!  2       บ                                             บ
+!  3       บ         (SEE CHAPTER 12 IN THE TEXT)        บ
+!  4       บ                                             บ
+!  5       บ                                             บ
+!  6       บ   WHAT ALIASING LEVEL (ALPHA) DO YOU WANT   บ
+!  7       บ                                             บ
+!  8       ศอออออออออออออออออออออออออออออออออออออออออออออผ
+
+  CLEAR
+  CALL BOXU(4, 17, 45, 13)
+  PRINT TAB(6,20);"YOU HAVE ENTERED A CFT SPECTRUM THAT MUST"
+  PRINT TAB(8,26);"NOW BE CONVERTED TO A DFT ONE."
+  PRINT TAB(11,28);"THAT WILL REQUIRE ALIASING."
+  PRINT TAB(13,27);"(SEE CHAPTER 12 IN THE TEXT)"
+  PRINT TAB(16,21);"WHAT ALIASING LEVEL (ALPHA) DO YOU WANT"
+
+  LET SFT$ = "ณ AN INTEGER >= 0 ณ ? "
+  DO
+    IF ZXW = 1 THEN SOUND 500,.1
+
+    CALL TEXTVALUEQ( SFT$, FDG, FLAG, 20, 30, A$ )
+
+    IF FLAG = 0 THEN
+      LET ALPHA = FDG
+      IF ALPHA = INT(ALPHA) AND ALPHA >= 0 THEN LET RAS = 1
+    END IF
+    LET ZXW = 1
+  LOOP UNTIL FLAG = 1 OR RAS = 1
+
+END SUB !BOX118
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX118B( ALPHA, SUF$, A$ )
+
+!  4       ษออออออออออออออออออออออออออออออออออออออออออออป
+!  5       บ                                            บ
+!  6       บ   SOME FUNCTIONS SUCH AS CONSTANTS, SINE   บ
+!  7       บ                                            บ
+!  8       บ     AND COSINE DO NOT REQUIRE ALIASING.    บ
+!  9       บ                                            บ
+!  0       บ                                            บ
+
+!  1       บ   .................................... C   บ
+!  1       บ   CONTINUE ALIASING (ALPHA = 100) .... C   บ
+
+!  2       บ                                            บ
+!  3       บ   NO ALIASING (ALPHA = 0) ............ N   บ
+!  4       บ                                            บ
+!  5       ศออออออออออออออออออออออออออออออออออออออออออออผ
+!
+!  7                    "ณ SELECT OPTION ณ  ?  "
+
+  CLEAR
+  CALL BOXU( 4, 17, 44, 10 )
+  PRINT TAB(6,21); "SOME FUNCTIONS SUCH AS CONSTANTS, SINE"
+  PRINT TAB(8,23); "AND COSINE DO NOT REQUIRE ALIASING."
+  PRINT TAB(11,21);".................................... C"
+  PRINT TAB(11,21);"CONTINUE ALIASING (ALPHA = " & STR$(ALPHA) & ") "
+  PRINT TAB(13,21);"NO ALIASING (ALPHA = 0) ............ N"
+
+  LET SFT$ = "ณ SELECT OPTION ณ  ?  "
+  DO
+    IF SXU = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( 17, 31, A$, SFT$, SUF$ )
+
+    IF SUF$ = "Q" OR SUF$ = "C" OR SUF$ = "N" THEN LET SAB = 1
+    LET SXU = 1
+  LOOP UNTIL SAB = 1
+
+END SUB !BOX118B
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX118C( ALPHAHOLD, SUF$, A$ )
+
+!  4       ษออออออออออออออออออออออออออออออออออออออออออออป
+!  5       บ                                            บ
+
+!  6       บ   .................................... R   บ
+!  6       บ   RESUME ALIASING (ALPHA = 100) ...... R   บ
+
+!  7       บ                                            บ
+!  8       บ   NO ALIASING (ALPHA = 0) ............ N   บ
+!  9       บ                                            บ
+!  0       ศออออออออออออออออออออออออออออออออออออออออออออผ
+!
+!  2                    "ณ SELECT OPTION ณ  ?  "
+
+  CLEAR
+  CALL BOXU( 4, 17, 44, 5 )
+  PRINT TAB(6,21);".................................... R"
+  PRINT TAB(6,21);"RESUME ALIASING (ALPHA = " & STR$(ALPHAHOLD) & ") "
+  PRINT TAB(8,21);"NO ALIASING (ALPHA = 0) ............ N"
+
+  LET SFT$ = "ณ SELECT OPTION ณ  ?  "
+  DO
+    IF RAQ = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( 12, 31, A$, SFT$, SUF$ )
+
+    IF SUF$ = "Q" OR SUF$ = "R" OR SUF$ = "N" THEN LET ITS = 1
+    LET RAQ = 1
+  LOOP UNTIL ITS = 1
+
+END SUB !BOX118C
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX119( A$ )
+
+   CLEAR
+   CALL BOXU(4, 13, 53, 5)
+   PRINT TAB(6,25);"SORRY, YOU ARE IN PERIODIC MODE..."
+   PRINT TAB(8,16);"THERE ARE NO DIRAC DELTAS IN THE FREQUENCY DOMAIN"
+
+   DO
+    LET FRAZ$ = "  ณ RETURN ... R ณ  ?   "
+
+    CALL APROMPT( 12, 31, A$, FRAZ$, SAX$ )
+
+     IF SAX$ <> "R" AND SAX$ <> "Q" THEN SOUND 500,.1
+   LOOP UNTIL SAX$ = "R" OR SAX$ = "Q"
+
+   LET SAX$ = "B"
+
+END SUB !BOX119
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX120( TF$, SWITCH1, DOA$, A$ )
+
+  CLEAR
+  CALL BOXU(4, 22, 35, 9 )
+  IF SWITCH1 = 0 THEN
+    PRINT TAB(6,30);
+    PRINT "ADD A DIRAC DELTA TO"
+    LET SWITCH1 = 1
+  ELSE IF SWITCH1 = 1 THEN
+    PRINT TAB(6,27);
+    PRINT "ADD ANOTHER DIRAC DELTA TO"
+  END IF
+
+  IF TF$ = "TIME" THEN
+    PRINT TAB(8,25); "XRE ........................ X"
+    PRINT TAB(10,25);"X2RE ....................... X2"
+  ELSE IF TF$ = "FREQ" THEN
+    PRINT TAB(8,25); "FRE ........................ R"
+    PRINT TAB(10,25);"FIM ........................ I"
+  END IF
+
+  PRINT TAB(12,25);"NEITHER .................... N"
+
+  LET FRAZ$ = "ณ SELECT OPTION ณ ? "
+
+  DO
+    IF SXY = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( 16, 31, A$, FRAZ$, DOA$ )
+
+    IF TF$ = "TIME" THEN
+      IF DOA$ = "X" OR DOA$ = "X2" OR DOA$ = "Q" OR DOA$ = "N" THEN LET SRV = 1
+    ELSE IF TF$ = "FREQ" THEN
+      IF DOA$ = "R" OR DOA$ = "I" OR DOA$ = "Q" OR DOA$ = "N" THEN LET SRV = 1
+    END IF
+    LET SXY = 1
+  LOOP UNTIL SRV = 1
+
+END SUB !BOX120
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX121( DIRECT, SWITCH1, DOA$, A$ ) !ADD A DIRAC DELTA TO  X  Y/N
+
+  CLEAR
+  CALL BOXU(4, 22, 35, 7)
+
+  IF SWITCH1 = 0 THEN
+    PRINT TAB(6,28);
+    PRINT "ADD A DIRAC DELTA TO  XRE"
+    LET SWITCH1 = 1
+  ELSE IF SWITCH1 = 1 THEN
+    PRINT TAB(6,25);
+    PRINT "ADD ANOTHER DIRAC DELTA TO  XRE"
+  END IF
+
+  PRINT TAB(8,25); "YES ......................... Y"
+  PRINT TAB(10,25);"NO .......................... N"
+
+  LET FRAZ$ = "ณ SELECT OPTION ณ ? "
+
+  DO
+    IF AWQ = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( 14, 31, A$, FRAZ$, DOA$ )
+
+    IF DOA$ = "Y" OR DOA$ = "N" OR (DIRECT = 1 AND DOA$ = "Q") THEN LET ZWP = 1
+    LET AWQ = 1
+  LOOP UNTIL ZWP = 1
+
+  IF DOA$ = "Q" THEN LET SWITCH1 = 0
+
+END SUB !BOX121
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX122( DOA$, N, T, FDQ, CVE$, FLAG7, SWITCH1, A$ )
+
+  CLEAR
+  LET CVE$ = "-"
+  CALL BOXU(4, 14, 51, 11-2*FLAG7 )
+  CALL LINEU(10,14,51)
+
+  IF DOA$ = "X" OR DOA$ = "X2" THEN
+
+    LET STR1$ = "N = " & STR$(N) & "   T = " & STR$(T) & "   Ts = " & STR$(T/N)
+    LET AZP = LEN(STR1$)
+    LET START = 40 - ROUND(AZP/2)
+    PRINT TAB(6,START);STR1$
+
+    IF DOA$ = "X" THEN
+      PRINT TAB(8,21);"CREATING A DIRAC DELTA IN THE  X  VECTOR"
+    ELSE IF DOA$ = "X2" THEN
+      PRINT TAB(8,20);"CREATING A DIRAC DELTA IN THE  X2  VECTOR"
+    END IF
+
+    IF FLAG7 = 0 THEN
+      PRINT TAB(12,23);"WHERE IS IT LOCATED ON THE  t  AXIS"
+      LET STRING$ = "ณ t = ... ณ  ?  "
+    END IF
+
+  ELSE IF DOA$ = "R" OR DOA$ = "I" THEN
+
+    LET OMM = 2*PI/T
+    LET STR1$ = "N = " & STR$(N) & "   T = " & STR$(T) & "   OMEGAs = " & STR$(OMM)
+    LET AZP = LEN(STR1$)
+    LET START = 40 - ROUND(AZP/2)
+    PRINT TAB(6,START);STR1$
+
+    IF DOA$ = "R" THEN
+      PRINT TAB(8,20);"CREATING A DIRAC DELTA IN THE  FRE  VECTOR"
+    ELSE IF DOA$ = "I" THEN
+      PRINT TAB(8,20);"CREATING A DIRAC DELTA IN THE  FIM  VECTOR"
+    END IF
+
+    IF FLAG7 = 0 THEN
+      PRINT TAB(12,23);"WHERE IS IT LOCATED ON THE  w  AXIS"
+      LET STRING$ = "ณ w = ... ณ  ?  "
+    END IF
+  END IF
+
+  IF FLAG7 = 0 THEN
+    PRINT TAB(14,17);"(WE WILL ROUND TO THE NEAREST SAMPLING INSTANT)"
+  ELSE IF FLAG7 = 1 THEN
+    PRINT TAB(12,22);"WHAT IS THE WEIGHT OF THE DIRAC DELTA"
+    LET STRING$ = "ณ WEIGHT = ... ณ  ?  "
+  END IF
+
+  CALL TEXTVALUEQ( STRING$, FDG, FLAG, 18-2*FLAG7, 34-(3*FLAG7), A$ )
+
+  IF FLAG = 1 THEN
+    LET CVE$ = "Q"
+    LET SWITCH1 = 0
+  ELSE
+    IF FLAG7 = 0 THEN
+      IF DOA$ = "X" OR DOA$ = "X2" THEN
+        LET FDQ = ROUND(FDG*(N/T))
+      ELSE IF DOA$ = "R" OR DOA$ = "I" THEN
+        LET FDQ = ROUND(FDG/OMM)
+      END IF
+    ELSE IF FLAG7 = 1 THEN
+      LET FDQ = FDG
+    END IF
+  END IF
+
+END SUB !BOX122
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX123( EXTYPE, A$ )
+
+  LET PHRAZ$ = "AN ERROR HAS OCCURRED... IT'S MESSAGE READS:"
+
+  IF EXTYPE = 1 THEN
+    LET FRAZ$ = "---> YOUR EXPRESSION HAS UNACCEPTABLE SYNTAX <---"
+  ELSE IF EXTYPE = 2 THEN
+    LET FRAZ$ = "---> UNKNOWN FUNCTION OR VARIABLE IN YOUR EXPRESSION <---"
+  ELSE IF EXTYPE = 3 THEN
+    LET FRAZ$ = "---> BAD VARIABLE NAME IN YOUR EXPRESSION <---"
+  ELSE IF EXTYPE = 3001 THEN
+    LET FRAZ$ = "---> DIVISION BY ZERO <---"
+  ELSE IF EXTYPE = 3002 THEN
+    LET FRAZ$ = "---> NEGATIVE NUMBER TO A NON-INTEGRAL POWER IN YOUR EXPRESSION <---"
+  ELSE IF EXTYPE = 3003 THEN
+    LET FRAZ$ = "---> ZERO TO A NEGATIVE POWER IN YOUR EXPRESSION <---"
+  ELSE IF EXTYPE = 3004 THEN
+    LET FRAZ$ = "---> LOG OF A NUMBER <= 0 IN YOUR EXPRESSION <---"
+  ELSE IF EXTYPE = 3005 THEN
+    LET FRAZ$ = "---> SQR OF A NEGATIVE NUMBER IN YOUR EXPRESSION <---"
+  ELSE IF EXTYPE = 4001 THEN
+    LET FRAZ$ = "---> VAL STRING IN YOUR EXPRESSION ISN'T A PROPER NUMBER <---"
+  ELSE
+    LET FRAZ$ = "---> " & EXTEXT$ & " <---"
+  END IF
+
+  LET LENGTH1 = LEN(PHRAZ$)
+  LET LENGTH2 = LEN(FRAZ$)
+  LET LENGTH = MAX( LENGTH1, LENGTH2 )
+  LET START = 40 - ROUND((LENGTH + 6)/2)
+  LET START2 = 40 - ROUND(LENGTH2/2)
+
+  SOUND 500,.1
+  CLEAR
+  CALL BOXU( 4, START, LENGTH+4, 5 )
+  PRINT TAB(6,18);PHRAZ$
+  PRINT TAB(8,START2);FRAZ$
+
+  CALL BOX48CFIX(12, 30, A$)
+
+END SUB !BOX123
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX129( SNM$, A$, DFW$ )
+
+!    ษอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+!    บ                                                                   บ
+!    บ   WHAT IS THE NAME OF THE DISC FILE THAT YOU WANT TO RETRIEVE ?   บ
+!    บ                                                                   บ
+!    บ  PLEASE SPECIFY USING FULL DOS FORMAT, i.e. C:\PATH\FILENAME.EXT  บ
+!    บ                                                                   บ
+!    ศอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+!                               | FILE NAME |  ?
+
+    IF DFW$ = "FETCH" THEN
+      LET WID = 5
+      LET FRAZ1$ = "WHAT IS THE NAME OF THE DISC FILE THAT YOU WANT TO RETRIEVE ?"
+      LET LINE = 12
+    ELSE IF DFW$ = "STORE" THEN
+      LET WID = 9
+      LET FRAZ1$ = "WHAT IS THE NAME OF THE DISC FILE THAT YOU WANT TO STORE TO?"
+      LET LINE = 16
+    END IF
+
+    CLEAR
+    CALL BOXU( 4, 6, 67, WID )
+    PRINT TAB(6,10);FRAZ1$
+    PRINT TAB(8,9);   "PLEASE SPECIFY USING FULL DOS FORMAT:  DRIVE:\PATH\FILENAME.EXT"
+
+    IF DFW$ = "STORE" THEN
+      PRINT TAB(10,9);"AND PLEASE GIVE YOUR FILENAME AN EXTENSION OR AT LEAST A PERIOD"
+      PRINT TAB(12,14);"(IF YOU DON'T IT WILL BE GIVEN THE EXTENSION "".TRU"" )"
+    END IF
+
+    LET FRAZ2$ = "ณ FILE NAME ณ  ?  "
+
+    CALL APROMPT( WID+7, 33, A$, FRAZ2$, SNM$ )
+
+END SUB !BOX129
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX130( SQM$, SNM$, GUZ$, A$ )
+
+  SOUND 1000,.1
+  CLEAR
+  IF SQM$ = "STORE" THEN
+    LET FRAZ1$ = "O.K: THE OLD-PROBLEM HAS BEEN STORED TO"
+    LET COUNT1 = LEN(FRAZ1$)
+    LET FRAZ2$ = "---> " & SNM$ & " <---"
+    LET COUNT2 = LEN(FRAZ2$)
+    LET WID = 5
+  ELSE IF SQM$ = "FETCH" THEN
+    LET FRAZ1$ = "O.K: ---> " & SNM$ & " <--- HAS BEEN RETRIEVED"
+    LET COUNT1 = LEN(FRAZ1$)
+    LET WID = 3
+  END IF
+
+  LET COUNT = MAX( COUNT1, COUNT2 )
+  CALL BOXU( 4, 39-ROUND((COUNT+6)/2), COUNT+6, WID )
+
+  PRINT TAB( 6, 40-ROUND(COUNT1/2) ); FRAZ1$
+  IF WID = 5 THEN PRINT TAB( 8, 40-ROUND(COUNT2/2) ); FRAZ2$
+
+  IF SQM$ = "STORE" THEN
+    CALL BOX48CFIX(12, 29, A$)
+    LET GUZ$ = "C"
+
+  ELSE IF SQM$ = "FETCH" THEN
+    LET PRMP$ = "ณ CONTINUE ... C ณ  ?  "
+
+    DO
+      IF ZWN = 1 THEN SOUND 500,.1
+
+      CALL APROMPT(10, 30, A$, PRMP$, GUZ$)
+
+      IF GUZ$ = "C" OR GUZ$ = "Q" THEN LET SAI = 1
+      LET ZWN = 1
+    LOOP UNTIL SAI = 1
+  END IF
+
+END SUB !BOX130
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX131( OLDVARS$(,), N, T, MODE$, A$ )
+
+!1ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+!2บ                                                                            บ
+!3บ                       THE OLD-PROBLEM PARAMETERS ARE:                      บ
+!4บ                                                                            บ
+!5บ                   N = 1024     T = 16     MODE = SAMPLED                   บ
+!6บ                                                                            บ
+!7ฬออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+!8บ                                                                            บ
+!9บ                       NOW THE SYSTEM PARAMETERS ARE:                       บ
+!0บ                                                                            บ
+!1บ                   N = 1024     T = 16     MODE = SAMPLED                   บ
+!2บ                                                                            บ
+!3ฬออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+!4บ                                                                            บ
+!5บ      IF YOU WANT TO USE THIS OLD-PROBLEM THEN YOU MUST FIRST MAKE THE      บ
+!6บ                                                                            บ
+!7บ          SYSTEM PARAMETERS AGREE WITH THE OLD-PROBLEM PARAMETERS           บ
+!8บ                                                                            บ
+!9ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+  CLEAR
+  CALL BOXU(2, 2, 76, 17 )
+  CALL LINEU(8, 2, 76 )
+  CALL LINEU(14, 2, 76 )
+
+  PRINT TAB(4,26);"THE OLD-PROBLEM PARAMETERS ARE:"
+  LET FRAZ1$ = "N = " & OLDVARS$(1,1)
+
+
+  IF OLDVARS$(2,1) = "SAMP" THEN
+    LET FRAZ1$ = FRAZ1$ & "      T = " & OLDVARS$(1,2) & "      MODE = SAMPLED"
+  ELSE IF OLDVARS$(2,1) = "DISC" THEN
+    LET FRAZ1$ = FRAZ1$ & "      MODE = DISCRETE"
+  END IF
+
+  LET COUNT = LEN(FRAZ1$)
+  LET START = 40 - ROUND(COUNT/2)
+  PRINT TAB(6,START);FRAZ1$
+
+  PRINT TAB(10,26);"NOW THE SYSTEM PARAMETERS ARE:"
+  LET FRAZ2$ = "N = " & STR$(N)
+
+
+  IF MODE$ = "SAMP" THEN
+    LET FRAZ2$ = FRAZ2$ & "      T = " & USING$("+#.############^^^^^",T) & "      MODE = SAMPLED"
+  ELSE IF MODE$ = "DISC" THEN
+    LET FRAZ2$ = FRAZ2$ & "      MODE = DISCRETE"
+  END IF
+
+  LET COUNT2 = LEN(FRAZ2$)
+  LET START2 = 40 - ROUND(COUNT2/2)
+  PRINT TAB(12,START2);FRAZ2$
+
+  PRINT TAB(16,9); "IF YOU WANT TO USE THIS OLD-PROBLEM THEN YOU MUST FIRST MAKE THE"
+  PRINT TAB(18,13);"SYSTEM PARAMETERS AGREE WITH THE OLD-PROBLEM PARAMETERS"
+  LET FRAZ3$ = "ณ PARAMETERS MENU ... P ณ  ?  "
+
+  DO
+
+    CALL APROMPT( 22, 28, A$, FRAZ3$, SBZ$ )
+
+    IF SBZ$ <> "P" THEN SOUND 500,.1
+  LOOP UNTIL SBZ$ = "P"
+
+END SUB !BOX131
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX132( A$ )
+
+  CLEAR
+  CALL BOXU( 4, 13, 55, 3 )
+  PRINT TAB(6,16);"NO DATA HAVE BEEN LOADED INTO ANY OF THE VECTOR(S)"
+
+  CALL BOX48MFIX( 10, 30, A$ )
+
+END SUB !BOX132
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

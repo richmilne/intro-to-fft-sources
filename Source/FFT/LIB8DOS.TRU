@@ -1,0 +1,469 @@
+EXTERNAL             !LIB8DOS
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB TESTXDATA( N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, KLEEN$ )
+
+  LET XFLAG  = 0
+  LET X2FLAG = 0
+  LET REALFLAGX  = 1
+
+  PRINT ".";
+  MAT TEMP2RE = XRE
+  PRINT ".";
+  MAT TEMP2IM = XIM
+
+  PRINT ".";
+  IF KLEEN$ = "ONE" THEN
+    CALL CLEANUP( N, TEMP2RE(), TEMP2IM() )
+  END IF
+
+  FOR K = 0 TO N - 1
+    IF MOD(K,1024) = 0 THEN PRINT ".";
+    IF TEMP2RE(K) <> 0 OR TEMP2IM(K) <> 0 THEN LET XFLAG = 1
+    IF TEMP2IM(K) <> 0 THEN LET REALFLAGX = 0
+  NEXT K
+
+  IF NOCONV = 0 THEN
+    PRINT ".";
+    MAT TEMP2RE = X2RE
+    PRINT ".";
+    MAT TEMP2IM = X2IM
+
+    PRINT ".";
+    IF KLEEN$ = "ONE" THEN
+      CALL CLEANUP( N, TEMP2RE(), TEMP2IM() )
+    END IF
+
+    FOR K = 0 TO N - 1
+      IF MOD(K,1024) = 0 THEN PRINT ".";
+      IF TEMP2RE(K) <> 0 OR TEMP2IM(K) <> 0 THEN LET X2FLAG = 1
+      IF TEMP2IM(K) <> 0 THEN LET REALFLAGX = 0
+    NEXT K
+  END IF
+
+END SUB !TESTXDATA
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, NOCONV, HJWFLAG, KLEEN$ )
+
+  LET FFTFLAG  = 0
+  LET SYMMFLAG = 1
+
+  !TESTING FFT
+  PRINT ".";
+  MAT TEMP2RE = FFTRE
+  PRINT ".";
+  MAT TEMP2IM = FFTIM
+
+  PRINT ".";
+  IF KLEEN$ = "ONE" THEN
+    CALL CLEANUP( N, TEMP2RE(), TEMP2IM() )
+  END IF
+
+  CALL TESTFFT( TEMP2RE(), TEMP2IM(), FFTFLAG, SYMMFLAG )
+
+  !TESTING FFT2
+  IF NOCONV = 0 THEN
+    LET FFT2FLAG = 0
+    MAT TEMP2RE = FFT2RE
+    PRINT ".";
+    MAT TEMP2IM = FFT2IM
+    PRINT ".";
+
+    IF KLEEN$ = "ONE" THEN
+      CALL CLEANUP( N, TEMP2RE(), TEMP2IM() )
+    END IF
+
+    CALL TESTFFT( TEMP2RE(), TEMP2IM(), FFT2FLAG, SYMMFLAG )
+
+    IF FFT2FLAG = 0 THEN LET HJWFLAG = 0
+  END IF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB TESTFFT( TEMP2RE(), TEMP2IM(), AFLAG, BFLAG )
+
+  FOR K = 0 TO N - 1
+    IF TEMP2RE(K) <> 0 OR TEMP2IM(K) <> 0 THEN LET AFLAG = 1
+    IF MOD(K,1024) = 0 THEN PRINT ".";
+  NEXT K
+
+  IF N/2 = INT(N/2) THEN    !N is even
+    FOR K = 1 TO INT(N/2)
+      IF TEMP2RE(K) <>  TEMP2RE(N - K) THEN LET BFLAG = 0
+      IF TEMP2IM(K) <> -TEMP2IM(N - K) THEN LET BFLAG = 0
+      IF MOD(K,1024) = 0 THEN PRINT ".";
+    NEXT K
+
+    IF TEMP2IM(0)   <> 0 THEN LET BFLAG = 0
+    IF TEMP2IM(N/2) <> 0 THEN LET BFLAG = 0
+
+  ELSE IF N/2 <> INT(N/2) THEN      !N is odd
+
+    FOR K = 1 TO INT(N/2)
+
+      IF TEMP2RE(K) <> 0 THEN
+        IF ABS(TEMP2RE(K) - TEMP2RE(N - K))/TEMP2RE(K) > 1E-6 THEN LET BFLAG = 0
+      ELSE IF TEMP2RE(K) = 0 THEN
+        IF ABS(TEMP2RE(K) - TEMP2RE(N - K)) > 1E-6 THEN LET BFLAG = 0
+      END IF
+
+      IF TEMP2IM(K) <> 0 THEN
+        IF ABS(TEMP2IM(K) + TEMP2IM(N - K))/TEMP2IM(K) > 1E-6 THEN LET BFLAG = 0
+      ELSE IF TEMP2IM(K) = 0 THEN
+        IF ABS(TEMP2IM(K) + TEMP2IM(N - K)) > 1E-6 THEN LET BFLAG = 0
+      END IF
+
+      IF MOD(K,1024) = 0 THEN PRINT ".";
+    NEXT K
+
+    IF ABS(TEMP2IM(0)) > 1E-6 THEN LET BFLAG = 0
+
+  END IF
+
+END SUB !TESTFFT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END SUB !TESTFFTDATA
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )
+
+  LET IFFTFLAG  = 0
+  LET REALFLAGIFFT = 1
+
+  MAT TEMP2RE = IFFTRE
+  MAT TEMP2IM = IFFTIM
+
+  IF KLEEN$ = "ONE" THEN
+    CALL CLEANUP( N, TEMP2RE(), TEMP2IM() )
+  END IF
+
+  FOR K = 0 TO N - 1
+    IF TEMP2RE(K) <> 0 OR TEMP2IM(K) <> 0 THEN LET IFFTFLAG = 1
+    IF TEMP2IM(K) <> 0 THEN LET REALFLAGIFFT = 0
+    IF MOD(K,1024) = 0 THEN PRINT ".";
+  NEXT K
+
+  IF IFFTFLAG = 0 THEN LET CONVFLAG = 0
+
+END SUB !TESTIFFTDATA
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB CLEARALL(N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, NOCONV, HJWFLAG, CLEARTEMPS )
+
+  CLEAR
+  PRINT
+  MAT XRE     = 0
+  PRINT ".";
+  MAT XIM     = 0
+  PRINT ".";
+  MAT FFTRE   = 0
+  PRINT ".";
+  MAT FFTIM   = 0
+  PRINT ".";
+  MAT IFFTRE  = 0
+  PRINT ".";
+  MAT IFFTIM  = 0
+  PRINT ".";
+
+  MAT TEMPRE  = 0
+  PRINT ".";
+  MAT TEMPIM  = 0
+  PRINT ".";
+  MAT TEMP2RE = 0
+  PRINT ".";
+  MAT TEMP2IM = 0
+  PRINT ".";
+
+  IF NOCONV = 0 THEN
+    MAT X2RE = 0
+    PRINT ".";
+    MAT X2IM = 0
+    PRINT ".";
+    IF HJWFLAG = 0 THEN
+      MAT FFT2RE = 0
+      PRINT ".";
+      MAT FFT2IM = 0
+      PRINT ".";
+      LET FFT2FLAG = 0
+    END IF
+  END IF
+  PRINT
+
+  LET XFLAG     = 0
+  LET X2FLAG    = 0
+  LET REALFLAGX = 1
+  LET FFTFLAG   = 0
+  LET SYMMFLAG  = 1
+  LET IFFTFLAG  = 0
+  LET REALFLAGIFFT = 1
+  LET CONVFLAG  = 0
+
+END SUB !CLEARALL
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB CLEANUP( N, TEMPRE(), TEMPIM() )
+
+  LET MAXRE = 0
+  LET MAXIM = 0
+
+  FOR I = 0 TO N - 1
+    LET MAXRE = MAX( MAXRE, ABS(TEMPRE(I)) )
+    LET MAXIM = MAX( MAXIM, ABS(TEMPIM(I)) )
+    IF MOD(I,256) = 0 THEN PRINT ".";
+  NEXT I
+
+  LET MAXALL = MAX( MAXRE, MAXIM )
+
+  IF MAXRE < 1E-7*MAXALL THEN
+    FOR I = 0 TO N - 1
+      LET TEMPRE(I) = 0
+      IF MOD(I,256) = 0 THEN PRINT ".";
+    NEXT I
+  ELSE
+    FOR I = 0 TO N - 1
+      IF ABS(TEMPRE(I)) < 1E-7*MAXRE THEN LET TEMPRE(I) = 0
+      IF MOD(I,256) = 0 THEN PRINT ".";
+    NEXT I
+  END IF
+
+  IF MAXIM < 1E-7*MAXALL THEN
+    FOR I = 0 TO N - 1
+      LET TEMPIM(I) = 0
+      IF MOD(I,256) = 0 THEN PRINT ".";
+    NEXT I
+  ELSE
+    FOR I = 0 TO N - 1
+      IF ABS(TEMPIM(I)) < 1E-7*MAXIM THEN LET TEMPIM(I) = 0
+      IF MOD(I,256) = 0 THEN PRINT ".";
+    NEXT I
+  END IF
+
+END SUB !CLEANUP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX48M( A$ )
+
+  ASK CURSOR AZ, AX
+  DO
+    LET FRAZ$ = "³ MAIN MENU ... M ³  ?  "
+
+    CALL APROMPT( AZ+1, 1, A$, FRAZ$,  ZM$ )
+
+    IF ZM$ <> "M" THEN SOUND 500,.1
+  LOOP UNTIL ZM$ = "M"
+
+END SUB !BOX48M
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX48MFIX( P, Q, A$ )
+
+  DO
+    LET FRAZ$ = "³ MAIN MENU ... M ³  ?  "
+
+    CALL APROMPT( P, Q, A$, FRAZ$, ZM$ )
+
+    IF ZM$ <> "M" THEN SOUND 500,.1
+  LOOP UNTIL ZM$ = "M"
+
+END SUB !BOX48M
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX48C( A$ )
+
+  ASK CURSOR AZ, AX
+  DO
+    LET FRAZ$ = "³ CONTINUE ... C ³  ?  "
+
+    CALL APROMPT( AZ+1, 1, A$, FRAZ$,  ZC$ )
+
+    IF ZC$ <> "C" THEN SOUND 500,.1
+  LOOP UNTIL ZC$ = "C"
+
+END SUB !BOX48C
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX48CFIX( P, Q, A$ )
+
+  DO
+    LET FRAZ$ = "³ CONTINUE ... C ³  ?  "
+
+    CALL APROMPT( P, Q, A$, FRAZ$, ZC$ )
+
+    IF ZC$ <> "C" THEN SOUND 500,.1
+  LOOP UNTIL ZC$ = "C"
+
+END SUB !BOX48CFIX
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX54( FN$, Z0$, A$, CONCORFLAG )
+
+  CLEAR
+  CALL BOXU(5,23,30,3)
+  IF FN$ = "A" THEN
+    PRINT TAB(7,27);"RUN ANALYSIS ......... Y"
+  ELSE IF FN$ = "S" THEN
+    PRINT TAB(7,27);"RUN SYNTHESIS ........ Y"
+  ELSE IF FN$ = "C" THEN
+    IF CONCORFLAG = 1 THEN
+      PRINT TAB(7,27);"RUN CONVOLUTION ...... Y"
+    ELSE IF CONCORFLAG = 0 THEN
+      PRINT TAB(7,27);"RUN CORRELATION ...... Y"
+    END IF
+  END IF
+
+  DO
+    LET FRAZ$ = " ? "
+
+    CALL APROMPT( 11, 38, A$, FRAZ$, Z0$ )
+
+    IF Z0$ <> "Y" AND Z0$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL Z0$ = "Y" OR Z0$ = "Q"
+
+END SUB !BOX54
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX57( ZX$, TOTALTIME, A$ )
+
+  CLEAR
+  LET DS = 22
+  LET ES = 37
+  LET TD = 32
+  IF ZX$ = "B" THEN
+    PRINT TAB(7,25); "POWER-OF-2 ANALYSIS RUN COMPLETED"
+  ELSE IF ZX$ = "C" THEN
+    PRINT TAB(7,25); "COMPOSITE ANALYSIS RUN COMPLETED"
+  ELSE IF ZX$ = "D" THEN
+    PRINT TAB(7,24); "POWER-OF-2 SYNTHESIS RUN COMPLETED"
+    LET DS = 21
+    LET ES = 38
+    LET TD = 31
+  ELSE IF ZX$ = "E" THEN
+    PRINT TAB(7,25); "COMPOSITE SYNTHESIS RUN COMPLETED"
+  END IF
+
+  CALL BOXU(5,DS,ES,5)
+
+  LET STRING$ = "ELAPSED TIME = " & STR$(TOTALTIME) & " SECONDS"
+  LET COUNT = LEN(STRING$)
+  LET START = 41 - INT(COUNT/2)
+  PRINT TAB(9,START);STRING$
+
+  CALL BOX48MFIX(13,TD,A$)
+
+END SUB !BOX57
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOXU(A,B,U,V)
+!PRINT "HELLO1"
+!get key wer
+  PRINT TAB(A,B);"É"
+!PRINT "HELLO2"
+!get key wer
+  PRINT TAB(A,B+U+1);"»"
+!PRINT "HELLO3"
+!get key wer
+  PRINT TAB(A+V+1,B);"È"
+!PRINT "HELLO4"
+!get key wer
+  PRINT TAB(A+V+1,B+U+1);"¼"
+!PRINT "HELLO5"
+!get key wer
+  FOR I = 1 TO U
+    PRINT TAB(A,B+I);"Í"
+    PRINT TAB(A+V+1,B+I);"Í"
+  NEXT I
+! PRINT "HELLO6"
+!get key wer
+  FOR I = 1 TO V
+    PRINT TAB(A+I,B);"º"
+    PRINT TAB(A+I,B+U+1);"º"
+  NEXT I
+
+END SUB !BOXU
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB LINEU(A,B,U)
+
+  PRINT TAB(A,B);"Ì"
+  PRINT TAB(A,B+U+1);"¹"
+  FOR I = 1 TO U
+    PRINT TAB(A,B+I);"Í"
+  NEXT I
+
+END SUB !BOXU
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB APROMPT( A, B, A$, FRAZ$, Z1$ )
+
+    DO
+      LET SXC = 0
+      WHEN ERROR IN
+        PRINT TAB(A,1);A$
+        PRINT TAB(A,B);
+        INPUT PROMPT FRAZ$ : Z1$
+      USE
+        SOUND 500,.1
+        LET SXC = 1
+      END WHEN
+    LOOP WHILE SXC = 1
+
+    LET Z1$ = UCASE$(Z1$)
+
+END SUB !APROMPT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB SETCOLOR( COLOR$ )
+
+  IF COLOR$ = "CYAN/BLUE" THEN
+    SET COLOR "CYAN/BLUE"
+    SET COLOR MIX (3) .5, 1, 1
+  ELSE
+    SET COLOR COLOR$
+  END IF
+
+END SUB !SETCOLOR
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

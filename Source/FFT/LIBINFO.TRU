@@ -1,0 +1,30 @@
+EXTERNAL    !LIBINFO
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB VERSIONDATE( VERSDATE )
+
+  LET VERSDATE = 95251
+
+END SUB !VERSIONDATE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB SHOWINFO
+
+  PRINT TAB(4,22);"Version DOS-1.35 September 8, 1998, 19:22"
+  PRINT TAB(6,32);"Norman Morrison"
+  PRINT TAB(7,28);"University of Cape Town"
+  PRINT TAB(8,25);"Rondebosch, South Africa 7700"
+  PRINT TAB(9,24);"Email: norman@eleceng.uct.ac.za"
+  PRINT TAB(11,21);"Development Language System provided by"
+  PRINT TAB(12,33);"True BASIC Inc."
+  PRINT TAB(13,31);"12 Commerce Avenue"
+  PRINT TAB(14,27);"West Lebanon NH, USA 03784"
+  PRINT TAB(16,25);"Accompanying text published by"
+  PRINT TAB(17,28);"John Wiley & Sons, Inc."
+  PRINT TAB(18,33);"605 3rd Avenue"
+  PRINT TAB(19,26);"New York, NY, USA 10158-0012"
+
+END SUB !SHOWINFO
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

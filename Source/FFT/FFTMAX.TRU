@@ -20,47 +20,63 @@
 !         THAT MEMORY WILL PERMIT, POWER OF 2, COMPOSITE OR PRIME
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  LIBRARY "LIB1FFT.TRC"
-  LIBRARY "LIB2FFT.TRC"
-  LIBRARY "LIB3FFT.TRC"
-  LIBRARY "LIB4FFT.TRC"
-  LIBRARY "LIB5FFT.TRC"
-  LIBRARY "LIB6FFT.TRC"
-  LIBRARY "LIB8FFT.TRC"
+LIBRARY "LIB1FFT.TRC"
+LIBRARY "LIB2FFT.TRC"
+LIBRARY "LIB3FFT.TRC"
+LIBRARY "LIB4FFT.TRC"
+LIBRARY "LIB5FFT.TRC"
+LIBRARY "LIB6FFT.TRC"
+LIBRARY "LIB8FFT.TRC"
 
-  LIBRARY "LIB1DOS.TRC"
-  LIBRARY "LIB2DOS.TRC"
-  LIBRARY "LIB3DOS.TRC"
-  LIBRARY "LIB4DOS.TRC"
-  LIBRARY "LIB5DOS.TRC"
-  LIBRARY "LIB6DOS.TRC"
-  LIBRARY "LIB8DOS.TRC"
+LIBRARY "LIB1DOS.TRC"
+LIBRARY "LIB2DOS.TRC"
+LIBRARY "LIB3DOS.TRC"
+LIBRARY "LIB4DOS.TRC"
+LIBRARY "LIB5DOS.TRC"
+LIBRARY "LIB6DOS.TRC"
+LIBRARY "LIB8DOS.TRC"
 
-  LIBRARY "LIBINFO.TRC"
+LIBRARY "LIB3GUI.TRC"
 
-  LIBRARY "STRLIB.TRC"
-  LIBRARY "TABLIB.TRC"
-  LIBRARY "SHELL.TRU"
-  LIBRARY "XM_FREE.TRC"
+LIBRARY "LIBINFO.TRC"
 
-  WHEN ERROR IN
+LIBRARY "STRLIB.TRC"
+LIBRARY "TABLIB.TRC"
+LIBRARY "SHELL.TRU"
+!  LIBRARY "XM_FREE.TRC"
+LIBRARY "c:\tbgold\tblibs\truectrl.trc"
+LIBRARY "c:\tbgold\tblibs\truedial.trc"
 
-    CALL MAINSUB( "FFTMAX" )
+CALL TC_Init
 
-  USE
-    SOUND 500,.1
-    CLEAR
-    PRINT TAB(2,1);"AN ERROR HAS OCCURRED... THE ERROR MESSAGE READS"
-    LET MESSAGE$ = EXTEXT$
-    PRINT TAB(4,1);"------------------------------------------------"
-    PRINT TAB(5,1);MESSAGE$
-    PRINT TAB(6,1);"------------------------------------------------"
-    LET A$ = REPEAT$( " ", 80 )
-    CALL BOX48C( A$ )
-    PRINT
-    PRINT
-    PRINT
-  END WHEN
+WHEN ERROR IN
 
-END !FFTMAX.TRU
+     CALL MAINSUB( "FFTMAX" )
+
+USE
+     SOUND 500,.1
+     CLEAR
+     LET title$ = "Error message"
+     LET message$ = "AN ERROR HAS OCCURRED... THE ERROR MESSAGE READS"
+     LET message$ = message$ & "|------------------------------------------------|"
+     LET message$ = message$ & EXTEXT$
+     LET message$ = message$ & "|Type = " & str$(EXTYPE)
+     LET message$ = message$ & "|Line = " & str$(EXLINE)
+     LET message$ = message$ & "|Info = " & EXLINE$
+     LET message$ = message$ & "|------------------------------------------------"
+     CALL TD_Message(title$, message$, "OK", 1, result)
+
+
+     !    PRINT TAB(5,1);MESSAGE$
+     !    PRINT TAB(6,1);"------------------------------------------------"
+     !    LET A$ = REPEAT$( " ", 80 )
+     !    CALL BOX48C( A$ )
+     !    PRINT
+     !    PRINT
+     !    PRINT
+END WHEN
+
+CALL TC_Cleanup
+
+END                               !FFTMAX.TRU
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

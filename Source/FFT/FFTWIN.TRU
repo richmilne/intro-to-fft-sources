@@ -1,0 +1,71 @@
+LIBRARY "c:\tbgold\TBLIBS\TrueCtrl.trc"
+CALL TC_Init
+
+DIM menu$(26, 0:13)
+MAT READ menu$
+
+! Main menus
+DATA File@F, Save@S, Save As...@A, Save Old Problem@O, Retrieve Old Problem@R,  @, Quit@Q, "", "", "", "", "", "", ""
+DATA Create Values@C, Waveform Properties@W, @, Create X@X, Create X and X2@2, Create F@F, Create F and F2@a, Create Dirac Deltas@D, Create H(jw) in F2@H, @, Use Old Problem@U, "", "", ""
+DATA Transforms@T, Analysis@A, Synthesis@S, Convolution@C, Correlation@o, "", "", "", "", "", "", "", "", ""
+Data Postprocessors@P, X Postprocessor@@, F Postprocessor@@, Y Postprocessor@@, "", "", "", "", "", "", "", "", "", ""
+Data Plots@o, Primary Vector Plots@@, Secondary Vector Plots@@, "", "", "", "", "", "", "", "", "", "", ""
+data Numbers@N, Time Domain@T, @, Frequency Domain@@, "", "", "", "", "", "", "", "", "", ""
+
+!Hierarchical menus
+data @Frequency Domain, Single Pulse@S, Eternal Train@E, "", "", "", "", "", "", "", "", "", "", ""
+data @Y Postprocessor, Multiply Y by Constant@M, Shave Y@S, Sample Y@A, Copy Y to X@C, "", "", "", "", "", "", "", "", ""
+data @F Postprocessor, CopyingF@@, AdditionF@@, Difference@@, MultiplicationF@@, Conjugate@@, Filter@@, SwopF@@, ZeroF@@, @, Energy, Sample, Lock F2, ""
+data @X Postprocessor, CopyingX@@, AdditionX@@, MultiplicationX@@, Clean@@, SwopX@@, ZeroX@@, @, Sample, "", "", "", "", ""
+
+!Hierarchical menu for X postprocessors
+data @CopyingX, Copy X to X2, Copy X2 to X, Copy X to F, Copy F to X, Copy Y to X, "", "", "", "", "", "", "", ""
+data @AdditionX, Add X to X2, Add X2 to X, "", "", "", "", "", "", "", "", "", "", ""
+data @MultiplicationX, Multiply X by a Constant, Multiply X2 by a Constant, Real Multiply  XRE and X2RE into XRE, Complex Multiply X and X2 into X, Multiply X by exp(j wo t), Multiply X2 by cos(wo t) into X, "", "", "", "", "", "", ""
+data @Clean, Clean X, Clean X2, "", "", "", "", "", "", "", "", "", "", ""
+data @SwopX, Swop X and X2, "Swop X and X2, F and F2", Swop X and F, "Swop X and F, X2 and F2", "", "", "", "", "", "", "", "", ""
+data @ZeroX, Set XIM to Zero, Set XRE to Zero, "", "", "", "", "", "", "", "", "", "", ""
+
+!Hierarchical menu for F postprocessors
+data @CopyingF, Copy F to F2, Copy F2 to F, Copy F to X, Copy X to F, Copy FRE to FIM, "", "", "", "", "", "", "", ""
+data @AdditionF, Add F to F2, Add F2 to F, "", "", "", "", "", "", "", "", "", "", ""
+data @Difference, Backward-Difference 1st, Forward-Difference 1st, Central-Difference 1st, Central-Difference 2nd, "", "", "", "", "", "", "", "", ""
+data @MultiplicationF, Multiply F by a Constant, Multiply F2 by a Constant, Complex Multiply F and F2 into F, Complex Divide F by F2 into F, Multiply F by exp(j w ç), "", "", "", "", "", "", "", ""
+data @Conjugate, Conjugate F, Conjugate F2, "", "", "", "", "", "", "", "", "", "", ""
+data @Filter, Shave F, Low-Pass Filter F, High-Pass Filter F, "", "", "", "", "", "", "", "", "", ""
+data @SwopF, Swop F and F2, "Swop X and X2, F and F2", Swop X and F, "Swop X and F, X2 and F2", Swop FRE and FIM, "", "", "", "", "", "", "", ""
+data @ZeroF, Set FIM to Zero, Set FRE to Zero, "", "", "", "", "", "", "", "", "", "", ""
+
+!Primary and Secondary Vector Plots
+data @Secondary Vector Plots, Real Part of X2, Imaginary Part of X2, Modulus of X2, @, Real F2@R, Imaginary Part of F2@I, Magnitude Spectrum@M, Phase Spectrum@P, Energy Spectrum@E, "", "", "", ""
+data @Primary Vector Plots, Real Part of X, Imaginary Part of X, Modulus of X, @, Real F@R, Imaginary Part of F@I, Magnitude Spectrum@M, Phase Spectrum@P, Energy Spectrum@E, @, Real Part of Y, Imaginary Part of Y, Modulus of Y
+
+
+CALL TC_GetScreenSize(ls, rs, bs, ts)
+CALL TC_Win_Create(wid, "close hide size title", .2, .8, .1, .9)
+CALL TC_Win_SetTitle(wid, "Fast Fourier Transform")
+
+CALL TC_Menu_Set(wid, menu$)
+
+CALL TC_Show(wid)
+
+DO
+   CALL TC_Event(0, event$, window, x1, x2)
+
+   IF event$="MENU" then
+      LET menu = x1
+      LET item = x2
+
+      IF menu = 1 then
+         IF item = 6 then EXIT DO ELSE PRINT "Menu choice: ";menu$(menu, item)
+      ELSE
+         PRINT "Menu choice: ";menu$(menu, item); "["; menu; "-"; item; "]"
+      END IF
+
+   END IF
+
+LOOP
+
+CALL TC_Cleanup
+
+END

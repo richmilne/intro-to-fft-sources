@@ -1,0 +1,211 @@
+LIBRARY "C:\TBGOLD\TBLIBS\TRUECTRL.TRC"
+LIBRARY "C:\TBGOLD\TBLIBS\TRUEDIAL.TRC"
+
+!(N, NN, MODE$, SDR$, TYPE$, SGR$, T, TT)
+LET N = 123
+LET T = 321
+LET MODE$ = "DISC"
+LET TYPE$ = "PUL"
+
+CALL TC_Init
+
+! Main menu data
+DIM menu$(1, 0:2)
+MAT READ menu$
+DATA File@F, Show/Hide@s, Quit@Q
+
+! Radio Buttons data
+DIM analysi$(2), pulse$(2)
+MAT READ analysi$, pulse$
+DATA Sampled, Discrete
+DATA Pulse, Periodic
+
+!List buttons data
+DIM nlist$(0:16), tlist$(0:10)
+MAT READ nlist$, tlist$
+DATA "", 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536
+DATA "", 1, 2, 4, 6, 8, 10, 12, 14, 16, 18
+
+! Set up window
+
+CALL TC_GetScreenSize(ls, rs, bs, ts)
+
+CALL TC_SetUnitsToPixels
+LET rs=rs+1
+LET bs = bs +1
+LET xpos = (rs-(21*16))/2
+LET ypos = (bs-(24*16))/2
+CALL TC_Win_Create(wid, "title", xpos, xpos+21*16, ypos+24*16, ypos)
+CALL TC_Win_SetTitle(wid, "Enter Signal Properties")
+
+! Initialise variables
+DIM gbid(5)                       ! Array to hold group box id's
+DIM rdid(4)                       ! Stores radio group id's
+DIM stid(4)                       ! Stores Static text id's
+DIM listid(2)                     ! List edit box id's
+DIM pbid (2)                      ! Push button id's
+
+LET xpos = 2*16
+LET ypos = 8*16
+
+! Enter N
+LET text$ = "The FFT runs fastest when N is an exact power of 2. Next best is when N is a "
+LET text$ = text$ & "highly composite number. Slowest running is when N is a prime number."
+CALL TC_Groupbox_Create (gbid(4), "Number of Samples", xpos-(1*16), xpos+(18*16), ypos+(1*16), ypos-(8*16))
+CALL TC_SText_Create(stid(1), text$ & "|Left", xpos, xpos+(17*16), ypos, ypos-(6*16))
+CALL TC_Stext_Create(stid(2), "Enter N:", xpos, xpos+(4*16), ypos, ypos-(1*16))
+CALL TC_ListEdit_Create (listid(1), nlist$(), xpos+(4.5*16), xpos+(10.5*16), ypos-(1.2*16), ypos+(9*16))
+!CALL TC_ListEdit_Set(listid(1),"")
+
+! Enter T
+LET ypos = 21*16
+LET text$ = "T is the time interval that N represents."
+CALL TC_Groupbox_Create (gbid(5), "Time interval", xpos-(1*16), xpos+(18*16), ypos+(1*16), ypos-(5*16))
+CALL TC_Stext_Create(stid(3), text$ & "|Left", xpos, xpos+(17*16), ypos-(2*16), ypos-(3*16))
+CALL TC_Stext_Create(stid(4), "Enter T:", xpos, xpos+(4*16), ypos, ypos-(1*16))
+CALL TC_ListEdit_Create (listid(2), tlist$(), xpos+(4.5*16), xpos+(10.5*16), ypos-(1.2*16), ypos+(6*16))
+
+! Enter Waveform properties
+LET ypos = 15*16
+CALL DrawGroup(gbid(1), rdid(1), "Analysis Method", analysi$, xpos,ypos)
+CALL DrawGroup(gbid(2), rdid(2), "Pulse Type", pulse$, xpos+(9*16),ypos)
+CALL TC_Groupbox_Create (gbid(3), "Waveform properties", xpos-(1*16), xpos+(18*16), ypos+(1*16), ypos-(6*16))
+
+! Create pushbuttons
+LET ypos = 24*16
+LET xpos = (11*16)/2
+CALL TC_PushBtn_Create(pbid(1), "OK|Center", xpos, xpos+4*16, ypos, -1)
+CALL TC_PushBtn_Create(pbid(2), "Quit|Center", xpos+6*16, xpos+10*16, ypos, -1)
+
+! OVER HERE, SET UP DEFAULTS FOR CONTROLS. BLANK OUT IRRELEVANT CONTROLS
+LET flag = 1
+CALL TC_ListEdit_Set(listid(1),str$(N))
+CALL TC_ListEdit_Set(listid(2),str$(T))
+IF MODE$ = "DISC" then
+   CALL TC_RadioGroup_Set (rdid(1),2)
+   CALL TC_Erase(rdid(2))
+   CALL TC_Erase(listid(2))
+   CALL TC_Erase(gbid(2))
+   CALL TC_Erase(gbid(5))
+   CALL TC_Erase(stid(3))
+   CALL TC_Erase(stid(4))
+   LET flag = 0
+END IF
+IF TYPE$ = "PER" then CALL TC_RadioGroup_Set(rdid(2),2)
+
+CALL TC_Show(wid)
+
+LET exit_flag = 0
+
+DO
+   DO
+      CALL TC_Event(0, event$, window, x1, x2)
+
+      IF (event$ = "SELECT" and x1 = 0 and window=wid) then exit do
+
+      IF event$ = "CONTROL DESELECTED" then
+         IF x2 = rdid(1) then     ! Analysis
+            CALL TC_RadioGroup_On (rdid(1), button)
+            PRINT flag
+            IF flag = 0 and button = 1 then
+               CALL TC_Show(rdid(2))
+               CALL TC_Show(listid(2))
+               CALL TC_Show(gbid(2))
+               CALL TC_Show(gbid(5))
+               CALL TC_Show(stid(3))
+               CALL TC_Show(stid(4))
+               LET flag = 1
+            ELSE IF flag = 1 and button = 2 then
+               CALL TC_Erase(rdid(2))
+               CALL TC_Erase(listid(2))
+               CALL TC_Erase(gbid(2))
+               CALL TC_Erase(gbid(5))
+               CALL TC_Erase(stid(3))
+               CALL TC_Erase(stid(4))
+               LET flag = 0
+            END IF
+         ELSE IF x2 = pbid(1) then     ! Ok
+            ! Read in the return values from the controls
+
+            CALL TC_RadioGroup_On(rdid(1), button)
+            IF button=1 THEN LET SDR$ = "S" ELSE LET SDR$ = "D"
+            CALL TC_ListEdit_Get(listid(1), N$)
+            CALL TC_RadioGroup_On(rdid(2), button)
+            IF button=1 THEN LET SGR$ = "L" ELSE LET SGR$ = "R"
+            CALL TC_ListEdit_Get(listid(2), T$)
+
+            IF N$<>"" AND ncpos(N$ , "1234567890")=0 THEN LET NN = abs(int(VAl(N$))) ELSE LET NN = 0
+            IF T$<>"" AND ncpos(T$ , "1234567890")=0 THEN LET TT = abs(int(VAl(T$))) ELSE LET TT = 0
+
+            IF NN=0 OR (TT=0 AND flag=1) THEN
+               LET title$ = "Invalid data entered"
+               IF flag = 0 THEN
+                  LET message$ = "N has been left at zero or is otherwise invalid.|Please enter a non-zero value for N"
+               ELSE
+                  LET message$ = "Either N or T have been left at zero or are otherwise invalid. |Please enter non-zero values for these parameters"
+               END IF
+               LET message$ = message$ & "|Numbers entered must be positive integers"
+               CALL TD_Warn(message$, "OK", 1, button)
+               LET exit_flag = 0
+            ELSE
+                              LET message$ = "N = " & str$(N)
+                              LET message$ = message$ & "|T = " & str$(T)
+                              LET message$ = message$ & "|NN = " & str$(NN)
+                              LET message$ = message$ & "|TT = " & str$(TT)
+                              LET message$ = message$ & "|MODE$ = " & MODE$
+                              LET message$ = message$ & "|TYPE$ = " & TYPE$
+                              LET message$ = message$ & "|SDR$ = " & SDR$
+                              LET message$ = message$ & "|SGR$ = " & SGR$
+                              LET message$ = message$ & "|flag = " & str$(flag)
+                              CALL TD_Message("", message$, "OK|Go Again", 1, button)
+               LET exit_flag = 1
+               EXIT DO
+            END IF
+         ELSE IF x2=pbid(2) then  ! Quit
+            LET exit_flag=1
+            EXIT DO
+         END IF
+      END IF
+   LOOP
+LOOP until exit_flag = 1
+
+CALL TC_Free(wid)
+
+CALL TC_Cleanup
+END
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+SUB DrawGroup(gdid, rdid, group_title$, group_text$(), xpos, ypos)
+    ! gid		- ID number of enclosing group box
+    ! rdid		- ID number of radio box group
+    ! group_title$	- Group title
+    ! group_text$	- List containing text of radio group buttons
+    ! xpos, ypos	- Pixel co-ordinates in target window of group's
+    !			  lower left hand corner
+
+    OPTION TYPO
+
+    !LIBRARY "..\TrueCtrl.trc"
+
+    LOCAL num_list                ! Number of items in the list
+    LOCAL len_title               ! Length of the group bos title
+    LOCAL radio_length            ! Length of radio group
+    LOCAL radio_height            ! Height of radio group
+
+    !Align co-ordinates on nearest 16-width pixel block
+    LET xpos = int(xpos/16) * 16
+    LET ypos = int(ypos/16) * 16
+
+    ! Find the length of the array
+    LET num_list = size(group_text$)
+    LET len_title = LEN(group_title$)
+
+    LET radio_length = 96         !len_title*8+32 ! This setting is purely arbitrary
+    LET radio_height = num_list*16
+
+    CALL TC_Groupbox_Create (gdid, group_title$, xpos, xpos+radio_length+32, ypos, ypos-(radio_height+40))
+    CALL TC_RadioGroup_Create (rdid, group_text$(), xpos+16, xpos+radio_length, ypos-16, ypos-(16+radio_height))
+    CALL TC_RadioGroup_Set (rdid,1)
+
+END SUB                           ! DrawGroup
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

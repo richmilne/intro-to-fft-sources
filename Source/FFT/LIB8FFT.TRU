@@ -609,6 +609,8 @@ END SUB !XFORM2
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUB FACTORIZE( N, Q, R() )
 
+CALL TD_Warn("N = " & str$(N), "OK", 1, button)
+
   LET NUM = N
   LET RADIX = 2
   LET B = 1

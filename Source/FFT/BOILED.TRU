@@ -1,0 +1,141 @@
+EXTERNAL                          !LIB3FFT
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ENTERNANDT( N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, FORM$, TYPE$, T, MODE$, NOCONV, MMENU, HJWFLAG, A$, CALL$, FIRSTTIME, FREEMEM, ONLYONCE, CLEARTEMPS )
+
+    LET FLAGCLEARDATA = 0
+
+    LET NOCONV = 0
+    LET OLDN = N
+
+    LET TFLAG = 0
+    LET TYPEFLAG = 0
+
+    LET OLDMODE$ = MODE$
+    LET OLDTYPE$ = TYPE$
+
+    LET OLDT = T
+
+    CALL BOX4TO9( N, NN, MODE$, SDR$, TYPE$, SGR$, T, TT, RETURN)    ! Enter N
+
+    IF RETURN = 0 THEN
+
+       LET NN = ROUND(NN)
+       LET VALN = NN
+       CALL POWERTEST( VALN, CNR, POT )
+       IF POT = 1 THEN
+          LET NU = CNR
+          LET FORM$ = "POWEROF2"
+       ELSE
+          CALL FACTORIZE( NN, Q, R() )
+          IF Q > 1 THEN
+             LET FORM$ = "COMPOSITE"
+          ELSE IF Q = 1 THEN
+             LET FORM$ = "PRIME"
+          END IF
+       END IF
+
+       IF NN > 256 THEN
+          LET K = 0
+          MAT REDIM MATK(0:K, 0:K)     ! Lots of redimming
+          MAT REDIM XRE(0:K)
+          MAT REDIM XIM(0:K)
+          MAT REDIM FFTRE(0:K)
+          MAT REDIM FFTIM(0:K)
+          MAT REDIM X2RE(0:K)
+          MAT REDIM X2IM(0:K)
+          MAT REDIM FFT2RE(0:K)
+          MAT REDIM FFT2IM(0:K)
+          MAT REDIM IFFTRE(0:K)
+          MAT REDIM IFFTIM(0:K)
+          MAT REDIM TEMPRE(0:K)
+          MAT REDIM TEMPIM(0:K)
+          MAT REDIM TEMP2RE(0:K)
+          MAT REDIM TEMP2IM(0:K)
+          MAT REDIM KOS(0:K)
+          MAT REDIM ZIN(0:K)
+       END IF
+       MAT REDIM XRE(0:NN)
+       MAT REDIM XIM(0:NN)
+       MAT REDIM FFTRE(0:NN)
+       MAT REDIM FFTIM(0:NN)
+       MAT REDIM IFFTRE(0:NN)
+       MAT REDIM IFFTIM(0:NN)
+       MAT REDIM TEMPRE(0:NN)
+       MAT REDIM TEMPIM(0:NN)
+       MAT REDIM TEMP2RE(0:NN)
+       MAT REDIM TEMP2IM(0:NN)
+
+       IF FORM$ <> "POWEROF2" THEN
+          MAT REDIM MATK(0:NN, 0:Q)
+          LET VV = NN
+       ELSE IF FORM$ = "POWEROF2" THEN
+          MAT REDIM MATK(0:1, 0:1)
+          LET VV = NN/2
+       END IF
+       MAT REDIM KOS(0:VV)
+       MAT REDIM ZIN(0:VV)
+
+       MAT REDIM X2RE(0:NN)       ! And some more redimming
+       MAT REDIM X2IM(0:NN)
+       MAT REDIM FFT2RE(0:NN)
+       MAT REDIM FFT2IM(0:NN)
+
+       LET N = NN
+
+       IF FORM$ = "PRIME" THEN
+          CALL BOX41( N, FORM$, NU, A$ )    ! Prints power of 2
+       ELSE IF FORM$ = "COMPOSITE" THEN
+          CALL BOX42( N, Q, R(), A$ )  ! Prints prime composites
+       END IF
+
+       IF N <> OLDN THEN
+          LET FLAGCLEARDATA = 1
+       END IF
+
+       IF SDR$ = "D" THEN
+          LET MODE$ = "DISC"
+          LET TYPE$ = "NOT SET"
+          LET T = 1
+       ELSE IF SDR$ = "S" THEN
+          LET MODE$ = "SAMP"
+       END IF
+
+       IF MODE$ <> OLDMODE$ THEN
+          LET FLAGCLEARDATA = 1
+          LET FIRSTTIME = 1       !RESET PLOT PARAMETERS
+       END IF
+
+       ! Enter Type now
+       IF MODE$ = "SAMP" AND OLDMODE$ <> "SAMP" THEN
+          LET TFLAG = 1
+          LET TYPEFLAG = 1
+       END IF
+
+       LET T = TT
+       IF T <> OLDT THEN
+          LET FLAGCLEARDATA = 1
+       END IF
+
+       IF SGR$ = "R" THEN
+          LET TYPE$ = "PER"
+       ELSE IF SGR$ = "L" THEN
+          LET TYPE$ = "PUL"
+       END IF
+
+       IF TYPE$ <> OLDTYPE$ THEN
+          LET FLAGCLEARDATA = 1
+          LET FIRSTTIME = 1       !RESET PLOT PARAMETERS
+       END IF
+
+    END IF
+
+    IF FLAGCLEARDATA = 1 THEN
+       LET HJWFLAG = 0
+       LET CLEARTEMPS = 1
+       CALL CLEARALL( N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, NOCONV, HJWFLAG, CLEARTEMPS )
+    END IF
+
+END SUB                           !ENTERNANDT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

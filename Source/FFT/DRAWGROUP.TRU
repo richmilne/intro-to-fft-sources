@@ -1,0 +1,37 @@
+EXTERNAL                          !DrawGroup Subroutine
+
+! SUB DrawGroup - Draws a radio group enclosed by a titled box
+
+SUB DrawGroup(gdid, rdid, group_title$, group_text$(), xpos, ypos)
+    ! gid		- ID number of enclosing group box
+    ! rdid		- ID number of radio box group
+    ! group_title$	- Group title
+    ! group_text$	- List containing text of radio group buttons
+    ! xpos, ypos	- Pixel co-ordinates in target window of group's
+    !			  lower left hand corner
+
+    OPTION TYPO
+
+LIBRARY "..\TrueCtrl.trc"
+
+    LOCAL num_list                ! Number of items in the list
+    LOCAL len_title               ! Length of the group bos title
+    LOCAL radio_length            ! Length of radio group
+    LOCAL radio_height            ! Height of radio group
+
+    !Align co-ordinates on nearest 16-width pixel block
+    LET xpos = int(xpos/16) * 16
+    LET ypos = int(ypos/16) * 16
+
+    ! Find the length of the array
+    LET num_list = size(group_text$)
+    LET len_title = LEN(group_title$)
+
+    LET radio_length = 96        !len_title*8+32 ! This setting is purely arbitrary
+    LET radio_height = num_list*16
+
+    CALL TC_Groupbox_Create (gdid, group_title$, xpos, xpos+radio_length+32, ypos, ypos-(radio_height+40))
+    CALL TC_RadioGroup_Create (rdid, group_text$(), xpos+16, xpos+radio_length, ypos-16, ypos-(16+radio_height))
+    CALL TC_RadioGroup_Set (rdid,1)
+
+END SUB

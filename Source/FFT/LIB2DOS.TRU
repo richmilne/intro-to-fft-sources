@@ -66,26 +66,30 @@ END SUB !BOX77
 SUB BOX101( Z2$, SUT$, A$ )
 
   CLEAR
-  CALL BOXU(4,20,35,7)
-  CALL LINEU(6,20,35)
+!  CALL BOXU(4,20,35,7)
+!  CALL LINEU(6,20,35)
   IF Z2$ = "X" THEN
-    PRINT TAB(5,29); "THE  X  FUNCTION IS"
-    PRINT TAB(8,23); "REAL ........................ R"
-    PRINT TAB(10,23);"COMPLEX ..................... C"
+    LET message$ = "The  X  function is...|"
+    LET button$ =  "Real|"
+    LET button$ = button$  & "Complex"
   ELSE
-    PRINT TAB(5,23); "THE  X  AND  X2  FUNCTIONS ARE"
-    PRINT TAB(8,23); "BOTH REAL ................... R"
-    PRINT TAB(10,23);"ONE OR BOTH COMPLEX ......... C"
+    LET message$ = "The  X  and  X2  functions are..."
+    LET button$ = "Both Real|"
+    LET button$ = button$  & "One or Both Complex"
   END IF
 
-  DO
+  CALL TD_Warn (message$, button$, 1, button)
 
-    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
+  IF button = 1 then let SUT$ = "R" else let SUT$="C"
 
-    CALL APROMPT( 14, 29, A$, FRAZ$, SUT$ )
-
-    IF SUT$ <> "R" AND SUT$ <> "C" AND SUT$ <> "Q" THEN SOUND 500,.1
-  LOOP UNTIL SUT$ = "R" OR SUT$ = "C" OR SUT$ = "Q"
+!  DO
+!
+!    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
+!
+!    CALL APROMPT( 14, 29, A$, FRAZ$, SUT$ )
+!
+!    IF SUT$ <> "R" AND SUT$ <> "C" AND SUT$ <> "Q" THEN SOUND 500,.1
+!  LOOP UNTIL SUT$ = "R" OR SUT$ = "C" OR SUT$ = "Q"
 
 END SUB !BOX101
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -96,25 +100,34 @@ END SUB !BOX101
 SUB BOX102( VECTOR$, DVU$, A$ )
 
   CLEAR
-  CALL BOXU(4,23,33,9)
-  CALL LINEU(6,23,33)
+!  CALL BOXU(4,23,33,9)
+!  CALL LINEU(6,23,33)
   IF VECTOR$ = "X" THEN
-    PRINT TAB(5,31); "THE  X  FUNCTION IS"
+    LET message$ = "The  X  function is..."
   ELSE IF VECTOR$ = "X2" THEN
-    PRINT TAB(5,30); "THE  X2  FUNCTION IS"
+    LET message$ = "The X2 function is..."
   END IF
-  PRINT TAB(8,26); "EVEN ...................... E"
-  PRINT TAB(10,26);"ODD ....................... O"
-  PRINT TAB(12,26);"NEITHER ................... N"
+  LET button$ = "Even|Odd|Neither"
 
-  DO
 
-    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
+  CALL TD_Warn (message$, button$, 1, button)
 
-    CALL APROMPT( 16, 31, A$, FRAZ$, DVU$ )
+  IF button = 1 then
+	let DVU$ = "E"
+  ELSE IF button = 2 then
+	let DVU$="O"
+  ELSE
+	let DVU$ = "N"
+  END IF
 
-    IF DVU$ <> "E" AND DVU$ <> "O" AND DVU$ <> "N" AND DVU$ <> "Q" THEN SOUND 500,.1
-  LOOP UNTIL DVU$ = "E" OR DVU$ = "O" OR DVU$ = "N" OR DVU$ = "Q"
+!  DO
+!
+!    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
+!
+!    CALL APROMPT( 16, 31, A$, FRAZ$, DVU$ )
+!
+!    IF DVU$ <> "E" AND DVU$ <> "O" AND DVU$ <> "N" AND DVU$ <> "Q" THEN SOUND 500,.1
+!  LOOP UNTIL DVU$ = "E" OR DVU$ = "O" OR DVU$ = "N" OR DVU$ = "Q"
 
 END SUB !BOX102
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -148,21 +161,32 @@ END SUB !BOX103
 SUB BOX104( STR7$, ORF$, A$ )
 
   CLEAR
-  CALL BOXU(4,19,41,11)
-  CALL LINEU(10,19,41)
-  PRINT TAB(6,22); "WHERE DO YOU WANT TO PLACE THE ORIGIN"
-  PRINT TAB(8,22); "FOR THE  " & STR7$ & "  FUNCTION ?"
-  PRINT TAB(12,22); "LEFT SIDE OF SCREEN ............... L"
-  PRINT TAB(14,22); "CENTER OF SCREEN .................. C"
+!  CALL BOXU(4,19,41,11)
+!  CALL LINEU(10,19,41)
+  LET message$ = "Where do you want to place the origin"
+  LET message$ = message$ & "|for the  " & STR7$ & "  function ?"
+  LET button$ = "Left side of screen|"
+  LET button$ = button$ & "Center of screen|"
+  LET button$ = button$ & "Quit"
 
-  DO
+  CALL TD_Warn (message$, button$, 1, button)
 
-    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
+  IF button = 1 then
+	let ORF$ = "L"
+  ELSE IF button = 2 then
+	let ORF$="C"
+  ELSE
+	let ORF$ = "Q"
+  END IF
 
-    CALL APROMPT( 18, 31, A$, FRAZ$, ORF$ )
-
-    IF ORF$ <> "L" AND ORF$ <> "C" AND ORF$ <> "Q" THEN SOUND 500,.1
-  LOOP UNTIL ORF$ = "L" OR ORF$ = "C" OR ORF$ = "Q"
+!  DO
+!
+!    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
+!
+!    CALL APROMPT( 18, 31, A$, FRAZ$, ORF$ )
+!
+!    IF ORF$ <> "L" AND ORF$ <> "C" AND ORF$ <> "Q" THEN SOUND 500,.1
+!  LOOP UNTIL ORF$ = "L" OR ORF$ = "C" OR ORF$ = "Q"
 
 END SUB !BOX104
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,1 +1,746 @@
-EXTERNAL !PLOTSUB1.TRU!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB PLOT2(  COLOR$ )  OPTION ANGLE RADIANS  DIM F(-100:50, 0:2)  LET SHOWFLAG = 1  DO    LET GETOUT = 0    CLEAR    SET WINDOW 0, 81, 0, 31    SET TEXT JUSTIFY "CENTER", "HALF"    PLOT TEXT, AT 40, 30: "THIS PROGRAM PLOTS THE FOURIER SERIES OF THE PERIODIC FUNCTION"    PLOT TEXT, AT 40, 27: "           -1   ( -1 < t < 0 )                     "    PLOT TEXT, AT 40, 26: "f(t)  =                             f(t + 2) = f(t)"    PLOT TEXT, AT 40, 25: "            1   (  0 < t < 1 )                     "    PLOT 25.5,28 ; 25,28 ; 25,24 ; 25.5,24  !Draw the bracket    PLOT 24.5,26 ; 25,26    SET WINDOW -2.2, 2.2, -2.0, 2.55    CALL PLOTFRAME2    CALL CQ( RESULT )   !CONTINUE/QUIT    IF RESULT = 2 THEN LET GETOUT = 1    IF GETOUT = 0 THEN      DO        DO          LET GETOUT = 0          LET CYCLE  = 0          LET CYCLE2 = 0          LET CYCLE3 = 0          SET WINDOW -2.2, 2.2, -2.0, 2.55          LET MESSAGE$ = "NUMBER OF TERMS IN FOURIER SERIES"          LET MESSAGE$ = MESSAGE$ & "|" & "   (a positive integer)  ?"          LET HAW = 0          LET CSX = 0          DO            IF HAW = 1 THEN CALL MACSYSBEEP(1)            CALL INPUTVALL( MESSAGE$, K, SHOWFLAG, FLAG )            IF FLAG = 1 OR (K >= 1 AND K = INT(K)) THEN LET CSX = 1            LET HAW = 1          LOOP UNTIL CSX = 1          IF FLAG = 1 THEN            LET CYCLE2 = 0            LET CYCLE3 = 1            CALL CQ( RESULT )            IF RESULT = 2 THEN              LET CYCLE = 1              LET GETOUT = 1            END IF          END IF          IF GETOUT = 0 AND CYCLE = 0 AND CYCLE3 = 0 THEN            IF K > 30 THEN              SET WINDOW 0, 81, 0, 31              BOX CLEAR 0, 81, 1.5, 2.5              SET TEXT JUSTIFY "CENTER", "HALF"              LET STRING$ = "PRESS SPACEBAR TO TERMINATE"              PLOT TEXT, AT 40,2 :  STRING$              SET WINDOW -2.2, 2.2, -2.0, 2.55            END IF            LET YOLD = 0                      ! STORE PREVIOUS PLOT            LET Y = 1            FOR I = -100 TO - 50 STEP 1              LET F(I,YOLD) = F(I,Y)            NEXT I            LET MULT = 4/PI            FOR X = -2 TO -1 STEP 1/50        ! COMPUTE NEW PLOT              IF KEY INPUT THEN                GET KEY INKEY                IF INKEY = 32 THEN                  CLEAR                  CALL PLOTFRAME2                  LET CYCLE2 = 1                  LET CYCLE = 1                  EXIT FOR                END IF              ELSE                LET I = 50*X                LET F(I,Y) = 0                LET PIX = PI*X                FOR N = 1 TO K                  IF KEY INPUT THEN                    GET KEY INKEY                    IF INKEY = 32 THEN                      CLEAR                      CALL PLOTFRAME2                      LET CYCLE2 = 1                      LET CYCLE = 1                      EXIT FOR                    END IF                  ELSE                    LET Z = 2*N-1                    LET F(I,Y) = F(I,Y) + MULT*SIN( Z*PIX )/Z                  END IF                NEXT N                IF CYCLE2 = 1 THEN EXIT FOR                SET COLOR "WHITE"                ! ERASE PREVIOUS PLOT                PLOT X, 0;                PLOT X, F(I,YOLD)                PLOT 1+X, 0;                PLOT 1+X, -F(I,YOLD)                PLOT 2+X, 0;                PLOT 2+X, F(I,YOLD)                PLOT 3+X, 0;                PLOT 3+X, -F(I,YOLD)                CALL SETCOLOR( COLOR$ )                PLOT X, 0;                PLOT X, F(I,Y)                PLOT 1+X, 0;                PLOT 1+X, -F(I,Y)                PLOT 2+X, 0;                PLOT 2+X, F(I,Y)                PLOT 3+X, 0;                PLOT 3+X, -F(I,Y)              END IF            NEXT X            IF CYCLE2 = 0 THEN              CALL PLOTFRAME2              SET WINDOW 0, 81, 0, 31              BOX CLEAR 1 , 81, 23, 31              IF K = 8 OR K = 11 OR K = 18 OR (K >= 80 AND K <= 89) THEN                LET STRING$ = "  THIS IS AN " & STR$(K) & "-TERM PLOT   "              ELSE                LET STRING$ = "  THIS IS A " & STR$(K) & "-TERM PLOT   "              END IF              SET TEXT JUSTIFY "CENTER", "HALF"              PLOT TEXT, AT 40,27 :  STRING$              CALL CQ( RESULT )              IF RESULT = 2 THEN                LET CYCLE2 = 0                LET CYCLE  = 1                LET GETOUT = 1              END IF            END IF          END IF        LOOP WHILE CYCLE2 = 1      LOOP UNTIL CYCLE = 1    END IF  LOOP UNTIL GETOUT = 1END SUB !PLOT2!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB PLOTFRAME2  PLOT -2.1, 0;  2.1,  0  PLOT -2,   O;  PLOT -2,   1;  PLOT -1,   1;  PLOT -1,  -1;  PLOT  0,  -1;  PLOT  0,   1;  PLOT  1,   1;  PLOT  1,  -1;  PLOT  2,  -1;  PLOT  2,   0END SUB !PLOTFRAME2!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB PLOT3( COLOR$  )  OPTION ANGLE RADIANS  DIM F(-100:50, 0:2)  LET SHOWFLAG = 1  DO    LET GETOUT = 0    CLEAR    SET WINDOW 0, 81, 0, 31    SET TEXT JUSTIFY "CENTER", "HALF"    PLOT TEXT, AT 40, 30: "THIS PROGRAM PLOTS THE FOURIER SERIES OF THE PERIODIC FUNCTION"    PLOT TEXT, AT 40, 27: "           1 + t   (-1 < t < 0 )                   "    PLOT TEXT, AT 40, 26: "f(t)  =                             f(t + 2) = f(t)"    PLOT TEXT, AT 40, 25: "           1 - t   ( 0 < t < 1 )                   "    PLOT 25.5,28 ; 25,28 ; 25,24 ; 25.5,24  !Draw the bracket    PLOT 24.5,26 ; 25,26    SET WINDOW -2.3, 2.3, -.7, 1.9    CALL PLOTFRAME3    CALL CQ( RESULT )    IF RESULT = 2 THEN LET GETOUT = 1    IF GETOUT = 0 THEN      DO        DO          LET CYCLE = 0          LET CYCLE2 = 0          LET CYCLE3 = 0          SET WINDOW -2.3, 2.3, -.7, 1.9          LET MESSAGE$ = "NUMBER OF TERMS IN FOURIER SERIES"          LET MESSAGE$ = MESSAGE$ & "|" & "   (a positive integer)  ?"          LET HAW = 0          LET CSX = 0          DO            IF HAW = 1 THEN CALL MACSYSBEEP(1)            CALL INPUTVALL( MESSAGE$, K, SHOWFLAG, FLAG )            IF FLAG = 1 OR (K >= 1 AND K = INT(K)) THEN LET CSX = 1            LET HAW = 1          LOOP UNTIL CSX = 1          IF FLAG = 1 THEN            LET CYCLE2 = 0            LET CYCLE3 = 1            CALL CQ( RESULT )            IF RESULT = 2 THEN              LET CYCLE = 1              LET GETOUT = 1            END IF          END IF          IF GETOUT = 0 AND CYCLE = 0 AND CYCLE3 = 0 THEN            IF K > 30 THEN              SET WINDOW 0, 81, 0, 31              BOX CLEAR 0, 81, 1.5, 2.5              SET TEXT JUSTIFY "CENTER", "HALF"              LET STRING$ = "PRESS SPACEBAR TO TERMINATE"              PLOT TEXT, AT 40,2 :  STRING$              SET WINDOW -2.3, 2.3, -.7, 1.9            END IF            LET YOLD = 0            LET Y = 1                           ! STORING PREVIOUS PLOT            FOR I = 0 TO -100 STEP -1              LET F(I,YOLD) = F(I,Y)            NEXT I            LET MULT = 4/(PI^2)                 ! COMPUTING NEW PLOT            FOR X = 0 TO -2 STEP -1/50              IF KEY INPUT THEN                GET KEY INKEY                IF INKEY = 32 THEN                  CLEAR                  CALL PLOTFRAME3                  LET CYCLE2 = 1                  LET CYCLE = 1                  EXIT FOR                END IF              ELSE                LET I = 50*X                LET F(I,Y) = 1/2                LET PIX = PI*X                FOR N = 1 TO K - 1                  IF KEY INPUT THEN                    GET KEY INKEY                    IF INKEY = 32 THEN                      CLEAR                      CALL PLOTFRAME3                      LET CYCLE2 = 1                      LET CYCLE = 1                      EXIT FOR                    END IF                  ELSE                    LET Z = 2*N-1                    LET F(I,Y) = F(I,Y) + MULT*COS( Z*PIX )/(Z^2)                  END IF                NEXT N                IF CYCLE2 = 1 THEN EXIT FOR                SET COLOR "WHITE"                  ! ERASING PREVIOUS PLOT                PLOT  X, 0;                PLOT  X, F(I,YOLD)                PLOT -X, 0;                PLOT -X, F(I,YOLD)                CALL SETCOLOR( COLOR$ )                PLOT  X, 0;                PLOT  X, F(I,Y)                PLOT -X, 0;                PLOT -X, F(I,Y)              END IF            NEXT X            IF CYCLE2 = 0 THEN              CALL PLOTFRAME3              SET WINDOW 0, 81, 0, 31              BOX CLEAR 1 , 81, 23, 31              IF K = 8 OR K = 11 OR K = 18 OR (K >= 80 AND K <= 89) THEN                LET STRING$ = "  THIS IS AN " & STR$(K) & "-TERM PLOT   "              ELSE                LET STRING$ = "  THIS IS A " & STR$(K) & "-TERM PLOT   "              END IF              SET TEXT JUSTIFY "CENTER", "HALF"              PLOT TEXT, AT 40,27 :  STRING$              CALL CQ( RESULT )              IF RESULT = 2 THEN                LET CYCLE2 = 0                LET CYCLE = 1                LET GETOUT = 1              END IF            END IF          END IF        LOOP WHILE CYCLE2 = 1      LOOP UNTIL CYCLE = 1    END IF  LOOP UNTIL GETOUT = 1END SUB !PLOT3!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB PLOTFRAME3  PLOT -2.1,  0    ;  PLOT  2.1,  0  PLOT  0  , - .25 ;  PLOT  0  ,  1.25  PLOT -2  ,  1    ;  PLOT -1  ,  0    ;  PLOT  0  ,  1    ;  PLOT  1  ,  0    ;  PLOT  2  ,  1  PLOT -2.1,   0 ;  PLOT  2.1,   0  PLOT    0, -.25 ;  PLOT    0, 1.25END SUB !PLOTFRAME3!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB PLOT1( COLOR$ )!PLOT1.TRU DEMONSTRATES ORTHOGONALITY  DIM F(0:100)  DIM G(0:100)  OPTION ANGLE RADIANS  LET SHOWFLAG = 1  DO    LET CYCLE  = 0    LET CYCLE2 = 0    LET CYCLE3 = 0    LET CYCLE4 = 0    CLOSE #1    CLOSE #2    CLOSE #3    CLEAR    SET WINDOW 0, 81, 0, 31    SET TEXT JUSTIFY "CENTER", "HALF"    PLOT TEXT, AT 40,29 : "THIS PROGRAM DEMONSTRATES THE ORTHOGONALITY OF THE SET OF COSINES AND SINES"    PLOT TEXT, AT 40,26 : "S = { 1,  cos(wo t),  cos(2 wo t),  cos(3 wo t), ....         "    PLOT TEXT, AT 40,24 : "                     sin(wo t),  sin(2 wo t),  sin(3 wo t) .....  }"    PLOT TEXT, AT 40,19 : " To/2                                0      n <> m            "    PLOT TEXT, AT 40,18 : "   º cos(n wo t) cos(m wo t) dt  =   To/2   n = m <> 0        "    PLOT TEXT, AT 40,17 : "-To/2                                To     n = m = 0         "    PLOT TEXT, AT 40,14 : "             To/2                                                     "    PLOT TEXT, AT 40,13 : "               º sin(n wo t) cos(m wo t) dt  =  0   for all  n  and  m"    PLOT TEXT, AT 40,12 : "            -To/2                                                     "    PLOT TEXT, AT 40, 9 : " To/2                                0      n <> m            "    PLOT TEXT, AT 40, 8 : "   º sin(n wo t) sin(m wo t) dt  =   To/2   n = m <> 0        "    PLOT TEXT, AT 40, 7 : "-To/2                                0      n = m = 0         "    CALL CQ( RESULT )    IF RESULT = 2 THEN LET GETOUT = 1    IF GETOUT = 0 THEN      CLOSE #1      CLOSE #2      CLOSE #3      DO        LET CYCLE  = 0        LET CYCLE2 = 0        LET CYCLE3 = 0        LET CYCLE4 = 0        LET ICON = 2        LET MESSAGE$ = "FIRST FUNCTION IS A"        LET BUTTON$ = "COSINE|SINE|QUIT"        CALL TW_DWARN(ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT)        IF RESULT = 1 THEN          LET GTA$ = "C"        ELSE IF RESULT = 2 THEN          LET GTA$ = "S"        ELSE IF RESULT = 3 THEN          LET GTA$ = "Q"        END IF        IF GTA$ = "Q" THEN          CLOSE #1          CLOSE #2          CLOSE #3          LET CYCLE = 1          LET CYCLE2 = 1          CALL CQ( RESULT )          IF RESULT = 2 THEN            LET CYCLE  = 0            LET CYCLE2 = 0            LET GETOUT = 1          END IF        END IF        IF CYCLE = 0 AND GETOUT = 0 THEN          DO            LET CYCLE  = 0            LET CYCLE2 = 0            LET CYCLE3 = 0            LET CYCLE4 = 0            LET MESSAGE$ = "WHAT IS ITS HARMONIC NUMBER"            LET MESSAGE$ = MESSAGE$ & "|" & "  (an integer " & CHR$(179) & " 0 and " & CHR$(178) & " 10) ?"            LET PTY = 0            LET KWV = 0            DO              IF PTY = 1 THEN CALL MACSYSBEEP(1)              CALL INPUTVALL( MESSAGE$, N, SHOWFLAG, FLAG )              IF FLAG = 1 OR (N >= 0 AND N <= 10 AND N = INT(N)) THEN LET KWV = 1              LET PTY = 1            LOOP UNTIL KWV = 1            IF FLAG = 1 THEN LET CYCLE2 = 1            IF CYCLE2 = 0 THEN              DO                LET CYCLE  = 0                LET CYCLE2 = 0                LET CYCLE3 = 0                LET CYCLE4 = 0                LET ICON = 2                LET MESSAGE$ = "SECOND FUNCTION IS A"                LET BUTTON$ = "COSINE|SINE|QUIT"                CALL TW_DWARN(ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT)                IF RESULT = 1 THEN                  LET GTB$ = "C"                ELSE IF RESULT = 2 THEN                  LET GTB$ = "S"                ELSE IF RESULT = 3 THEN                  LET GTB$ = "Q"                END IF                IF GTB$ = "Q" THEN LET CYCLE3 = 1                IF CYCLE3 = 0 THEN                  LET MESSAGE$ = "WHAT IS ITS HARMONIC NUMBER"                  LET MESSAGE$ = MESSAGE$ & "|" & "  (an integer " & CHR$(179) & " 0 and " & CHR$(178) & " 10) ?"                  LET PTY = 0                  LET KWV = 0                  DO                    IF PTY = 1 THEN CALL MACSYSBEEP(1)                    CALL INPUTVALL( MESSAGE$, M, SHOWFLAG, FLAG )                    IF FLAG = 1 OR (M >= 0 AND M <= 10 AND M = INT(M)) THEN LET KWV = 1                    LET PTY = 1                  LOOP UNTIL KWV = 1                  IF FLAG = 1 THEN LET CYCLE4 = 1                  IF CYCLE4 = 0 THEN                    CLEAR                    CLOSE #1                    CLOSE #2                    CLOSE #3                    OPEN #1: SCREEN   0, .49, .51, 1                    OPEN #2: SCREEN   0, .49,   0, .49                    OPEN #3: SCREEN .51, 1.0,  0, 1                    CALL SETCOLOR( COLOR$ )                    FOR I = 0 TO 100                      LET J = PI*((I - 50)/50)                      IF GTA$ = "S" THEN                        LET F(I) = sin(N*J)                      ELSE IF GTA$ = "C" THEN                        LET F(I) = cos(N*J)                      END IF                      IF GTB$ = "S" THEN                        LET G(I) = sin(M*J)                      ELSE IF GTB$ = "C" THEN                        LET G(I) = cos(M*J)                      END IF                    NEXT I                    WINDOW #0                    SET WINDOW -2, 2, -2, 2                    PLOT -2, 0 ; 0,0                    PLOT  0,-2 ; 0,2                    LET Z = 1.5                    LET A = -Z*PI                    LET B =  Z*PI                    LET C = -Z                    LET D =  Z                    WINDOW #1                    SET WINDOW A, B, C+.17, D+.17                    SET TEXT JUSTIFY "CENTER", "HALF"                    CALL SETCOLOR( COLOR$ )                    CALL AXES1(A, B, C, D)                    CALL DOTS(A, B, C, D)                    PLOT -PI,0;-PI,F(0)                    FOR I = 0 TO 100                      LET J = PI*((I - 50)/50)                      PLOT J,F(I);                    NEXT I                    PLOT PI,0;PI,F(100)                    IF GTA$ = "S" THEN                      LET TEXT1$ = "sin( " & STR$(N) & " ¹t )"                    ELSE IF GTA$ = "C" THEN                      LET TEXT1$ = "cos( " & STR$(N) & " ¹t )"                    END IF                    PLOT TEXT, AT 0,1.4 : TEXT1$                    PLOT TEXT, AT .72*A, -.1  : "-1"                    PLOT TEXT, AT .69*B, -.1  : "1"                    PLOT TEXT, AT .85*B,   0  : "t"                    WINDOW #2                    SET WINDOW A, B, C -.15, D +.15                    CALL SETCOLOR( COLOR$ )                    CALL AXES1(A, B, C, D)                    CALL DOTS(A, B, C, D)                    PLOT -PI,0;-PI,G(0)                    FOR I = O TO 100                      LET J = PI*((I - 50)/50)                      PLOT J,G(I);                    NEXT I                    PLOT PI,0;PI,G(100)                    IF GTB$ = "S" THEN                      LET TEXT2$ = "sin( " & STR$(M) & " ¹t )"                    ELSE IF GTB$ = "C" THEN                      LET TEXT2$ = "cos( " & STR$(M) & " ¹t )"                    END IF                    PLOT TEXT, AT 0,1.4 : TEXT2$                    PLOT TEXT, AT .72*A, -.1  : "-1"                    PLOT TEXT, AT .69*B, -.1  : "1"                    PLOT TEXT, AT .85*B,   0  : "t"                    WINDOW #3                    CALL SETCOLOR( COLOR$ )                    LET EE = 2*C                    LET FF = 2*D                    SET WINDOW A, B, EE, FF                    CALL AXES1(A, B, C, D)                    CALL DOTS(A, B, EE, FF)                    LET SUM = 0                    PLOT -PI,0;-PI,F(0)*G(0)                    FOR I = 0 TO 100                      LET J = PI*((I - 50)/50)                      LET PROD = F(I)*G(I)                      PLOT J,PROD;                      IF I = 0 THEN                        LET SUM = PROD                      END IF                      IF I/2 = INT(I/2) AND I <> 0 AND I <> 100 THEN                        LET SUM = SUM + 2*PROD                      END IF                      IF I/2 <> INT(I/2) AND I <> 0 AND I <> 100 THEN                        LET SUM = SUM + 4*PROD                      END IF                      IF I = 100 THEN                        LET SUM = SUM + PROD                      END IF                    NEXT I                    PLOT PI,0;PI,F(100)*G(100)                    LET TEXT3$ = TEXT1$ & " " & TEXT2$                    PLOT TEXT, AT 0,1.8 : TEXT3$                    PLOT TEXT, AT .72*A, -.1  : "-1"                    PLOT TEXT, AT .69*B, -.1  : "1"                    PLOT TEXT, AT .85*B,   0  : "t"!                    SOUND 2000,.1                    LET FRAZE$ = "AREA = " & STR$(SUM/150)                    PLOT TEXT, AT 0,-1.5 : FRAZE$                    CALL CQ2( RESULT )                    IF RESULT = 1 THEN                      LET ZZE$ = "C"                    ELSE IF RESULT = 2 THEN                      LET ZZE$ = "Q"                    END IF                    IF ZZE$ = "C" THEN                      LET CYCLE2 = 1                    ELSE IF ZZE$ = "Q" THEN                      LET CYCLE4 = 0                      LET CYCLE3 = 0                      LET CYCLE2 = 0                      LET CYCLE  = 1                    END IF                  END IF                END IF              LOOP WHILE CYCLE4 = 1            END IF          LOOP WHILE CYCLE3 = 1        END IF      LOOP WHILE CYCLE2 = 1    END IF  LOOP WHILE CYCLE = 1  CLOSE #1  CLOSE #2  CLOSE #3END SUB !PLOT1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB AXES1(A, B, C, D)  LET W = .8  PLOT W*A,0; W*B,0  PLOT 0,W*C; 0,W*DEND SUB !AXES1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB DOTS(A, B, C, D)  BOX AREA (A/1.5)*1.01, (A/1.5)*0.99, .01*C/1.5, .01*D/1.5  BOX AREA (B/1.5)*0.99, (B/1.5)*1.01, .01*C/1.5, .01*D/1.5END SUB !DOTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+EXTERNAL !PLOTSUB1.TRU
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PLOT2(  COLOR$ )
+
+  OPTION ANGLE RADIANS
+  DIM F(-100:50, 0:2)
+  LET SHOWFLAG = 1
+
+  DO
+    LET GETOUT = 0
+    CLEAR
+    SET WINDOW 0, 81, 0, 31
+
+    SET TEXT JUSTIFY "CENTER", "HALF"
+    PLOT TEXT, AT 40, 30: "THIS PROGRAM PLOTS THE FOURIER SERIES OF THE PERIODIC FUNCTION"
+
+    PLOT TEXT, AT 40, 27: "           -1   ( -1 < t < 0 )                     "
+    PLOT TEXT, AT 40, 26: "f(t)  =                             f(t + 2) = f(t)"
+    PLOT TEXT, AT 40, 25: "            1   (  0 < t < 1 )                     "
+
+    PLOT 25.5,28 ; 25,28 ; 25,24 ; 25.5,24  !Draw the bracket
+    PLOT 24.5,26 ; 25,26
+
+    SET WINDOW -2.2, 2.2, -2.0, 2.55
+    CALL PLOTFRAME2
+
+    CALL CQ( RESULT )   !CONTINUE/QUIT
+
+    IF RESULT = 2 THEN LET GETOUT = 1
+
+    IF GETOUT = 0 THEN
+      DO
+        DO
+          LET GETOUT = 0
+          LET CYCLE  = 0
+          LET CYCLE2 = 0
+          LET CYCLE3 = 0
+
+          SET WINDOW -2.2, 2.2, -2.0, 2.55
+
+          LET MESSAGE$ = "NUMBER OF TERMS IN FOURIER SERIES"
+          LET MESSAGE$ = MESSAGE$ & "|" & "   (a positive integer)  ?"
+
+          LET HAW = 0
+          LET CSX = 0
+
+          DO
+            IF HAW = 1 THEN CALL MACSYSBEEP(1)
+
+            CALL INPUTVALL( MESSAGE$, K, SHOWFLAG, FLAG )
+
+            IF FLAG = 1 OR (K >= 1 AND K = INT(K)) THEN LET CSX = 1
+            LET HAW = 1
+          LOOP UNTIL CSX = 1
+
+          IF FLAG = 1 THEN
+
+            LET CYCLE2 = 0
+            LET CYCLE3 = 1
+
+            CALL CQ( RESULT )
+
+            IF RESULT = 2 THEN
+              LET CYCLE = 1
+              LET GETOUT = 1
+            END IF
+          END IF
+
+          IF GETOUT = 0 AND CYCLE = 0 AND CYCLE3 = 0 THEN
+            IF K > 30 THEN
+              SET WINDOW 0, 81, 0, 31
+              BOX CLEAR 0, 81, 1.5, 2.5
+              SET TEXT JUSTIFY "CENTER", "HALF"
+              LET STRING$ = "PRESS SPACEBAR TO TERMINATE"
+              PLOT TEXT, AT 40,2 :  STRING$
+              SET WINDOW -2.2, 2.2, -2.0, 2.55
+            END IF
+
+            LET YOLD = 0                      ! STORE PREVIOUS PLOT
+            LET Y = 1
+
+            FOR I = -100 TO - 50 STEP 1
+              LET F(I,YOLD) = F(I,Y)
+            NEXT I
+
+            LET MULT = 4/PI
+
+            FOR X = -2 TO -1 STEP 1/50        ! COMPUTE NEW PLOT
+              IF KEY INPUT THEN
+                GET KEY INKEY
+                IF INKEY = 32 THEN
+                  CLEAR
+
+                  CALL PLOTFRAME2
+
+                  LET CYCLE2 = 1
+                  LET CYCLE = 1
+                  EXIT FOR
+                END IF
+              ELSE
+                LET I = 50*X
+                LET F(I,Y) = 0
+                LET PIX = PI*X
+
+                FOR N = 1 TO K
+                  IF KEY INPUT THEN
+                    GET KEY INKEY
+                    IF INKEY = 32 THEN
+                      CLEAR
+
+                      CALL PLOTFRAME2
+
+                      LET CYCLE2 = 1
+                      LET CYCLE = 1
+                      EXIT FOR
+                    END IF
+                  ELSE
+                    LET Z = 2*N-1
+                    LET F(I,Y) = F(I,Y) + MULT*SIN( Z*PIX )/Z
+                  END IF
+                NEXT N
+
+                IF CYCLE2 = 1 THEN EXIT FOR
+
+                SET COLOR "WHITE"                ! ERASE PREVIOUS PLOT
+                PLOT X, 0;
+                PLOT X, F(I,YOLD)
+                PLOT 1+X, 0;
+                PLOT 1+X, -F(I,YOLD)
+                PLOT 2+X, 0;
+                PLOT 2+X, F(I,YOLD)
+                PLOT 3+X, 0;
+                PLOT 3+X, -F(I,YOLD)
+
+                CALL SETCOLOR( COLOR$ )
+
+                PLOT X, 0;
+                PLOT X, F(I,Y)
+                PLOT 1+X, 0;
+                PLOT 1+X, -F(I,Y)
+                PLOT 2+X, 0;
+                PLOT 2+X, F(I,Y)
+                PLOT 3+X, 0;
+                PLOT 3+X, -F(I,Y)
+              END IF
+            NEXT X
+
+            IF CYCLE2 = 0 THEN
+              CALL PLOTFRAME2
+
+              SET WINDOW 0, 81, 0, 31
+              BOX CLEAR 1 , 81, 23, 31
+
+              IF K = 8 OR K = 11 OR K = 18 OR (K >= 80 AND K <= 89) THEN
+                LET STRING$ = "  THIS IS AN " & STR$(K) & "-TERM PLOT   "
+              ELSE
+                LET STRING$ = "  THIS IS A " & STR$(K) & "-TERM PLOT   "
+              END IF
+
+              SET TEXT JUSTIFY "CENTER", "HALF"
+              PLOT TEXT, AT 40,27 :  STRING$
+
+              CALL CQ( RESULT )
+
+              IF RESULT = 2 THEN
+                LET CYCLE2 = 0
+                LET CYCLE  = 1
+                LET GETOUT = 1
+              END IF
+
+            END IF
+          END IF
+        LOOP WHILE CYCLE2 = 1
+      LOOP UNTIL CYCLE = 1
+    END IF
+  LOOP UNTIL GETOUT = 1
+
+END SUB !PLOT2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PLOTFRAME2
+
+
+  PLOT -2.1, 0;  2.1,  0
+
+  PLOT -2,   O;
+  PLOT -2,   1;
+  PLOT -1,   1;
+  PLOT -1,  -1;
+  PLOT  0,  -1;
+  PLOT  0,   1;
+  PLOT  1,   1;
+  PLOT  1,  -1;
+  PLOT  2,  -1;
+  PLOT  2,   0
+
+END SUB !PLOTFRAME2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PLOT3( COLOR$  )
+
+  OPTION ANGLE RADIANS
+  DIM F(-100:50, 0:2)
+  LET SHOWFLAG = 1
+
+  DO
+    LET GETOUT = 0
+    CLEAR
+    SET WINDOW 0, 81, 0, 31
+
+    SET TEXT JUSTIFY "CENTER", "HALF"
+    PLOT TEXT, AT 40, 30: "THIS PROGRAM PLOTS THE FOURIER SERIES OF THE PERIODIC FUNCTION"
+
+    PLOT TEXT, AT 40, 27: "           1 + t   (-1 < t < 0 )                   "
+    PLOT TEXT, AT 40, 26: "f(t)  =                             f(t + 2) = f(t)"
+    PLOT TEXT, AT 40, 25: "           1 - t   ( 0 < t < 1 )                   "
+
+    PLOT 25.5,28 ; 25,28 ; 25,24 ; 25.5,24  !Draw the bracket
+    PLOT 24.5,26 ; 25,26
+
+    SET WINDOW -2.3, 2.3, -.7, 1.9
+    CALL PLOTFRAME3
+
+    CALL CQ( RESULT )
+
+    IF RESULT = 2 THEN LET GETOUT = 1
+
+    IF GETOUT = 0 THEN
+
+      DO
+        DO
+          LET CYCLE = 0
+          LET CYCLE2 = 0
+          LET CYCLE3 = 0
+
+          SET WINDOW -2.3, 2.3, -.7, 1.9
+
+          LET MESSAGE$ = "NUMBER OF TERMS IN FOURIER SERIES"
+          LET MESSAGE$ = MESSAGE$ & "|" & "   (a positive integer)  ?"
+
+          LET HAW = 0
+          LET CSX = 0
+
+          DO
+            IF HAW = 1 THEN CALL MACSYSBEEP(1)
+
+            CALL INPUTVALL( MESSAGE$, K, SHOWFLAG, FLAG )
+
+            IF FLAG = 1 OR (K >= 1 AND K = INT(K)) THEN LET CSX = 1
+            LET HAW = 1
+          LOOP UNTIL CSX = 1
+
+          IF FLAG = 1 THEN
+
+            LET CYCLE2 = 0
+            LET CYCLE3 = 1
+
+            CALL CQ( RESULT )
+
+            IF RESULT = 2 THEN
+              LET CYCLE = 1
+              LET GETOUT = 1
+            END IF
+          END IF
+
+          IF GETOUT = 0 AND CYCLE = 0 AND CYCLE3 = 0 THEN
+            IF K > 30 THEN
+              SET WINDOW 0, 81, 0, 31
+              BOX CLEAR 0, 81, 1.5, 2.5
+              SET TEXT JUSTIFY "CENTER", "HALF"
+              LET STRING$ = "PRESS SPACEBAR TO TERMINATE"
+              PLOT TEXT, AT 40,2 :  STRING$
+              SET WINDOW -2.3, 2.3, -.7, 1.9
+            END IF
+
+            LET YOLD = 0
+            LET Y = 1                           ! STORING PREVIOUS PLOT
+
+            FOR I = 0 TO -100 STEP -1
+              LET F(I,YOLD) = F(I,Y)
+            NEXT I
+
+            LET MULT = 4/(PI^2)                 ! COMPUTING NEW PLOT
+
+            FOR X = 0 TO -2 STEP -1/50
+              IF KEY INPUT THEN
+                GET KEY INKEY
+                IF INKEY = 32 THEN
+                  CLEAR
+
+                  CALL PLOTFRAME3
+
+                  LET CYCLE2 = 1
+                  LET CYCLE = 1
+                  EXIT FOR
+                END IF
+              ELSE
+                LET I = 50*X
+                LET F(I,Y) = 1/2
+                LET PIX = PI*X
+
+                FOR N = 1 TO K - 1
+                  IF KEY INPUT THEN
+                    GET KEY INKEY
+                    IF INKEY = 32 THEN
+                      CLEAR
+
+                      CALL PLOTFRAME3
+
+                      LET CYCLE2 = 1
+                      LET CYCLE = 1
+                      EXIT FOR
+                    END IF
+                  ELSE
+                    LET Z = 2*N-1
+                    LET F(I,Y) = F(I,Y) + MULT*COS( Z*PIX )/(Z^2)
+                  END IF
+                NEXT N
+
+                IF CYCLE2 = 1 THEN EXIT FOR
+
+                SET COLOR "WHITE"                  ! ERASING PREVIOUS PLOT
+                PLOT  X, 0;
+                PLOT  X, F(I,YOLD)
+                PLOT -X, 0;
+                PLOT -X, F(I,YOLD)
+
+                CALL SETCOLOR( COLOR$ )
+
+                PLOT  X, 0;
+                PLOT  X, F(I,Y)
+                PLOT -X, 0;
+                PLOT -X, F(I,Y)
+              END IF
+            NEXT X
+
+            IF CYCLE2 = 0 THEN
+              CALL PLOTFRAME3
+
+              SET WINDOW 0, 81, 0, 31
+              BOX CLEAR 1 , 81, 23, 31
+
+              IF K = 8 OR K = 11 OR K = 18 OR (K >= 80 AND K <= 89) THEN
+                LET STRING$ = "  THIS IS AN " & STR$(K) & "-TERM PLOT   "
+              ELSE
+                LET STRING$ = "  THIS IS A " & STR$(K) & "-TERM PLOT   "
+              END IF
+
+              SET TEXT JUSTIFY "CENTER", "HALF"
+              PLOT TEXT, AT 40,27 :  STRING$
+
+              CALL CQ( RESULT )
+
+              IF RESULT = 2 THEN
+                LET CYCLE2 = 0
+                LET CYCLE = 1
+                LET GETOUT = 1
+              END IF
+
+            END IF
+
+          END IF
+        LOOP WHILE CYCLE2 = 1
+      LOOP UNTIL CYCLE = 1
+    END IF
+  LOOP UNTIL GETOUT = 1
+
+END SUB !PLOT3
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PLOTFRAME3
+
+  PLOT -2.1,  0    ;
+  PLOT  2.1,  0
+  PLOT  0  , - .25 ;
+  PLOT  0  ,  1.25
+  PLOT -2  ,  1    ;
+  PLOT -1  ,  0    ;
+  PLOT  0  ,  1    ;
+  PLOT  1  ,  0    ;
+  PLOT  2  ,  1
+
+  PLOT -2.1,   0 ;
+  PLOT  2.1,   0
+  PLOT    0, -.25 ;
+  PLOT    0, 1.25
+
+END SUB !PLOTFRAME3
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PLOT1( COLOR$ )
+!PLOT1.TRU DEMONSTRATES ORTHOGONALITY
+
+  DIM F(0:100)
+  DIM G(0:100)
+  OPTION ANGLE RADIANS
+  LET SHOWFLAG = 1
+
+  DO
+    LET CYCLE  = 0
+    LET CYCLE2 = 0
+    LET CYCLE3 = 0
+    LET CYCLE4 = 0
+
+    CLOSE #1
+    CLOSE #2
+    CLOSE #3
+
+    CLEAR
+    SET WINDOW 0, 81, 0, 31
+
+    SET TEXT JUSTIFY "CENTER", "HALF"
+    PLOT TEXT, AT 40,29 : "THIS PROGRAM DEMONSTRATES THE ORTHOGONALITY OF THE SET OF COSINES AND SINES"
+
+    PLOT TEXT, AT 40,26 : "S = { 1,  cos(wo t),  cos(2 wo t),  cos(3 wo t), ....         "
+
+    PLOT TEXT, AT 40,24 : "                     sin(wo t),  sin(2 wo t),  sin(3 wo t) .....  }"
+
+    PLOT TEXT, AT 40,19 : " To/2                                0      n <> m            "
+    PLOT TEXT, AT 40,18 : "   $ cos(n wo t) cos(m wo t) dt  =   To/2   n = m <> 0        "
+    PLOT TEXT, AT 40,17 : "-To/2                                To     n = m = 0         "
+
+    PLOT TEXT, AT 40,14 : "             To/2                                                     "
+    PLOT TEXT, AT 40,13 : "               $ sin(n wo t) cos(m wo t) dt  =  0   for all  n  and  m"
+    PLOT TEXT, AT 40,12 : "            -To/2                                                     "
+
+
+    PLOT TEXT, AT 40, 9 : " To/2                                0      n <> m            "
+    PLOT TEXT, AT 40, 8 : "   $ sin(n wo t) sin(m wo t) dt  =   To/2   n = m <> 0        "
+    PLOT TEXT, AT 40, 7 : "-To/2                                0      n = m = 0         "
+
+
+    CALL CQ( RESULT )
+
+    IF RESULT = 2 THEN LET GETOUT = 1
+
+    IF GETOUT = 0 THEN
+      CLOSE #1
+      CLOSE #2
+      CLOSE #3
+
+      DO
+        LET CYCLE  = 0
+        LET CYCLE2 = 0
+        LET CYCLE3 = 0
+        LET CYCLE4 = 0
+
+        LET ICON = 2
+        LET MESSAGE$ = "FIRST FUNCTION IS A"
+        LET BUTTON$ = "COSINE|SINE|QUIT"
+
+        CALL TW_DWARN(ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT)
+
+        IF RESULT = 1 THEN
+          LET GTA$ = "C"
+        ELSE IF RESULT = 2 THEN
+          LET GTA$ = "S"
+        ELSE IF RESULT = 3 THEN
+          LET GTA$ = "Q"
+        END IF
+
+        IF GTA$ = "Q" THEN
+          CLOSE #1
+          CLOSE #2
+          CLOSE #3
+
+          LET CYCLE = 1
+          LET CYCLE2 = 1
+
+          CALL CQ( RESULT )
+
+          IF RESULT = 2 THEN
+            LET CYCLE  = 0
+            LET CYCLE2 = 0
+            LET GETOUT = 1
+          END IF
+        END IF
+
+        IF CYCLE = 0 AND GETOUT = 0 THEN
+          DO
+            LET CYCLE  = 0
+            LET CYCLE2 = 0
+            LET CYCLE3 = 0
+            LET CYCLE4 = 0
+
+            LET MESSAGE$ = "WHAT IS ITS HARMONIC NUMBER"
+            LET MESSAGE$ = MESSAGE$ & "|" & "  (an integer " & CHR$(179) & " 0 and " & CHR$(178) & " 10) ?"
+            LET PTY = 0
+            LET KWV = 0
+
+            DO
+              IF PTY = 1 THEN CALL MACSYSBEEP(1)
+
+              CALL INPUTVALL( MESSAGE$, N, SHOWFLAG, FLAG )
+
+              IF FLAG = 1 OR (N >= 0 AND N <= 10 AND N = INT(N)) THEN LET KWV = 1
+              LET PTY = 1
+            LOOP UNTIL KWV = 1
+
+            IF FLAG = 1 THEN LET CYCLE2 = 1
+
+            IF CYCLE2 = 0 THEN
+              DO
+                LET CYCLE  = 0
+                LET CYCLE2 = 0
+                LET CYCLE3 = 0
+                LET CYCLE4 = 0
+
+                LET ICON = 2
+                LET MESSAGE$ = "SECOND FUNCTION IS A"
+                LET BUTTON$ = "COSINE|SINE|QUIT"
+
+                CALL TW_DWARN(ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT)
+
+                IF RESULT = 1 THEN
+                  LET GTB$ = "C"
+                ELSE IF RESULT = 2 THEN
+                  LET GTB$ = "S"
+                ELSE IF RESULT = 3 THEN
+                  LET GTB$ = "Q"
+                END IF
+
+                IF GTB$ = "Q" THEN LET CYCLE3 = 1
+
+                IF CYCLE3 = 0 THEN
+
+                  LET MESSAGE$ = "WHAT IS ITS HARMONIC NUMBER"
+                  LET MESSAGE$ = MESSAGE$ & "|" & "  (an integer " & CHR$(179) & " 0 and " & CHR$(178) & " 10) ?"
+                  LET PTY = 0
+                  LET KWV = 0
+
+                  DO
+                    IF PTY = 1 THEN CALL MACSYSBEEP(1)
+
+                    CALL INPUTVALL( MESSAGE$, M, SHOWFLAG, FLAG )
+
+                    IF FLAG = 1 OR (M >= 0 AND M <= 10 AND M = INT(M)) THEN LET KWV = 1
+                    LET PTY = 1
+                  LOOP UNTIL KWV = 1
+
+                  IF FLAG = 1 THEN LET CYCLE4 = 1
+
+                  IF CYCLE4 = 0 THEN
+                    CLEAR
+
+                    CLOSE #1
+                    CLOSE #2
+                    CLOSE #3
+
+                    OPEN #1: SCREEN   0, .49, .51, 1
+                    OPEN #2: SCREEN   0, .49,   0, .49
+                    OPEN #3: SCREEN .51, 1.0,  0, 1
+
+                    CALL SETCOLOR( COLOR$ )
+
+                    FOR I = 0 TO 100
+                      LET J = PI*((I - 50)/50)
+                      IF GTA$ = "S" THEN
+                        LET F(I) = sin(N*J)
+                      ELSE IF GTA$ = "C" THEN
+                        LET F(I) = cos(N*J)
+                      END IF
+                      IF GTB$ = "S" THEN
+                        LET G(I) = sin(M*J)
+                      ELSE IF GTB$ = "C" THEN
+                        LET G(I) = cos(M*J)
+                      END IF
+                    NEXT I
+
+                    WINDOW #0
+                    SET WINDOW -2, 2, -2, 2
+                    PLOT -2, 0 ; 0,0
+                    PLOT  0,-2 ; 0,2
+
+                    LET Z = 1.5
+                    LET A = -Z*PI
+                    LET B =  Z*PI
+                    LET C = -Z
+                    LET D =  Z
+
+                    WINDOW #1
+                    SET WINDOW A, B, C+.17, D+.17
+                    SET TEXT JUSTIFY "CENTER", "HALF"
+
+                    CALL SETCOLOR( COLOR$ )
+                    CALL AXES1(A, B, C, D)
+                    CALL DOTS(A, B, C, D)
+
+                    PLOT -PI,0;-PI,F(0)
+
+                    FOR I = 0 TO 100
+                      LET J = PI*((I - 50)/50)
+                      PLOT J,F(I);
+                    NEXT I
+
+                    PLOT PI,0;PI,F(100)
+
+                    IF GTA$ = "S" THEN
+                      LET TEXT1$ = "sin( " & STR$(N) & " ãt )"
+                    ELSE IF GTA$ = "C" THEN
+                      LET TEXT1$ = "cos( " & STR$(N) & " ãt )"
+                    END IF
+                    PLOT TEXT, AT 0,1.4 : TEXT1$
+
+                    PLOT TEXT, AT .72*A, -.1  : "-1"
+                    PLOT TEXT, AT .69*B, -.1  : "1"
+                    PLOT TEXT, AT .85*B,   0  : "t"
+
+                    WINDOW #2
+                    SET WINDOW A, B, C -.15, D +.15
+
+                    CALL SETCOLOR( COLOR$ )
+                    CALL AXES1(A, B, C, D)
+                    CALL DOTS(A, B, C, D)
+
+                    PLOT -PI,0;-PI,G(0)
+                    FOR I = O TO 100
+                      LET J = PI*((I - 50)/50)
+                      PLOT J,G(I);
+                    NEXT I
+                    PLOT PI,0;PI,G(100)
+
+                    IF GTB$ = "S" THEN
+                      LET TEXT2$ = "sin( " & STR$(M) & " ãt )"
+                    ELSE IF GTB$ = "C" THEN
+                      LET TEXT2$ = "cos( " & STR$(M) & " ãt )"
+                    END IF
+                    PLOT TEXT, AT 0,1.4 : TEXT2$
+
+                    PLOT TEXT, AT .72*A, -.1  : "-1"
+                    PLOT TEXT, AT .69*B, -.1  : "1"
+                    PLOT TEXT, AT .85*B,   0  : "t"
+
+                    WINDOW #3
+
+                    CALL SETCOLOR( COLOR$ )
+
+                    LET EE = 2*C
+                    LET FF = 2*D
+                    SET WINDOW A, B, EE, FF
+                    CALL AXES1(A, B, C, D)
+                    CALL DOTS(A, B, EE, FF)
+
+                    LET SUM = 0
+                    PLOT -PI,0;-PI,F(0)*G(0)
+
+                    FOR I = 0 TO 100
+                      LET J = PI*((I - 50)/50)
+                      LET PROD = F(I)*G(I)
+                      PLOT J,PROD;
+                      IF I = 0 THEN
+                        LET SUM = PROD
+                      END IF
+                      IF I/2 = INT(I/2) AND I <> 0 AND I <> 100 THEN
+                        LET SUM = SUM + 2*PROD
+                      END IF
+                      IF I/2 <> INT(I/2) AND I <> 0 AND I <> 100 THEN
+                        LET SUM = SUM + 4*PROD
+                      END IF
+                      IF I = 100 THEN
+                        LET SUM = SUM + PROD
+                      END IF
+                    NEXT I
+
+                    PLOT PI,0;PI,F(100)*G(100)
+
+                    LET TEXT3$ = TEXT1$ & " " & TEXT2$
+
+                    PLOT TEXT, AT 0,1.8 : TEXT3$
+
+                    PLOT TEXT, AT .72*A, -.1  : "-1"
+                    PLOT TEXT, AT .69*B, -.1  : "1"
+                    PLOT TEXT, AT .85*B,   0  : "t"
+
+!                    SOUND 2000,.1
+                    LET FRAZE$ = "AREA = " & STR$(SUM/150)
+                    PLOT TEXT, AT 0,-1.5 : FRAZE$
+
+                    CALL CQ2( RESULT )
+
+                    IF RESULT = 1 THEN
+                      LET ZZE$ = "C"
+                    ELSE IF RESULT = 2 THEN
+                      LET ZZE$ = "Q"
+                    END IF
+
+                    IF ZZE$ = "C" THEN
+                      LET CYCLE2 = 1
+                    ELSE IF ZZE$ = "Q" THEN
+                      LET CYCLE4 = 0
+                      LET CYCLE3 = 0
+                      LET CYCLE2 = 0
+                      LET CYCLE  = 1
+                    END IF
+                  END IF
+                END IF
+              LOOP WHILE CYCLE4 = 1
+            END IF
+          LOOP WHILE CYCLE3 = 1
+        END IF
+      LOOP WHILE CYCLE2 = 1
+    END IF
+  LOOP WHILE CYCLE = 1
+
+  CLOSE #1
+  CLOSE #2
+  CLOSE #3
+
+END SUB !PLOT1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB AXES1(A, B, C, D)
+
+  LET W = .8
+  PLOT W*A,0; W*B,0
+  PLOT 0,W*C; 0,W*D
+
+END SUB !AXES1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB DOTS(A, B, C, D)
+
+  BOX AREA (A/1.5)*1.01, (A/1.5)*0.99, .01*C/1.5, .01*D/1.5
+  BOX AREA (B/1.5)*0.99, (B/1.5)*1.01, .01*C/1.5, .01*D/1.5
+
+END SUB !DOTS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

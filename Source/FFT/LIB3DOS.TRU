@@ -148,6 +148,81 @@ END SUB !POWEROF2
 
 
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX41( N, FORM$, NU, A$ )
+
+  CLEAR
+  CALL BOXU(4,19,41,7)
+  LET STR0$ = "THE NUMBER YOU ENTERED IS " & STR$(N)
+  LET COUNT = LEN(STR0$)
+  LET START = 40 - ROUND(COUNT/2)
+  PRINT TAB(6,START);STR0$
+  IF FORM$ = "POWEROF2" THEN
+    PRINT TAB(8,26);"THIS IS AN EXACT POWER OF 2"
+    LET STR1$ = STR$(N) & " IS 2 RAISED TO THE POWER " & STR$(NU)
+    LET COUNT = LEN(STR1$)
+    LET START = 40 - ROUND(COUNT/2)
+    PRINT TAB(10,START);STR1$
+  ELSE IF FORM$ = "PRIME" THEN
+    PRINT TAB(8,30);"THIS IS A PRIME NUMBER"
+    PRINT TAB(10,23);"YOU SURE ARE DOING IT THE HARD WAY !"
+  END IF
+
+  CALL BOX48CFIX( 14, 30, A$ )
+
+END SUB !BOX41
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX42( N, Q, R(), A$ )
+
+  CLEAR
+  CALL BOXU(2,22,34,15)
+  CALL LINEU(8,22,34)
+
+  LET STR0$ = "THE NUMBER YOU ENTERED IS " & STR$(N)
+  LET SAL0 = LEN(STR0$)
+  LET START0 = 40 - ROUND(SAL0/2)
+  PRINT TAB(4,START0); STR0$
+
+  LET STR1$ = "THIS IS A COMPOSITE NUMBER"
+  LET SAL1 = LEN(STR1$)
+  LET START1 = 40 - ROUND(SAL1/2)
+  PRINT TAB(6,START1); STR1$
+
+  LET STR2$ = "HERE IS A BREAKDOWN OF " & STR$(N)
+  LET SAL2 = LEN(STR2$)
+  LET START2 = 40 - ROUND(SAL2/2)
+  PRINT TAB(10,START2); STR2$
+
+  LET STR3$ = "NUMBER OF FACTORS = " & STR$(Q)
+  LET SAL3 = LEN(STR3$)
+  LET START3 = 40 - ROUND(SAL3/2)
+  PRINT TAB(12,START3); STR3$
+
+  LET STR4$ = "THE FACTORS ARE:"
+  LET SAL4 = LEN(STR4$)
+  LET START4 = 40 - ROUND(SAL4/2)
+  PRINT TAB(14,START4); STR4$
+
+  FOR K = 1 TO Q-1
+    LET GF$ = GF$ & STR$( R(K) ) & ", "
+  NEXT K
+  LET GF$ = GF$ & STR$(R(Q))
+
+  LET SAL5 = LEN(GF$)
+  LET START5 = 40 - ROUND(SAL5/2)
+  PRINT TAB(16,START5);GF$
+
+  CALL BOX48CFIX( 20, 31, A$)
+
+END SUB !BOX42
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUB BOX7( MODE$, SDR$, A$ )
 
@@ -231,6 +306,84 @@ SUB BOX9( TYPE$, SGR$, A$ )
 
 END SUB !BOX9
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX40( MESG$, Z0$, A$, CALL$ )
+
+  SOUND 500,.1
+  CLEAR
+  CALL BOXU(1,3,74,20)
+  PRINT TAB(2,18);  "AN ERROR HAS OCCURRED. THE ERROR MESSAGE READS:"
+  PRINT TAB(3,6);   "----------------------------------------------------------------------"
+  PRINT TAB(5,6);   "----------------------------------------------------------------------"
+  PRINT TAB(6,6);   "(WE WERE ABLE TO TRAP IT THIS TIME. SOMETIMES WE WILL NOT BE ABLE TO.)"
+  PRINT TAB(8,18);  "HERE ARE YOUR OPTIONS FOR CLEARING THE PROBLEM:"
+  PRINT TAB(10,6);  "(A) DECLARE THAT YOU DO NOT INTEND TO RUN CONVOLUTION or CORRELATION"
+  PRINT TAB(11,6);  "    WHICH MEANS THAT THE  X2  AND  F2  VECTORS WILL NOT BE CREATED,"
+  PRINT TAB(12,6);  "    THEREBY FREEING UP SOME MEMORY SPACE."
+  PRINT TAB(14,6);  "(B) REDUCE THE VALUE OF  N."
+  PRINT TAB(15,6);  "    OR: USE AN EXACT POWER OF 2 FOR  N."
+  PRINT TAB(16,6);  "    OR: BOTH."
+  PRINT TAB(18,6);  "(C) EXIT FROM  FFT  AND CLEAR OUT ANY MEMORY-RESIDENT PROGRAMS SUCH AS"
+  PRINT TAB(19,6);  "    DOS SHELL, WINDOWS ETC. THEN TRY AGAIN."
+
+  LET COUNT = LEN(MESG$)
+  LET START = 40 - ROUND(COUNT/2)
+  PRINT TAB(4,START);MESG$
+
+  IF CALL$ = "FFTMAX" THEN
+    PRINT TAB(21,6); "(D) EXIT AND RESTART FROM  FFT."
+    LET PROMPT$ = "³ (A) ... A ³ (B) ... B ³ (C) ... C ³ (D) ... D ³ ?  "
+  ELSE IF CALL$ = "FFT" THEN
+    LET PROMPT$ = "      ³ (A) ... A ³ (B) ... B ³ (C) ... C ³  ?  "
+  END IF
+
+  DO
+    IF AFLAG = 1 THEN SOUND 500,.1
+    LET CFLAG = 0
+
+    CALL APROMPT( 23, 15, A$, PROMPT$, Z0$ )
+
+    IF CALL$ = "FFTMAX" THEN
+      IF Z0$ = "A" OR Z0$ ="B" OR Z0$ = "C" OR Z0$ = "D" THEN LET CFLAG = 1
+    ELSE IF CALL$ = "FFT" THEN
+      IF Z0$ = "A" OR Z0$ ="B" OR Z0$ = "C" THEN LET CFLAG = 1
+    END IF
+    LET AFLAG = 1
+  LOOP UNTIL CFLAG = 1
+
+END SUB !BOX40
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX40B( MESG$, A$ )
+
+  SOUND 500,.1
+  CLEAR
+
+  LET FRAZ1$ = "AN ERROR HAS OCCURRED. THE ERROR MESSAGE READS"
+  LET COUNT1 = LEN(FRAZ1$)
+  LET COUNT2 = LEN(MESG$)
+  LET COUNT = MAX(COUNT1,COUNT2)
+  LET STARTB = 37 - ROUND(COUNT/2)
+  CALL BOXU(4, STARTB, COUNT+4, 7)
+
+  LET START1 = 40 - ROUND(COUNT1/2)
+  PRINT TAB(6,START1); FRAZ1$
+  LET DLIN$ = REPEAT$("-",COUNT)
+  PRINT TAB(8,STARTB+3);  DLIN$
+  PRINT TAB(10,STARTB+3); DLIN$
+  LET START2 = 40 - ROUND(COUNT2/2)
+  PRINT TAB(9,START2); MESG$
+
+  CALL BOX48CFIX( 14, 31, A$ )
+
+END SUB !BOX40B
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
@@ -604,158 +757,6 @@ END SUB !BOX19
 
 
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOX40( MESG$, Z0$, A$, CALL$ )
-
-  SOUND 500,.1
-  CLEAR
-  CALL BOXU(1,3,74,20)
-  PRINT TAB(2,18);  "AN ERROR HAS OCCURRED. THE ERROR MESSAGE READS:"
-  PRINT TAB(3,6);   "----------------------------------------------------------------------"
-  PRINT TAB(5,6);   "----------------------------------------------------------------------"
-  PRINT TAB(6,6);   "(WE WERE ABLE TO TRAP IT THIS TIME. SOMETIMES WE WILL NOT BE ABLE TO.)"
-  PRINT TAB(8,18);  "HERE ARE YOUR OPTIONS FOR CLEARING THE PROBLEM:"
-  PRINT TAB(10,6);  "(A) DECLARE THAT YOU DO NOT INTEND TO RUN CONVOLUTION or CORRELATION"
-  PRINT TAB(11,6);  "    WHICH MEANS THAT THE  X2  AND  F2  VECTORS WILL NOT BE CREATED,"
-  PRINT TAB(12,6);  "    THEREBY FREEING UP SOME MEMORY SPACE."
-  PRINT TAB(14,6);  "(B) REDUCE THE VALUE OF  N."
-  PRINT TAB(15,6);  "    OR: USE AN EXACT POWER OF 2 FOR  N."
-  PRINT TAB(16,6);  "    OR: BOTH."
-  PRINT TAB(18,6);  "(C) EXIT FROM  FFT  AND CLEAR OUT ANY MEMORY-RESIDENT PROGRAMS SUCH AS"
-  PRINT TAB(19,6);  "    DOS SHELL, WINDOWS ETC. THEN TRY AGAIN."
-
-  LET COUNT = LEN(MESG$)
-  LET START = 40 - ROUND(COUNT/2)
-  PRINT TAB(4,START);MESG$
-
-  IF CALL$ = "FFTMAX" THEN
-    PRINT TAB(21,6); "(D) EXIT AND RESTART FROM  FFT."
-    LET PROMPT$ = "³ (A) ... A ³ (B) ... B ³ (C) ... C ³ (D) ... D ³ ?  "
-  ELSE IF CALL$ = "FFT" THEN
-    LET PROMPT$ = "      ³ (A) ... A ³ (B) ... B ³ (C) ... C ³  ?  "
-  END IF
-
-  DO
-    IF AFLAG = 1 THEN SOUND 500,.1
-    LET CFLAG = 0
-
-    CALL APROMPT( 23, 15, A$, PROMPT$, Z0$ )
-
-    IF CALL$ = "FFTMAX" THEN
-      IF Z0$ = "A" OR Z0$ ="B" OR Z0$ = "C" OR Z0$ = "D" THEN LET CFLAG = 1
-    ELSE IF CALL$ = "FFT" THEN
-      IF Z0$ = "A" OR Z0$ ="B" OR Z0$ = "C" THEN LET CFLAG = 1
-    END IF
-    LET AFLAG = 1
-  LOOP UNTIL CFLAG = 1
-
-END SUB !BOX40
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOX40B( MESG$, A$ )
-
-  SOUND 500,.1
-  CLEAR
-
-  LET FRAZ1$ = "AN ERROR HAS OCCURRED. THE ERROR MESSAGE READS"
-  LET COUNT1 = LEN(FRAZ1$)
-  LET COUNT2 = LEN(MESG$)
-  LET COUNT = MAX(COUNT1,COUNT2)
-  LET STARTB = 37 - ROUND(COUNT/2)
-  CALL BOXU(4, STARTB, COUNT+4, 7)
-
-  LET START1 = 40 - ROUND(COUNT1/2)
-  PRINT TAB(6,START1); FRAZ1$
-  LET DLIN$ = REPEAT$("-",COUNT)
-  PRINT TAB(8,STARTB+3);  DLIN$
-  PRINT TAB(10,STARTB+3); DLIN$
-  LET START2 = 40 - ROUND(COUNT2/2)
-  PRINT TAB(9,START2); MESG$
-
-  CALL BOX48CFIX( 14, 31, A$ )
-
-END SUB !BOX40B
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOX41( N, FORM$, NU, A$ )
-
-  CLEAR
-  CALL BOXU(4,19,41,7)
-  LET STR0$ = "THE NUMBER YOU ENTERED IS " & STR$(N)
-  LET COUNT = LEN(STR0$)
-  LET START = 40 - ROUND(COUNT/2)
-  PRINT TAB(6,START);STR0$
-  IF FORM$ = "POWEROF2" THEN
-    PRINT TAB(8,26);"THIS IS AN EXACT POWER OF 2"
-    LET STR1$ = STR$(N) & " IS 2 RAISED TO THE POWER " & STR$(NU)
-    LET COUNT = LEN(STR1$)
-    LET START = 40 - ROUND(COUNT/2)
-    PRINT TAB(10,START);STR1$
-  ELSE IF FORM$ = "PRIME" THEN
-    PRINT TAB(8,30);"THIS IS A PRIME NUMBER"
-    PRINT TAB(10,23);"YOU SURE ARE DOING IT THE HARD WAY !"
-  END IF
-
-  CALL BOX48CFIX( 14, 30, A$ )
-
-END SUB !BOX41
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOX42( N, Q, R(), A$ )
-
-  CLEAR
-  CALL BOXU(2,22,34,15)
-  CALL LINEU(8,22,34)
-
-  LET STR0$ = "THE NUMBER YOU ENTERED IS " & STR$(N)
-  LET SAL0 = LEN(STR0$)
-  LET START0 = 40 - ROUND(SAL0/2)
-  PRINT TAB(4,START0); STR0$
-
-  LET STR1$ = "THIS IS A COMPOSITE NUMBER"
-  LET SAL1 = LEN(STR1$)
-  LET START1 = 40 - ROUND(SAL1/2)
-  PRINT TAB(6,START1); STR1$
-
-  LET STR2$ = "HERE IS A BREAKDOWN OF " & STR$(N)
-  LET SAL2 = LEN(STR2$)
-  LET START2 = 40 - ROUND(SAL2/2)
-  PRINT TAB(10,START2); STR2$
-
-  LET STR3$ = "NUMBER OF FACTORS = " & STR$(Q)
-  LET SAL3 = LEN(STR3$)
-  LET START3 = 40 - ROUND(SAL3/2)
-  PRINT TAB(12,START3); STR3$
-
-  LET STR4$ = "THE FACTORS ARE:"
-  LET SAL4 = LEN(STR4$)
-  LET START4 = 40 - ROUND(SAL4/2)
-  PRINT TAB(14,START4); STR4$
-
-  FOR K = 1 TO Q-1
-    LET GF$ = GF$ & STR$( R(K) ) & ", "
-  NEXT K
-  LET GF$ = GF$ & STR$(R(Q))
-
-  LET SAL5 = LEN(GF$)
-  LET START5 = 40 - ROUND(SAL5/2)
-  PRINT TAB(16,START5);GF$
-
-  CALL BOX48CFIX( 20, 31, A$)
-
-END SUB !BOX42
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUB BOX43( RYT$, A$ )
@@ -784,38 +785,6 @@ SUB BOX43( RYT$, A$ )
 
 END SUB !BOX43
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOX46( PMODE$, A$ )
-
-  CLEAR
-  CALL BOXU(4,17,44,5)
-
-  IF PMODE$ = "X" THEN
-    PRINT TAB(6,20); "ALL  X  VALUES ARE ZERO ..."
-  ELSE IF PMODE$ = "F" THEN
-    PRINT TAB(6,20); "ALL  F  VALUES ARE ZERO ..."
-  ELSE IF PMODE$ = "Y" THEN
-    PRINT TAB(6,20); "THE  Y  VECTOR IS ZERO ..."
-  END IF
-
-  PRINT TAB(8,20); "POINTLESS RUNNING THE     POST-PROCESSOR"
-  PRINT TAB(8,43);PMODE$
-
-  LET FRAS$ = "³ CONTINUE ... C ³  ?  "
-  DO
-    IF FER = 1 THEN SOUND 500,.1
-
-    CALL APROMPT( 12, 29, A$, FRAS$, GYW$ )
-
-    IF GYW$ = "C" OR GYW$ = "Q" THEN LET QAZ = 1
-    LET FER = 1
-  LOOP UNTIL QAZ = 1
-
-END SUB !BOX46
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
@@ -1121,6 +1090,38 @@ SUB BOX11( OPTION4$, A$, XFLAG, X2FLAG, FFTFLAG, FFT2FLAG, IFFTFLAG )
 
 END SUB !BOX11
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX46( PMODE$, A$ )
+
+  CLEAR
+  CALL BOXU(4,17,44,5)
+
+  IF PMODE$ = "X" THEN
+    PRINT TAB(6,20); "ALL  X  VALUES ARE ZERO ..."
+  ELSE IF PMODE$ = "F" THEN
+    PRINT TAB(6,20); "ALL  F  VALUES ARE ZERO ..."
+  ELSE IF PMODE$ = "Y" THEN
+    PRINT TAB(6,20); "THE  Y  VECTOR IS ZERO ..."
+  END IF
+
+  PRINT TAB(8,20); "POINTLESS RUNNING THE     POST-PROCESSOR"
+  PRINT TAB(8,43);PMODE$
+
+  LET FRAS$ = "³ CONTINUE ... C ³  ?  "
+  DO
+    IF FER = 1 THEN SOUND 500,.1
+
+    CALL APROMPT( 12, 29, A$, FRAS$, GYW$ )
+
+    IF GYW$ = "C" OR GYW$ = "Q" THEN LET QAZ = 1
+    LET FER = 1
+  LOOP UNTIL QAZ = 1
+
+END SUB !BOX46
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 

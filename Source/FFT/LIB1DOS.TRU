@@ -1,5 +1,41 @@
 EXTERNAL             !LIB1DOS
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOXEXPIRE
+
+  SET CURSOR "OFF"
+  CLEAR
+  SOUND 500,.1
+
+  !CALL BOXU(2, 9, 62, 19)      !will crash if this is in
+
+  PRINT TAB(4,14);"THIS SOFTWARE VERSION IS NOW MORE THAN SIX MONTHS OLD"
+  PRINT TAB(7,12); "If you would like to find out if there is a later release:"
+  PRINT TAB(9,14);"Please obtain the version number of this release from"
+  PRINT TAB(11,23);"the info page (see below) and then"
+  PRINT TAB(13,21);"contact JOHN WILEY in New York City or"
+  PRINT TAB(15,20);"send an email to the author in Cape Town"
+  PRINT TAB(17,17);"(both addresses are displayed on the info page)"
+  PRINT TAB(20,14);"(This reminder will appear again in three months time)"
+  PRINT TAB(23,26);"press  I  to get the info page"
+
+
+  DO
+    GET KEY INKEY
+    IF INKEY = 73 OR INKEY = 105 THEN
+      LET EXIT2 = 1
+    ELSE
+      SOUND 500,.1
+    END IF
+  LOOP UNTIL EXIT2 = 1
+
+  CALL BOX138
+
+END SUB !BOXEXPIRE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUB BOX1( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, ZFLAG, A$, TAXIS, FAXIS, WXI$, GMODE$, N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, NOCONV, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTRE(), IFFTIM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, CENTFREQ, CONCORFLAG, STORDATE )
 
@@ -303,6 +339,52 @@ END SUB !MUSTUSE
 
 END SUB !BOX1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB WRITESUB( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, TAXIS, FAXIS, WXI$, A$, CENTFREQ, CONCORFLAG, STORDATE )
+
+  WHEN ERROR IN
+    CLOSE #2
+    OPEN #2:  NAME "PARAMS03.TRU", ACCESS "OUTPUT", ORGANIZATION RECORD, RECSIZE 16, CREATE NEWOLD
+    SET #2:   RECORD 2
+    WRITE #2: CARD$
+    WRITE #2: COLNUMBR
+    WRITE #2: COLOR$
+    WRITE #2: AXIS$
+    WRITE #2: KLEEN$
+    WRITE #2: TAXIS
+    WRITE #2: FAXIS
+    WRITE #2: WXI$
+    WRITE #2: CENTFREQ
+    WRITE #2: CONCORFLAG
+    WRITE #2: STORDATE
+    WRITE #2: EXPAND1
+    WRITE #2: EXPAND2
+    WRITE #2: EXPAND3
+    WRITE #2: EXPAND4
+    WRITE #2: EXPAND5
+    WRITE #2: EXPAND6
+
+    CLOSE #2
+  USE
+    CLEAR
+    SOUND 500,.1
+    PRINT TAB(2,1);"YOUR SELECTION(S) CANNOT BE RECORDED FOR FUTURE USE."
+    PRINT TAB(4,1);"AN ERROR HAS OCCURRED: THE ERROR MESSAGE READS"
+    LET MESSAGE$ = EXTEXT$
+    PRINT TAB(6,1);"----------------------------------------------"
+    PRINT TAB(7,1);MESSAGE$
+    PRINT TAB(8,1);"----------------------------------------------"
+
+    CALL BOX48CFIX(10, 1, A$ )
+
+  END WHEN
+
+END SUB !WRITESUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -634,50 +716,6 @@ END SUB !SETUPMENU
 
 
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB WRITESUB( CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, TAXIS, FAXIS, WXI$, A$, CENTFREQ, CONCORFLAG, STORDATE )
-
-  WHEN ERROR IN
-    CLOSE #2
-    OPEN #2:  NAME "PARAMS03.TRU", ACCESS "OUTPUT", ORGANIZATION RECORD, RECSIZE 16, CREATE NEWOLD
-    SET #2:   RECORD 2
-    WRITE #2: CARD$
-    WRITE #2: COLNUMBR
-    WRITE #2: COLOR$
-    WRITE #2: AXIS$
-    WRITE #2: KLEEN$
-    WRITE #2: TAXIS
-    WRITE #2: FAXIS
-    WRITE #2: WXI$
-    WRITE #2: CENTFREQ
-    WRITE #2: CONCORFLAG
-    WRITE #2: STORDATE
-    WRITE #2: EXPAND1
-    WRITE #2: EXPAND2
-    WRITE #2: EXPAND3
-    WRITE #2: EXPAND4
-    WRITE #2: EXPAND5
-    WRITE #2: EXPAND6
-
-    CLOSE #2
-  USE
-    CLEAR
-    SOUND 500,.1
-    PRINT TAB(2,1);"YOUR SELECTION(S) CANNOT BE RECORDED FOR FUTURE USE."
-    PRINT TAB(4,1);"AN ERROR HAS OCCURRED: THE ERROR MESSAGE READS"
-    LET MESSAGE$ = EXTEXT$
-    PRINT TAB(6,1);"----------------------------------------------"
-    PRINT TAB(7,1);MESSAGE$
-    PRINT TAB(8,1);"----------------------------------------------"
-
-    CALL BOX48CFIX(10, 1, A$ )
-
-  END WHEN
-
-END SUB !WRITESUB
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUB BOX3( N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, OPTION$, CARD$, COLNUMBR, COLOR$, AXIS$, KLEEN$, FREEMEM, CALL$, A$, NOCONV, HJWFLAG, NKB, FILESTR$, CONCORFLAG )
@@ -936,6 +974,79 @@ END SUB !BOX3
 
 
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX2( A$ )
+
+  SET CURSOR "OFF"
+  DO
+    LET EXIT = 0
+    LET GOBACK = 0
+    CLEAR
+    PRINT TAB(3,16); "ษออออออออออออออออออออออออออออออออออออออออออออออป"
+    PRINT TAB(4,16); "บ                                              บ"
+    PRINT TAB(5,16); "บ              THIS IS A COMPLETE              บ"
+    PRINT TAB(6,16); "บ                                              บ"
+    PRINT TAB(7,16); "บ         FAST-FOURIER-TRANSFORM SYSTEM        บ"
+    PRINT TAB(8,16); "บ                                              บ"
+    PRINT TAB(9,16); "บ    A DETAILED DISCUSSION IS CONTAINED IN     บ"
+    PRINT TAB(10,16);"บ                                              บ"
+    PRINT TAB(11,16);"บ     ""INTRODUCTION TO FOURIER ANALYSIS""       บ"
+    PRINT TAB(12,16);"บ                                              บ"
+    PRINT TAB(13,16);"บ               Norman Morrison                บ"
+    PRINT TAB(14,16);"บ                                              บ"
+    PRINT TAB(15,16);"บ              JOHN WILEY & SONS               บ"
+    PRINT TAB(16,16);"บ                                              บ"
+    PRINT TAB(17,16);"ศออออออออออออออออออออออออออออออออออออออออออออออผ"
+
+    PRINT TAB(19,20);"press --->  I  <--- to get the info page"
+
+    PRINT TAB(21,27);"press spacebar to continue"
+
+    DO
+      GET KEY INKEY
+      IF INKEY = 32 THEN
+        LET EXIT = 1
+      ELSE IF INKEY = 073 OR INKEY = 105 THEN
+        CALL BOX138
+        LET EXIT = 1
+        LET GOBACK = 1
+      ELSE
+        SOUND 500,.1
+      END IF
+    LOOP UNTIL EXIT = 1
+  LOOP WHILE GOBACK = 1
+
+END SUB !BOX2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX138
+
+  SET CURSOR "OFF"
+  CLEAR
+
+  CALL BOXU(2,14,52,18)
+
+  CALL SHOWINFO
+
+  PRINT TAB(23,29);"press spacebar to exit"
+
+  DO
+    GET KEY INKEY
+    IF INKEY = 32 THEN
+      LET EXIT2 = 1
+    ELSE
+      SOUND 500,.1
+    END IF
+  LOOP UNTIL EXIT2 = 1
+
+END SUB !BOX138
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUB BOX39
 
@@ -1191,111 +1302,3 @@ SUB BOXQ( WXI$, A$ )
 
 END SUB !BOXQ
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOX2( A$ )
-
-  SET CURSOR "OFF"
-  DO
-    LET EXIT = 0
-    LET GOBACK = 0
-    CLEAR
-    PRINT TAB(3,16); "ษออออออออออออออออออออออออออออออออออออออออออออออป"
-    PRINT TAB(4,16); "บ                                              บ"
-    PRINT TAB(5,16); "บ              THIS IS A COMPLETE              บ"
-    PRINT TAB(6,16); "บ                                              บ"
-    PRINT TAB(7,16); "บ         FAST-FOURIER-TRANSFORM SYSTEM        บ"
-    PRINT TAB(8,16); "บ                                              บ"
-    PRINT TAB(9,16); "บ    A DETAILED DISCUSSION IS CONTAINED IN     บ"
-    PRINT TAB(10,16);"บ                                              บ"
-    PRINT TAB(11,16);"บ     ""INTRODUCTION TO FOURIER ANALYSIS""       บ"
-    PRINT TAB(12,16);"บ                                              บ"
-    PRINT TAB(13,16);"บ               Norman Morrison                บ"
-    PRINT TAB(14,16);"บ                                              บ"
-    PRINT TAB(15,16);"บ              JOHN WILEY & SONS               บ"
-    PRINT TAB(16,16);"บ                                              บ"
-    PRINT TAB(17,16);"ศออออออออออออออออออออออออออออออออออออออออออออออผ"
-
-    PRINT TAB(19,20);"press --->  I  <--- to get the info page"
-
-    PRINT TAB(21,27);"press spacebar to continue"
-
-    DO
-      GET KEY INKEY
-      IF INKEY = 32 THEN
-        LET EXIT = 1
-      ELSE IF INKEY = 073 OR INKEY = 105 THEN
-        CALL BOX138
-        LET EXIT = 1
-        LET GOBACK = 1
-      ELSE
-        SOUND 500,.1
-      END IF
-    LOOP UNTIL EXIT = 1
-  LOOP WHILE GOBACK = 1
-
-END SUB !BOX2
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOXEXPIRE
-
-  SET CURSOR "OFF"
-  CLEAR
-  SOUND 500,.1
-
-  !CALL BOXU(2, 9, 62, 19)      !will crash if this is in
-
-  PRINT TAB(4,14);"THIS SOFTWARE VERSION IS NOW MORE THAN SIX MONTHS OLD"
-  PRINT TAB(7,12); "If you would like to find out if there is a later release:"
-  PRINT TAB(9,14);"Please obtain the version number of this release from"
-  PRINT TAB(11,23);"the info page (see below) and then"
-  PRINT TAB(13,21);"contact JOHN WILEY in New York City or"
-  PRINT TAB(15,20);"send an email to the author in Cape Town"
-  PRINT TAB(17,17);"(both addresses are displayed on the info page)"
-  PRINT TAB(20,14);"(This reminder will appear again in three months time)"
-  PRINT TAB(23,26);"press  I  to get the info page"
-
-
-  DO
-    GET KEY INKEY
-    IF INKEY = 73 OR INKEY = 105 THEN
-      LET EXIT2 = 1
-    ELSE
-      SOUND 500,.1
-    END IF
-  LOOP UNTIL EXIT2 = 1
-
-  CALL BOX138
-
-END SUB !BOXEXPIRE
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOX138
-
-  SET CURSOR "OFF"
-  CLEAR
-
-  CALL BOXU(2,14,52,18)
-
-  CALL SHOWINFO
-
-  PRINT TAB(23,29);"press spacebar to exit"
-
-  DO
-    GET KEY INKEY
-    IF INKEY = 32 THEN
-      LET EXIT2 = 1
-    ELSE
-      SOUND 500,.1
-    END IF
-  LOOP UNTIL EXIT2 = 1
-
-END SUB !BOX138
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,1 +1,1077 @@
-EXTERNAL   !PLOTSUB4.TRU!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB PLOT7( COLOR$ )!FOURIER SERIES PLOTTER... PLOTS RESPONSE OF AN RLC CIRCUIT TO SQUARE WAVES  DIM A(102)               !COEFFICIENTS OF THE OUTPUT'S FOURIER SERIES  DIM B(102)  DIM F(0:50)  OPTION ANGLE RADIANS  LET R = 15  LET L = .5  LET C = .001  LET SHOWFLAG = 1  DO    LET CYCLE = 0    CLEAR    SET WINDOW 0, 81, 0, 31    SET TEXT JUSTIFY "CENTER", "HALF"    BOX CLEAR 0, 81, 3.5, 4.5    PLOT TEXT, AT 40,4 : "PLOT OF A WAVEFORM BEFORE AND AFTER  RLC  FILTERING"    SET WINDOW -.1, 2.1, -.95, 2.25    CALL PLOT71    CALL PLOT72    CALL CQ( RESULT )    IF RESULT = 2 THEN LET GETOUT = 1    IF GETOUT = 0 THEN      DO        LET CYCLE  = 0        LET CYCLE2 = 0        LET FLAG3 = 0        LET FLAG4 = 0        LET EXIT  = 0        LET MESSAGE$ = "NUMBER OF TERMS IN THE INPUT'S FOURIER SERIES"        LET MESSAGE$ = MESSAGE$ & "|" &  "  (an integer " & CHR$(179) & " 2 and " & CHR$(178) & " 50) ? "        LET CAM = 0        LET RAM = 0        DO          IF CAM = 1 THEN CALL MACSYSBEEP( 1 )          CALL INPUTVALL( MESSAGE$, MIN, SHOWFLAG, FLAG )          IF FLAG = 1 OR (MIN >=2 AND MIN <= 50 and MIN = INT(MIN)) THEN LET RAM = 1          LET CAM = 1        LOOP UNTIL RAM = 1        LET NIN = MIN - 1        IF FLAG = 1 THEN          LET CYCLE = 1          LET CYCLE2 = 1          CALL CQ( RESULT )          IF RESULT = 2 THEN            LET GETOUT = 1            LET CYCLE  = 0            LET CYCLE2 = 0          END IF        END IF        IF CYCLE = 0 AND GETOUT = 0 THEN          CLEAR          CALL PLOT71          CALL PLOT72                                      !PLOTTING THE BANDLIMITED SQUARE WAVES          LET N = 2*NIN - 1          FOR K = 1 TO N STEP 2             !COMPUTING THE COEFFICIENTS FOR THE SERIES            LET OMK  =  PI * K    !OMK IS k.OMEMEG-o            LET IIK  = -( 1 - COS( OMK ) ) / (2*OMK)   !IIK IS IMAG PART OF C-K            LET B(K) = -2 * IIK     !B(K) IS k-TH SINE COEFFICIENT          NEXT K          FOR T = 0 TO .5 STEP 1/100            LET I = 100*T            LET F(I) = 0                !F IS THE FOURIER SERIES, Ao IS 0.5            FOR K = 1 TO N STEP 2              LET OMK  = 2 * PI * K              LET TERM = B(K) * SIN( OMK * T )              LET F(I) = F(I) + TERM   !ACCUMULATING THE SERIES            NEXT K            PLOT T, 0;            PLOT T, .5 + F(I)          NEXT T          FOR T = .5 TO 1 STEP 1/100     !PLOTTING THE SCREEN DISPLAY            LET I = 100*(T - .5)            PLOT T, 0;            PLOT T, .5 - F(I)          NEXT T          FOR T = 1 TO 1.5 STEP 1/100     !PLOTTING THE SCREEN DISPLAY            LET I = 100*(T - 1)            PLOT T, 0;            PLOT T, .5 + F(I)          NEXT T          FOR T = 1.5 TO 2 STEP 1/100     !PLOTTING THE SCREEN DISPLAY            LET I = 100*(T - 1.5)            PLOT T, 0;            PLOT T, .5 - F(I)          NEXT T          SET WINDOW 0, 81, 0, 31          SET TEXT JUSTIFY "CENTER", "HALF"          BOX CLEAR 20, 60, 3.5, 4.5          PLOT TEXT, AT 40,4 : "FILTER INPUT ( N = " & STR$(NIN+1) & " )"          SET WINDOW -.1, 2.1, -.95, 2.25!          SOUND 2000,.1          CALL CFQ( RESULT )          IF RESULT = 1 THEN            LET ZZ$ = "N"          ELSE IF RESULT = 2 THEN            LET ZZ$ = "F"          ELSE IF RESULT = 3 THEN            LET ZZ$ = "Q"          END IF          IF ZZ$ = "Q" THEN LET CYCLE2 = 1          IF CYCLE2 = 0 THEN            IF ZZ$ = "N" THEN              LET CYCLE2 = 1            ELSE IF ZZ$ = "F" THEN              DO                LET CYCLE3 = 0                CLEAR                CALL PLOT71                CALL PLOT72                FOR K = 1 TO N STEP 2                  LET OMK  = 2 * PI * K                  LET IIK  = -( 1 - COS( OMK/2 ) ) / OMK                  LET DENOM = (1 - OMK^2 * L * C ) ^ 2 + OMK^2 * R^2 * C^2                  LET RNETK = (1 - OMK^2 * L * C ) / DENOM             !THE FILTER                  LET INETK = - OMK * R * C / DENOM                  LET ROUTK = -IIK * INETK !THE OUTPUT OF THE FILTER                  LET IOUTK =  IIK * RNETK                  LET A(K)  =  2 * ROUTK    !COMPUTING THE COEFFICIENTS FOR THE                  LET B(K)  = -2 * IOUTK   !SINE/COSINE SERIES                NEXT K                FOR T = 0 TO .5 STEP 1/100   !PLOTS THE BANDLIMITED AND FILTERED                  LET I = 100*T                  LET F(I) = 0                  FOR K = 1 TO N                    LET OMK  = 2 * PI * K                    LET TERM = A(K) * COS( OMK * T ) + B(K) * SIN( OMK * T )                    LET F(I) = F(I) + TERM       !ACCUMULATING THE SINE/COSINE SERIES                  NEXT K                  PLOT T, 0;                  PLOT T, .5 + F(I)             !PLOTTING THE SCREEN DISPLAY                NEXT T                FOR T = .5 TO 1 STEP 1/100      !PLOTTING THE SCREEN DISPLAY                  LET I = 100*(T - .5)                  PLOT T, 0;                  PLOT T, .5 - F(I)                NEXT T                FOR T = 1 TO 1.5 STEP 1/100     !PLOTTING THE SCREEN DISPLAY                  LET I = 100*(T - 1)                  PLOT T, 0;                  PLOT T, .5 + F(I)                NEXT T                FOR T = 1.5 TO 2 STEP 1/100     !PLOTTING THE SCREEN DISPLAY                  LET I = 100*(T - 1.5)                  PLOT T, 0;                  PLOT T, .5 - F(I)                NEXT T !               SOUND 2000,.1                SET WINDOW 0, 81, 0, 31                SET TEXT JUSTIFY "CENTER", "HALF"                BOX CLEAR 33.5, 46.5, 3.5, 4.5                PLOT TEXT, AT 40,4 : "FILTER OUTPUT"                SET WINDOW -.1, 2.1, -.95, 2.25                DO                  LET CYCLE2 = 0                  LET CYCLE3 = 0                  LET CYCLE4 = 0                  CALL RLCNQ( RESULT )                  IF RESULT = 1 THEN                    LET ZZ$ = "R"                  ELSE IF RESULT = 2 THEN                    LET ZZ$ = "L"                  ELSE IF RESULT = 3 THEN                    LET ZZ$ = "C"                  ELSE IF RESULT = 4 THEN                    LET ZZ$ = "Q"                  ELSE IF RESULT = 5 THEN                    LET ZZ$ = "Q"                  END IF                  IF ZZ$ = "Q" THEN                    LET CYCLE2 = 1                  ELSE                    LET CYCLE3 = 1                    LET CAT = 0                    LET RAT = 0                    IF ZZ$ = "R" THEN                      LET MESSAGE$ = "REQUIRED VALUE FOR  R"                      LET MESSAGE$ = MESSAGE$ & "|" & "  (nonnegative) ?"                      DO                        IF CAT = 1 THEN CALL MACSYSBEEP( 1 )                        CALL INPUTVALL( MESSAGE$, R, SHOWFLAG, FLAG )                        IF FLAG = 1 OR R >= 0 THEN LET RAT = 1                        LET CAT = 1                      LOOP UNTIL RAT = 1                    ELSE IF ZZ$ = "L" THEN                      LET MESSAGE$ = "REQUIRED VALUE FOR  L"                      LET MESSAGE$ = MESSAGE$ & "|" & "  (nonnegative) ?"                      DO                        IF CAT = 1 THEN CALL MACSYSBEEP( 1 )                        CALL INPUTVALL( MESSAGE$, L, SHOWFLAG, FLAG )                        IF FLAG = 1 OR L >= 0 THEN LET RAT = 1                        LET CAT = 1                      LOOP UNTIL RAT = 1                    ELSE IF ZZ$ = "C" THEN                      LET MESSAGE$ = "REQUIRED VALUE FOR  C"                      LET MESSAGE$ = MESSAGE$ & "|" & "  (nonnegative) ?"                      DO                        IF CAT = 1 THEN CALL MACSYSBEEP( 1 )                        CALL INPUTVALL( MESSAGE$, C, SHOWFLAG, FLAG )                        IF FLAG = 1 OR C >= 0 THEN LET RAT = 1                        LET CAT = 1                      LOOP UNTIL RAT = 1                    END IF                    IF FLAG = 1 THEN LET CYCLE4 = 1                  END IF                LOOP WHILE CYCLE4 = 1              LOOP WHILE CYCLE3 = 1            END IF          END IF        END IF      LOOP WHILE CYCLE2 = 1    END IF  LOOP WHILE CYCLE = 1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB PLOT71SET WINDOW -.1, 2.1, -.95, 2.25PLOT -.05,  0.0;   2.05,  0.0     !PLOTS THE PERFECT INPUT SEQUENCE OF PULSESPLOT  0.0,  0.0;    0.0,  1.0;   0.5,  1.0;    0.5,  0.0PLOT  1.0,  0.0;    1.0,  1.0;   1.5,  1.0;    1.5,  0.0END SUB !PLOT71!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB PLOT72                            !DRAWS A PICTURE OF THE R-L-C FILTER  SET WINDOW -.1, 2.1, -.95, 2.25  PLOT    .5, 2.05;    0.7, 2.05  PLOT  0.7,  2.00;                     !DRAWING THE BOX FOR THE INDUCTOR  PLOT  0.7,  2.10;  PLOT  0.9,  2.10;  PLOT  0.9,  2.00;  PLOT  0.7,  2.00  SET WINDOW 0, 81, 0, 31  SET TEXT JUSTIFY "CENTER", "HALF"  PLOT TEXT, AT 33.5,28 : "L=" & STR$(L)  SET WINDOW -.1, 2.1, -.95, 2.25  PLOT  0.9,  2.05;    !MOVING ON TO THE RESISTOR  PLOT  1.05, 2.05  PLOT  1.05, 2.05;  !PUTTING IN THE SQUIGGLES FOR THE RESISTOR  PLOT  1.07, 2.10;  PLOT  1.1,  2.00;  PLOT  1.13, 2.10;  PLOT  1.16, 2.00;  PLOT  1.19, 2.10;  PLOT  1.22, 2.00;  PLOT  1.25, 2.10;  PLOT  1.28, 2.00;  PLOT  1.295,2.05  SET WINDOW 0, 81, 0, 31  PLOT TEXT, AT 47,28 : "R=" & STR$(R)  SET WINDOW -.1, 2.1, -.95, 2.25  PLOT  1.295, 2.05; !FINISHING THE TOP LINE  PLOT  1.52,  2.05  PLOT  1.43, 2.05;   !PUTTING IN THE CAPACITOR  PLOT  1.43, 1.83  PLOT  1.35, 1.83;  PLOT  1.51, 1.83  PLOT  1.35, 1.77;  PLOT  1.51, 1.77  PLOT  1.43, 1.77;  PLOT  1.43, 1.55  SET WINDOW 0, 81, 0, 31  PLOT TEXT, AT 50,26 : "C=" & STR$(C)  SET WINDOW -.1, 2.1, -.95, 2.25  PLOT    .5, 1.55;    !BOTTOM LINE  PLOT  1.52, 1.55  PLOT    .25,  1.8;  .375,  1.8;  .35,  1.76       !ADDING THE ARROWS  PLOT    .35, 1.84;  .375,  1.8  PLOT    1.65,  1.8;  1.775, 1.8;  1.75,  1.76       !ADDING THE ARROWS  PLOT    1.75,  1.84; 1.775, 1.8END SUB !PLOT72!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB CFQ( RESULT )  !CHANGE N/FILTER/QUIT  SET WINDOW 0, 81, 0, 31  BOX CLEAR  15, 61.5, 1,  3  SET TEXT JUSTIFY "CENTER", "HALF"  PLOT TEXT, AT 28.5, 2: "CHANGE N"  PLOT 33,2.5 ; 35,2.5 ; 35,1.5 ; 33,1.5 ; 33,2.5  PLOT TEXT, AT 40.5, 2: "FILTER"  PLOT 44,2.5 ; 46,2.5 ; 46,1.5 ; 44,1.5 ; 44,2.5  PLOT TEXT, AT 50.5, 2: "QUIT"  PLOT 53,2.5 ; 55,2.5 ; 55,1.5 ; 53,1.5 ; 53,2.5  DO    CALL TW_EVENT(TIMER, TYPE1$, WINDOW, X1, X2)    IF TYPE1$ = "SINGLE" THEN      IF X1>33 AND X1<35 AND X2>1.5 AND X2<2.5 THEN        CALL STAR(34,2)        LET RESULT = 1        EXIT DO      ELSE IF X1>44 AND X1<46 AND X2>1.5 AND X2<2.5 THEN        CALL STAR(45,2)        LET RESULT = 2        EXIT DO      ELSE IF X1>53 AND X1<55 AND X2>1.5 AND X2<2.5 THEN        CALL STAR(54,2)        LET RESULT = 3        EXIT DO      ELSE        CALL MACSYSBEEP(1)      END IF    END IF  LOOP  BOX CLEAR  15, 61.5, 1,  3  SET WINDOW -.1, 2.1, -.95, 2.25END SUB !CFQ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB RLCNQ( RESULT )  !CHANGE RLCN/QUIT  SET WINDOW  0,   81, 0, 31  BOX CLEAR  11, 69.5, 1,  3  SET TEXT JUSTIFY "CENTER", "HALF"  PLOT TEXT, AT 16, 2: "CHANGE R"  PLOT 21,2.5 ; 23,2.5 ; 23,1.5 ; 21,1.5 ; 21,2.5  PLOT TEXT, AT 28, 2: "CHANGE L"  PLOT 33,2.5 ; 35,2.5 ; 35,1.5 ; 33,1.5 ; 33,2.5  PLOT TEXT, AT 40, 2: "CHANGE C"  PLOT 45,2.5 ; 47,2.5 ; 47,1.5 ; 45,1.5 ; 45,2.5  PLOT TEXT, AT 52, 2: "CHANGE N"  PLOT 57,2.5 ; 59,2.5 ; 59,1.5 ; 57,1.5 ; 57,2.5  PLOT TEXT, AT 64, 2: "QUIT"  PLOT 66.5,2.5 ; 68.5,2.5 ; 68.5,1.5 ; 66.5,1.5 ; 66.5,2.5  DO    CALL TW_EVENT(TIMER, TYPE1$, WINDOW, X1, X2)    IF TYPE1$ = "SINGLE" THEN      IF X1>21 AND X1<23 AND X2>1.5 AND X2<2.5 THEN        CALL STAR(22,2)        LET RESULT = 1        EXIT DO      ELSE IF X1>33 AND X1<35 AND X2>1.5 AND X2<2.5 THEN        CALL STAR(34,2)        LET RESULT = 2        EXIT DO      ELSE IF X1>45 AND X1<47 AND X2>1.5 AND X2<2.5 THEN        CALL STAR(46,2)        LET RESULT = 3        EXIT DO      ELSE IF X1>57 AND X1<59 AND X2>1.5 AND X2<2.5 THEN        CALL STAR(58,2)        LET RESULT = 4        EXIT DO      ELSE IF X1>66.5 AND X1<68.5 AND X2>1.5 AND X2<2.5 THEN        CALL STAR(67.5,2)        LET RESULT = 5        EXIT DO      ELSE        CALL MACSYSBEEP(1)      END IF    END IF  LOOP  BOX CLEAR 11, 69.5, 1, 3  SET WINDOW -.1, 2.1, -.95, 2.25END SUB !RLCNQ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!END SUB !PLOT7!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB PLOT8( COLOR$, WINDOW1 )   !DEMONSTRATES DISCRETE NON-ORTHOGONALITY  DIM F(0:100)  DIM G(0:100)  OPTION ANGLE RADIANS  LET SHOWFLAG = 1  DO    LET CYCLE = 0    LET CLEARONCE = 1    LET SHOWTEXT  = 1    CLOSE #1    CLOSE #2    CLOSE #3    CLEAR    SET WINDOW 0, 81, 0, 31    SET TEXT JUSTIFY "CENTER", "HALF"    PLOT TEXT, AT 40,29 : "DEMONSTRATION OF THE NON-ORTHOGONALITY OF THE SET OF DISCRETE SINES AND COSINES"    PLOT TEXT, AT 40,26 : "   S = { 1,  cos(2¹ k/N),  cos(2¹ 2k/N),  cos(2¹ 3k/N), ... cos(2¹ (N-1)k/N)   "    PLOT TEXT, AT 40,24 : "       ... sin(2¹ k/N),  sin(2¹ 2k/N),  sin(2¹ 3k/N), ... sin(2¹ (N-1)k/N) }  "    PLOT TEXT, AT 40,20 : "        N-1                               0     p <> q  (almost!)  <----       "    PLOT TEXT, AT 40,19 : "         · cos(2¹ pk/N) cos(2¹ qk/N)  =   N/2   p = q <> N/2 or 0              "    PLOT TEXT, AT 40,18 : "        k=0                               N     p = q  = N/2 or 0              "    PLOT TEXT, AT 40,14 : "                 N-1                                                           "    PLOT TEXT, AT 40,13 : "                  · sin(2¹ pk/N) cos(2¹ qk/N)  =  0  for all p and q           "    PLOT TEXT, AT 40,12 : "                 k=0                                                           "    PLOT TEXT, AT 40, 8 : "        N-1                               0     p <> q  (almost!)  <----       "    PLOT TEXT, AT 40, 7 : "         · sin(2¹ pk/N) sin(2¹ qk/N)  =   N/2   p = q <> N/2 or 0              "    PLOT TEXT, AT 40, 6 : "        k=0                               0     p = q  = N/2 or 0              "    CALL CQ( RESULT )    IF RESULT = 2 THEN LET GETOUT = 1    IF GETOUT = 0 THEN      DO        LET CYCLE1 = 0        SET WINDOW 0, 81, 0, 31        IF CLEARONCE = 1 THEN          CLEAR          LET CLEARONCE = 0        END IF        IF SHOWTEXT = 1 THEN          LET SHOWTEXT = 0          PLOT TEXT, AT 40,29 : "The statements                                                                "          PLOT TEXT, AT 40,26 : "  N-1                                                                          "          PLOT TEXT, AT 40,25 : "   ·  cos(2¹ pk/N) cos(2¹ qk/N)  =  0     ( p <> q )                           "          PLOT TEXT, AT 40,24 : "  k=0                                                                          "          PLOT TEXT, AT 40,21 : "and                                                                            "          PLOT TEXT, AT 40,18 : "  N-1                                                                          "          PLOT TEXT, AT 40,17 : "   ·  sin(2¹ pk/N) sin(2¹ qk/N)  =  0     ( p <> q )                           "          PLOT TEXT, AT 40,16 : "  k=0                                                                          "          PLOT TEXT, AT 40,13 : "are true for ALMOST all integers  p  and  q  lying in  0  to  N-1.             "          PLOT TEXT, AT 40,12 : "You can verify this by continuing with the demonstration that follows.         "          PLOT TEXT, AT 40, 9 : "However there are certain pairs of values of  p  and  q  (for each N)          "          PLOT TEXT, AT 40, 8 : "for which the above statements are not true. Try to find them.                 "        END IF        CALL SDQ( RESULT )        IF RESULT = 1 THEN          LET DFR$ = "S"        ELSE IF RESULT = 2 THEN          LET DFR$ = "WZPM"        ELSE IF RESULT = 3 THEN          LET DFR$ = "Q"        END IF        IF DFR$ = "Q" THEN LET CYCLE = 1        IF CYCLE = 0 THEN          DO            LET CYCLE6 = 0            IF DFR$ = "WZPM" THEN              CALL SCROLLER              CLOSE #1              CLOSE #2              CLOSE #3              LET CYCLE1    = 1              LET SHOWTEXT  = 1              LET CLEARONCE = 1            END IF            IF CYCLE1 = 0 AND CYCLE6 = 0 THEN              CALL SETCOLOR( COLOR$ )              DO                LET CYCLE2 = 0                WINDOW #0                LET MESSAGE$ = "WHAT IS THE VALUE OF  N"                LET MESSAGE$ = MESSAGE$ & "|" & "  (an integer >1 and " & CHR$(178)  & " 100) ?"                LET BUT = 0                LET MUT = 0                DO                  IF BUT = 1 THEN CALL MACSYSBEEP( 1 )                  CALL INPUTVALL( MESSAGE$, N, SHOWFLAG, FLAG )                  IF FLAG = 1 OR (N > 1 AND N <= 100 AND N = INT(N)) THEN LET MUT = 1                  LET BUT = 1                LOOP UNTIL MUT = 1                IF FLAG = 1 THEN                  LET CYCLE1 = 1                  CLOSE #1                  CLOSE #2                  CLOSE #3                END IF                IF CYCLE1 = 0 THEN                  DO                    LET CYCLE3 = 0                    LET MESSAGE$ = "FIRST FUNCTION IS A"                    LET ICON = 2                    LET BUTTON$ = "SINE|COSINE|QUIT"                    CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )                    IF RESULT = 1 THEN                       LET GTA$ = "S"                    ELSE IF RESULT = 2 THEN                       LET GTA$ = "C"                    ELSE IF RESULT = 3 THEN                       LET GTA$ = "Q"                    END IF                    IF GTA$ = "Q" THEN LET CYCLE2 = 1                    IF CYCLE2 = 0 THEN                      DO                        LET CYCLE4 = 0                        LET MESSAGE$ = "HARMONIC NUMBER"                        LET MESSAGE$ = MESSAGE$ & "|" & "  (an integer " & CHR$(179) & " 0 and <" & STR$(N) & " ?"                        LET BUN = 0                        LET FUN = 0                        DO                          IF BUN = 1 THEN CALL MACSYSBEEP( 1 )                          CALL INPUTVALL( MESSAGE$, P, SHOWFLAG, FLAG )                          IF FLAG = 1 OR (P >= 0 AND P < N AND P = INT(P)) THEN LET FUN = 1                          LET BUN = 1                        LOOP UNTIL FUN = 1                        IF FLAG = 1 THEN LET CYCLE3 = 1                        IF CYCLE3 = 0 THEN                          DO                            LET CYCLE5 = 0                            LET MESSAGE$ = "SECOND FUNCTION IS A"                            LET ICON = 2                            LET BUTTON$ = "SINE|COSINE|QUIT"                            CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )                            IF RESULT = 1 THEN                               LET GTB$ = "S"                            ELSE IF RESULT = 2 THEN                               LET GTB$ = "C"                            ELSE IF RESULT = 3 THEN                               LET GTB$ = "Q"                            END IF                            IF GTB$ = "Q" THEN LET CYCLE4 = 1                            IF CYCLE4 = 0 THEN                              LET CYCLE5 = 0                              LET MESSAGE$ = "HARMONIC NUMBER"                              LET MESSAGE$ = MESSAGE$ & "|" & "  (an integer " & CHR$(179) & " 0 and <" & STR$(N) & " ?"                              LET BUN = 0                              LET FUN = 0                              DO                                IF BUN = 1 THEN CALL MACSYSBEEP( 1 )                                CALL INPUTVALL( MESSAGE$, Q, SHOWFLAG, FLAG )                                IF FLAG = 1 OR (Q >= 0 AND Q < N AND Q = INT(Q)) THEN LET FUN = 1                                LET BUN = 1                              LOOP UNTIL FUN = 1                              IF FLAG = 1 THEN LET CYCLE5 = 1                              IF CYCLE5 = 0 THEN                                CLEAR                                CLOSE #1                                CLOSE #2                                CLOSE #3                                OPEN #1: SCREEN   0, .49, .51, 1                                OPEN #2: SCREEN   0, .49,   0, .49                                OPEN #3: SCREEN .51, 1.0,  0, 1                                CALL SETCOLOR( COLOR$ )                                LET M = 100/N                                FOR K = 0 TO N - 1                                  IF GTA$ = "S" THEN                                    LET F(K) = sin(2*PI*P*K/N)                                  ELSE IF GTA$ = "C" THEN                                    LET F(K) = cos(2*PI*P*K/N)                                  END IF                                  IF GTB$ = "S" THEN                                    LET G(K) = sin(2*PI*Q*K/N)                                  ELSE IF GTB$ = "C" THEN                                    LET G(K) = cos(2*PI*Q*K/N)                                  END IF                                NEXT K                                WINDOW #0                                SET WINDOW -1, 1, -1, 1                                PLOT -1,0;0,0                                PLOT 0,-1;0,1                                LET Z = 1.5                                LET A = -10                                LET B = 110                                LET C = -Z                                LET D =  Z                                WINDOW #1                                SET WINDOW A, 1.03*B, C-.06, D-.06                                CALL SETCOLOR( COLOR$ )                                CALL AXES1                                FOR K = 0 TO N - 1                                  PLOT K*M,0;K*M,F(K)                                NEXT K                                IF GTA$ = "S" THEN                                  LET STR1$ = "sin(2¹ " & STR$(P) & " k/N)"                                ELSE IF GTA$ = "C" THEN                                  LET STR1$ = "cos(2¹ " & STR$(P) & " k/N)"                                END IF                                PLOT TEXT, AT 51.5, 1.33 : STR1$                                WINDOW #2                                SET WINDOW A, 1.03*B, C, D                                CALL SETCOLOR( COLOR$ )                                CALL AXES1                                FOR K = O TO N - 1                                  PLOT K*M,0;K*M,G(K)                                NEXT K                                IF GTB$ = "S" THEN                                  LET STR2$ = "sin(2¹ " & STR$(Q) & " k/N)"                                ELSE IF GTB$ = "C" THEN                                  LET STR2$ = "cos(2¹ " & STR$(Q) & " k/N)"                                END IF                                PLOT TEXT, AT 51.5, 1.4 : STR2$                                WINDOW #3                                SET WINDOW A, 1.03*B, 2*(C-.02), 2*(D+.03)                                CALL SETCOLOR( COLOR$ )                                CALL AXES1                                LET SUM = 0                                FOR K = 0 TO N - 1                                  LET PROD = F(K)*G(K)                                  PLOT K*M,0;K*M,PROD                                  IF I < 100 THEN                                    LET SUM = SUM + PROD                                  END IF                                NEXT K                                LET STR3$ = " N = " & STR$(N)                                PLOT TEXT, AT 51.5, 2.7 : STR3$                                LET STR4$ = STR1$ & " " & STR2$                                PLOT TEXT, AT 51.5, 1.7 : STR4$ !                               SOUND 2000,.1                                LET STR5$ = "SUM = " & STR$(SUM)                                PLOT TEXT, AT 51.5, -1.6 : STR5$                                CALL CQ2( RESULT )                                IF RESULT = 1 THEN                                  LET CYCLE2   = 1                                ELSE IF RESULT = 2 THEN                                  CLOSE #1                                  CLOSE #2                                  CLOSE #3                                  LET CYCLE1    = 1                                  LET SHOWTEXT  = 1                                  LET CLEARONCE = 1                                END IF                              END IF                            END IF                          LOOP WHILE CYCLE5 = 1                        END IF                      LOOP WHILE CYCLE4 = 1                    END IF                  LOOP WHILE CYCLE3 = 1                END IF              LOOP WHILE CYCLE2 = 1            END IF          LOOP WHILE CYCLE6 = 1        END IF      LOOP WHILE CYCLE1 = 1    END IF  LOOP WHILE CYCLE = 1  CLOSE #1  CLOSE #2  CLOSE #3!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB AXES1  PLOT -5,0;105,0  PLOT 0,-.02;0,.02  PLOT 100,-.02;100,.02  PLOT TEXT, AT  -4, -.1 : "0"  PLOT TEXT, AT 103, -.1 : "N"  PLOT TEXT, AT 108,  .1 : "k"END SUB !AXES1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB SDQ( RESULT )            !START THE DEMONSTRATION/ DISPLAY THE ANSWER/QUIT  SET WINDOW 0, 81, 0, 31  BOX CLEAR  0, 81, 1.5,  2.5  SET TEXT JUSTIFY "CENTER", "HALF"  PLOT TEXT, AT 22, 2: "START THE DEMONSTRATION"  PLOT 34,2.5 ; 36,2.5 ; 36,1.5 ; 34,1.5 ; 34,2.5  PLOT TEXT, AT 47, 2: "DISPLAY THE ANSWER"  PLOT 56.5,2.5 ; 58.5,2.5 ; 58.5,1.5 ; 56.5,1.5 ; 56.5,2.5  PLOT TEXT, AT 63, 2: "QUIT"  PLOT 66,2.5 ; 68,2.5 ; 68,1.5 ; 66,1.5 ; 66,2.5  DO    CALL TW_EVENT(TIMER, TYPE1$, WINDOW, X1, X2)    IF TYPE1$ = "SINGLE" THEN      IF X1>34 AND X1<36 AND X2>1.5 AND X2<2.5 THEN        CALL STAR(35,2)        LET RESULT = 1        EXIT DO      ELSE IF X1>56.5 AND X1<58.5 AND X2>1.5 AND X2<2.5 THEN        CALL STAR(57.5,2)        LET RESULT = 2        EXIT DO      ELSE IF X1>66 AND X1<68 AND X2>1.5 AND X2<2.5 THEN        CALL STAR(67,2)        LET RESULT = 3        EXIT DO      ELSE        CALL MACSYSBEEP(1)      END IF    END IF  LOOP  BOX CLEAR  0, 81, 1.5,  2.5END SUB !SDQ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB SCROLLER  DIM D$(69)  LET D$(1) = "Whenever  p  and  q  satisfy the relationship:"  LET D$(2) = ""  LET D$(3) = "   p <> q   and  p + q = N"  LET D$(4) = ""  LET D$(5) = "you will find that"  LET D$(6) = ""  LET D$(7) = "   N-1"  LET D$(8) = "    ·  cos(2¹ pk/N) cos(2¹ qk/N)  =  N/2        (1)"  LET D$(9) = "   k=0"  LET D$(10) = ""  LET D$(11) = "and"  LET D$(12) = ""  LET D$(13) = "   N-1"  LET D$(14) = "    ·  sin(2¹ pk/N) sin(2¹ qk/N)  =  -N/2      (2)"  LET D$(15) = "   k=0"  LET D$(16) = ""  LET D$(17) = "If the set of discrete sines and cosines were orthogonal and"  LET D$(18) = " p <> q  then both of these sums should have given zero."  LET D$(19) = ""  LET D$(20) = "However the sums do not give zero for  p <> q  when  p + q = N,"  LET D$(21) = "and so orthogonality is not present."  LET D$(22) = ""  LET D$(23) = ""  LET D$(24) = ""  LET D$(25) = "To prove that (1) is true we proceed as follows:"  LET D$(26) = ""  LET D$(27) = ""  LET D$(28) = "If  p + q = N  then  p = N - q,  and so"  LET D$(29) = ""  LET D$(30) = "   cos(2¹ pk/N)  =  cos(2¹ (N-q)k/N)"  LET D$(31) = ""  LET D$(32) = "                 =  cos(2¹ Nk/N) cos(2¹ qk/N) + sin(2¹ Nk/N) sin(2¹ qk/N)"  LET D$(33) = ""  LET D$(34) = "                 =  cos(2¹ qk/N)"  LET D$(35) = ""  LET D$(36) = "This means that"  LET D$(37) = ""  LET D$(38) = "   N-1                               N-1"  LET D$(39) = "    ·  cos(2¹ pk/N) cos(2¹ qk/N)  =   ·  ( cos(2¹ pk/N) )^2"  LET D$(40) = "   k=0                               k=0"  LET D$(41) = ""  LET D$(42) = "                                     N-1"  LET D$(43) = "                                  =   ·  ( 1 + cos(4¹ pk/N) )/2"  LET D$(44) = "                                     k=0"  LET D$(45) = ""  LET D$(46) = "                                  =  N/2"  LET D$(47) = ""  LET D$(48) = ""  LET D$(49) = "Starting with  sines  we arrive similarly at (2)"  LET D$(50) = ""  LET D$(51) = ""  LET D$(52) = "(You can verify these statements by running the demonstration"  LET D$(53) = "and selecting  p  and  q  so that  p + q = N)"  LET D$(54) = ""  LET D$(55) = ""  LET D$(56) = ""  LET D$(57) = "HOWEVER...  The fact that the discrete sines and cosines do not"  LET D$(58) = "            form orthogonal sets has nothing whatever to do with"  LET D$(59) = "            the orthogonality of the DISCRETE COMPLEX EXPONENTIALS"  LET D$(60) = "            of order  N."  LET D$(61) = ""  LET D$(62) = "            They DEFINITELY DO form orthogonal sets, as was proved"  LET D$(63) = "            in Chapter 10 in the text, and that is what makes the"  LET D$(64) = "            DFT (and hence also the FFT) possible."  LET D$(65) = ""  LET D$(66) = ""  LET D$(67) = ""  LET D$(68) = ""  LET D$(69) = ""  LET ENDNUMBER = 69  WHEN ERROR IN    DECLARE DEF TW_WMAKE          !DEFINITION OF F'n to open a window    LET WINDOW2 = TW_WMAKE( "IMMUNE, TITLE, CLOSE, SIZE, VSCROLL" )    CALL TW_WSET_VISIBLE( WINDOW2,1 )    CALL TW_WSWITCH( WINDOW2 )    CALL TW_WSET_ACTIVE( WINDOW2 )  USE     PRINT EXTEXT$     GET KEY WER                    ! display error and wait  END WHEN!  DECLARE DEF TW_WMAKE          !DEFINITION OF F'n to open a window!!  LET WINDOW2 = TW_WMAKE( "IMMUNE, TITLE, CLOSE, SIZE, VSCROLL" )!!  CALL TW_WSET_VISIBLE( WINDOW2,1 )!  CALL TW_WSWITCH( WINDOW2 )!  CALL TW_WSET_ACTIVE( WINDOW2 )  SET CURSOR "OFF"  LET VCOUNT = 1  LET OFFSET = 10  DO    CALL TW_WSET_CURRENT(WINDOW2,0,1,0,1)    ASK MAX CURSOR NUMLINES, NUMCOLS    SET WINDOW 0, NUMCOLS, 0, NUMLINES    FOR K = 2 TO NUMLINES-1      PRINT TAB(K,OFFSET); D$(K+VCOUNT-2)    NEXT K    DO      CALL TW_EVENT( 0, TYPE$, WINDOW, X1, X2 )      IF TYPE$ = "HIDE" AND WINDOW = WINDOW2 THEN        LET SCROLLEND = 1        EXIT DO      ELSE IF TYPE$ = "SELECT" THEN        CALL TW_WSET_ACTIVE( WINDOW2 )      ELSE IF TYPE$ = "SIZE" THEN   !HERE'S WHERE I DISABLE SIZING        EXIT DO      ELSE IF TYPE$ = "UP" OR TYPE$ = "DOWN" THEN        IF TYPE$ = "UP" THEN          LET VCOUNT = VCOUNT - 1        ELSE IF TYPE$ = "DOWN" THEN          LET VCOUNT = VCOUNT + 1        END IF        IF VCOUNT >= 1 AND VCOUNT <= ENDNUMBER-NUMLINES+2 THEN          IF TYPE$ = "UP" THEN            BOX CLEAR 0, NUMCOLS, 0, 2.5          ELSE IF TYPE$ = "DOWN" THEN            BOX CLEAR 0, NUMCOLS, NUMLINES-2.25, NUMLINES          END IF          CALL TW_WSCROLL( WINDOW2, TYPE$, 1 )          IF TYPE$ = "UP" THEN            PRINT TAB(2, OFFSET) ; D$(VCOUNT)          ELSE IF TYPE$ = "DOWN" THEN            PRINT TAB(NUMLINES-1, OFFSET) ; D$(VCOUNT+NUMLINES-3)          END IF        END IF        IF VCOUNT < 1 THEN LET VCOUNT = 1        IF VCOUNT > ENDNUMBER-NUMLINES+2 THEN LET VCOUNT = ENDNUMBER-NUMLINES+2        LET POSBAR = (VCOUNT - 1)/(ENDNUMBER-NUMLINES+1)        CALL TW_WSET_VSCROLL( WINDOW2, POSBAR )      ELSE IF TYPE$ = "PAGEUP" THEN        CLEAR        LET VCOUNT = VCOUNT - (NUMLINES-2)        IF VCOUNT < 1 THEN LET VCOUNT = 1        LET POSBAR = (VCOUNT - 1)/(ENDNUMBER-NUMLINES+1)        CALL TW_WSET_VSCROLL( WINDOW2, POSBAR )        FOR K = 2 TO NUMLINES-1          PRINT TAB(K,OFFSET); D$(K+VCOUNT-2)        NEXT K      ELSE IF TYPE$ = "PAGEDOWN" THEN        CLEAR        LET VCOUNT = VCOUNT + (NUMLINES-2)        IF VCOUNT > ENDNUMBER-NUMLINES+2 THEN LET VCOUNT = ENDNUMBER-NUMLINES+2        LET POSBAR = (VCOUNT - 1)/(ENDNUMBER-NUMLINES+1)        CALL TW_WSET_VSCROLL( WINDOW2, POSBAR )        FOR K = 2 TO NUMLINES-1          PRINT TAB(K,OFFSET); D$(K+VCOUNT-2)        NEXT K      ELSE IF TYPE$ = "VSCROLL" THEN        CLEAR        LET VCOUNT = 1 + X1*(ENDNUMBER-NUMLINES+1)        LET POSBAR = (VCOUNT - 1)/(ENDNUMBER-NUMLINES+1)        IF X1 = 1 THEN BOX CLEAR 0, NUMCOLS, 0, 2.5       CALL TW_WSET_VSCROLL( WINDOW2, POSBAR )        FOR K = 2 TO NUMLINES-1          PRINT TAB(K,OFFSET); D$(K+VCOUNT-2)        NEXT K      END IF     LOOP  LOOP UNTIL SCROLLEND = 1  CALL TW_WKILL(WINDOW2)!  CALL TW_wset_current(window1, 0, 1, 0, 1)!  CALL TW_wset_visible(window1,1)  CALL tw_wswitch(window1)  CALL TW_EVENT(TIMER, TYPE1$, WINDOW, X1, X2)END SUB !SCROLLER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!END SUB !PLOT8!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+EXTERNAL   !PLOTSUB4.TRU
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PLOT7( COLOR$ )
+!FOURIER SERIES PLOTTER... PLOTS RESPONSE OF AN RLC CIRCUIT TO SQUARE WAVES
+
+  DIM A(102)               !COEFFICIENTS OF THE OUTPUT'S FOURIER SERIES
+  DIM B(102)
+  DIM F(0:50)
+  OPTION ANGLE RADIANS
+  LET R = 15
+  LET L = .5
+  LET C = .001
+  LET SHOWFLAG = 1
+
+  DO
+    LET CYCLE = 0
+    CLEAR
+
+    SET WINDOW 0, 81, 0, 31
+    SET TEXT JUSTIFY "CENTER", "HALF"
+    BOX CLEAR 0, 81, 3.5, 4.5
+    PLOT TEXT, AT 40,4 : "PLOT OF A WAVEFORM BEFORE AND AFTER  RLC  FILTERING"
+    SET WINDOW -.1, 2.1, -.95, 2.25
+
+    CALL PLOT71
+    CALL PLOT72
+
+    CALL CQ( RESULT )
+
+    IF RESULT = 2 THEN LET GETOUT = 1
+
+    IF GETOUT = 0 THEN
+
+      DO
+        LET CYCLE  = 0
+        LET CYCLE2 = 0
+
+        LET FLAG3 = 0
+        LET FLAG4 = 0
+        LET EXIT  = 0
+
+        LET MESSAGE$ = "NUMBER OF TERMS IN THE INPUT'S FOURIER SERIES"
+        LET MESSAGE$ = MESSAGE$ & "|" &  "  (an integer " & CHR$(179) & " 2 and " & CHR$(178) & " 50) ? "
+
+        LET CAM = 0
+        LET RAM = 0
+
+        DO
+          IF CAM = 1 THEN CALL MACSYSBEEP( 1 )
+
+          CALL INPUTVALL( MESSAGE$, MIN, SHOWFLAG, FLAG )
+
+          IF FLAG = 1 OR (MIN >=2 AND MIN <= 50 and MIN = INT(MIN)) THEN LET RAM = 1
+          LET CAM = 1
+        LOOP UNTIL RAM = 1
+
+        LET NIN = MIN - 1
+
+        IF FLAG = 1 THEN
+          LET CYCLE = 1
+          LET CYCLE2 = 1
+
+          CALL CQ( RESULT )
+
+          IF RESULT = 2 THEN
+            LET GETOUT = 1
+            LET CYCLE  = 0
+            LET CYCLE2 = 0
+          END IF
+        END IF
+
+        IF CYCLE = 0 AND GETOUT = 0 THEN
+          CLEAR
+
+          CALL PLOT71
+          CALL PLOT72
+                                      !PLOTTING THE BANDLIMITED SQUARE WAVES
+          LET N = 2*NIN - 1
+
+          FOR K = 1 TO N STEP 2             !COMPUTING THE COEFFICIENTS FOR THE SERIES
+            LET OMK  =  PI * K    !OMK IS k.OMEMEG-o
+            LET IIK  = -( 1 - COS( OMK ) ) / (2*OMK)   !IIK IS IMAG PART OF C-K
+            LET B(K) = -2 * IIK     !B(K) IS k-TH SINE COEFFICIENT
+          NEXT K
+
+          FOR T = 0 TO .5 STEP 1/100
+            LET I = 100*T
+            LET F(I) = 0                !F IS THE FOURIER SERIES, Ao IS 0.5
+            FOR K = 1 TO N STEP 2
+              LET OMK  = 2 * PI * K
+              LET TERM = B(K) * SIN( OMK * T )
+              LET F(I) = F(I) + TERM   !ACCUMULATING THE SERIES
+            NEXT K
+            PLOT T, 0;
+            PLOT T, .5 + F(I)
+          NEXT T
+
+          FOR T = .5 TO 1 STEP 1/100     !PLOTTING THE SCREEN DISPLAY
+            LET I = 100*(T - .5)
+            PLOT T, 0;
+            PLOT T, .5 - F(I)
+          NEXT T
+
+          FOR T = 1 TO 1.5 STEP 1/100     !PLOTTING THE SCREEN DISPLAY
+            LET I = 100*(T - 1)
+            PLOT T, 0;
+            PLOT T, .5 + F(I)
+          NEXT T
+
+          FOR T = 1.5 TO 2 STEP 1/100     !PLOTTING THE SCREEN DISPLAY
+            LET I = 100*(T - 1.5)
+            PLOT T, 0;
+            PLOT T, .5 - F(I)
+          NEXT T
+
+          SET WINDOW 0, 81, 0, 31
+          SET TEXT JUSTIFY "CENTER", "HALF"
+          BOX CLEAR 20, 60, 3.5, 4.5
+          PLOT TEXT, AT 40,4 : "FILTER INPUT ( N = " & STR$(NIN+1) & " )"
+          SET WINDOW -.1, 2.1, -.95, 2.25
+!          SOUND 2000,.1
+
+          CALL CFQ( RESULT )
+
+          IF RESULT = 1 THEN
+            LET ZZ$ = "N"
+          ELSE IF RESULT = 2 THEN
+            LET ZZ$ = "F"
+          ELSE IF RESULT = 3 THEN
+            LET ZZ$ = "Q"
+          END IF
+
+          IF ZZ$ = "Q" THEN LET CYCLE2 = 1
+
+          IF CYCLE2 = 0 THEN
+            IF ZZ$ = "N" THEN
+              LET CYCLE2 = 1
+            ELSE IF ZZ$ = "F" THEN
+
+              DO
+                LET CYCLE3 = 0
+                CLEAR
+
+                CALL PLOT71
+                CALL PLOT72
+
+                FOR K = 1 TO N STEP 2
+                  LET OMK  = 2 * PI * K
+
+                  LET IIK  = -( 1 - COS( OMK/2 ) ) / OMK
+
+                  LET DENOM = (1 - OMK^2 * L * C ) ^ 2 + OMK^2 * R^2 * C^2
+                  LET RNETK = (1 - OMK^2 * L * C ) / DENOM             !THE FILTER
+                  LET INETK = - OMK * R * C / DENOM
+
+                  LET ROUTK = -IIK * INETK !THE OUTPUT OF THE FILTER
+                  LET IOUTK =  IIK * RNETK
+
+                  LET A(K)  =  2 * ROUTK    !COMPUTING THE COEFFICIENTS FOR THE
+                  LET B(K)  = -2 * IOUTK   !SINE/COSINE SERIES
+                NEXT K
+
+                FOR T = 0 TO .5 STEP 1/100   !PLOTS THE BANDLIMITED AND FILTERED
+                  LET I = 100*T
+                  LET F(I) = 0
+                  FOR K = 1 TO N
+                    LET OMK  = 2 * PI * K
+                    LET TERM = A(K) * COS( OMK * T ) + B(K) * SIN( OMK * T )
+                    LET F(I) = F(I) + TERM       !ACCUMULATING THE SINE/COSINE SERIES
+                  NEXT K
+                  PLOT T, 0;
+                  PLOT T, .5 + F(I)             !PLOTTING THE SCREEN DISPLAY
+                NEXT T
+
+                FOR T = .5 TO 1 STEP 1/100      !PLOTTING THE SCREEN DISPLAY
+                  LET I = 100*(T - .5)
+                  PLOT T, 0;
+                  PLOT T, .5 - F(I)
+                NEXT T
+
+                FOR T = 1 TO 1.5 STEP 1/100     !PLOTTING THE SCREEN DISPLAY
+                  LET I = 100*(T - 1)
+                  PLOT T, 0;
+                  PLOT T, .5 + F(I)
+                NEXT T
+
+                FOR T = 1.5 TO 2 STEP 1/100     !PLOTTING THE SCREEN DISPLAY
+                  LET I = 100*(T - 1.5)
+                  PLOT T, 0;
+                  PLOT T, .5 - F(I)
+                NEXT T
+
+ !               SOUND 2000,.1
+                SET WINDOW 0, 81, 0, 31
+                SET TEXT JUSTIFY "CENTER", "HALF"
+                BOX CLEAR 33.5, 46.5, 3.5, 4.5
+                PLOT TEXT, AT 40,4 : "FILTER OUTPUT"
+                SET WINDOW -.1, 2.1, -.95, 2.25
+
+                DO
+                  LET CYCLE2 = 0
+                  LET CYCLE3 = 0
+                  LET CYCLE4 = 0
+
+                  CALL RLCNQ( RESULT )
+
+                  IF RESULT = 1 THEN
+                    LET ZZ$ = "R"
+                  ELSE IF RESULT = 2 THEN
+                    LET ZZ$ = "L"
+                  ELSE IF RESULT = 3 THEN
+                    LET ZZ$ = "C"
+                  ELSE IF RESULT = 4 THEN
+                    LET ZZ$ = "Q"
+                  ELSE IF RESULT = 5 THEN
+                    LET ZZ$ = "Q"
+                  END IF
+
+                  IF ZZ$ = "Q" THEN
+                    LET CYCLE2 = 1
+
+                  ELSE
+                    LET CYCLE3 = 1
+
+                    LET CAT = 0
+                    LET RAT = 0
+
+                    IF ZZ$ = "R" THEN
+
+                      LET MESSAGE$ = "REQUIRED VALUE FOR  R"
+                      LET MESSAGE$ = MESSAGE$ & "|" & "  (nonnegative) ?"
+
+                      DO
+                        IF CAT = 1 THEN CALL MACSYSBEEP( 1 )
+
+                        CALL INPUTVALL( MESSAGE$, R, SHOWFLAG, FLAG )
+
+                        IF FLAG = 1 OR R >= 0 THEN LET RAT = 1
+                        LET CAT = 1
+                      LOOP UNTIL RAT = 1
+
+                    ELSE IF ZZ$ = "L" THEN
+
+                      LET MESSAGE$ = "REQUIRED VALUE FOR  L"
+                      LET MESSAGE$ = MESSAGE$ & "|" & "  (nonnegative) ?"
+
+                      DO
+                        IF CAT = 1 THEN CALL MACSYSBEEP( 1 )
+
+                        CALL INPUTVALL( MESSAGE$, L, SHOWFLAG, FLAG )
+
+                        IF FLAG = 1 OR L >= 0 THEN LET RAT = 1
+                        LET CAT = 1
+                      LOOP UNTIL RAT = 1
+
+                    ELSE IF ZZ$ = "C" THEN
+
+                      LET MESSAGE$ = "REQUIRED VALUE FOR  C"
+                      LET MESSAGE$ = MESSAGE$ & "|" & "  (nonnegative) ?"
+
+                      DO
+                        IF CAT = 1 THEN CALL MACSYSBEEP( 1 )
+
+                        CALL INPUTVALL( MESSAGE$, C, SHOWFLAG, FLAG )
+
+                        IF FLAG = 1 OR C >= 0 THEN LET RAT = 1
+                        LET CAT = 1
+                      LOOP UNTIL RAT = 1
+
+                    END IF
+                    IF FLAG = 1 THEN LET CYCLE4 = 1
+
+                  END IF
+                LOOP WHILE CYCLE4 = 1
+              LOOP WHILE CYCLE3 = 1
+            END IF
+          END IF
+        END IF
+      LOOP WHILE CYCLE2 = 1
+    END IF
+  LOOP WHILE CYCLE = 1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PLOT71
+
+SET WINDOW -.1, 2.1, -.95, 2.25
+
+PLOT -.05,  0.0;   2.05,  0.0     !PLOTS THE PERFECT INPUT SEQUENCE OF PULSES
+PLOT  0.0,  0.0;    0.0,  1.0;   0.5,  1.0;    0.5,  0.0
+PLOT  1.0,  0.0;    1.0,  1.0;   1.5,  1.0;    1.5,  0.0
+
+END SUB !PLOT71
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PLOT72                            !DRAWS A PICTURE OF THE R-L-C FILTER
+
+  SET WINDOW -.1, 2.1, -.95, 2.25
+  PLOT    .5, 2.05;    0.7, 2.05
+
+  PLOT  0.7,  2.00;                     !DRAWING THE BOX FOR THE INDUCTOR
+  PLOT  0.7,  2.10;
+  PLOT  0.9,  2.10;
+  PLOT  0.9,  2.00;
+  PLOT  0.7,  2.00
+
+  SET WINDOW 0, 81, 0, 31
+  SET TEXT JUSTIFY "CENTER", "HALF"
+  PLOT TEXT, AT 33.5,28 : "L=" & STR$(L)
+  SET WINDOW -.1, 2.1, -.95, 2.25
+
+  PLOT  0.9,  2.05;    !MOVING ON TO THE RESISTOR
+  PLOT  1.05, 2.05
+
+  PLOT  1.05, 2.05;  !PUTTING IN THE SQUIGGLES FOR THE RESISTOR
+  PLOT  1.07, 2.10;
+  PLOT  1.1,  2.00;
+  PLOT  1.13, 2.10;
+  PLOT  1.16, 2.00;
+  PLOT  1.19, 2.10;
+  PLOT  1.22, 2.00;
+  PLOT  1.25, 2.10;
+  PLOT  1.28, 2.00;
+  PLOT  1.295,2.05
+
+  SET WINDOW 0, 81, 0, 31
+  PLOT TEXT, AT 47,28 : "R=" & STR$(R)
+  SET WINDOW -.1, 2.1, -.95, 2.25
+
+  PLOT  1.295, 2.05; !FINISHING THE TOP LINE
+  PLOT  1.52,  2.05
+
+  PLOT  1.43, 2.05;   !PUTTING IN THE CAPACITOR
+  PLOT  1.43, 1.83
+  PLOT  1.35, 1.83;
+  PLOT  1.51, 1.83
+  PLOT  1.35, 1.77;
+  PLOT  1.51, 1.77
+  PLOT  1.43, 1.77;
+  PLOT  1.43, 1.55
+
+  SET WINDOW 0, 81, 0, 31
+  PLOT TEXT, AT 50,26 : "C=" & STR$(C)
+  SET WINDOW -.1, 2.1, -.95, 2.25
+
+  PLOT    .5, 1.55;    !BOTTOM LINE
+  PLOT  1.52, 1.55
+
+  PLOT    .25,  1.8;  .375,  1.8;  .35,  1.76       !ADDING THE ARROWS
+  PLOT    .35, 1.84;  .375,  1.8
+
+  PLOT    1.65,  1.8;  1.775, 1.8;  1.75,  1.76       !ADDING THE ARROWS
+  PLOT    1.75,  1.84; 1.775, 1.8
+
+END SUB !PLOT72
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB CFQ( RESULT )  !CHANGE N/FILTER/QUIT
+
+  SET WINDOW 0, 81, 0, 31
+  BOX CLEAR  15, 61.5, 1,  3
+  SET TEXT JUSTIFY "CENTER", "HALF"
+
+  PLOT TEXT, AT 28.5, 2: "CHANGE N"
+  PLOT 33,2.5 ; 35,2.5 ; 35,1.5 ; 33,1.5 ; 33,2.5
+  PLOT TEXT, AT 40.5, 2: "FILTER"
+  PLOT 44,2.5 ; 46,2.5 ; 46,1.5 ; 44,1.5 ; 44,2.5
+  PLOT TEXT, AT 50.5, 2: "QUIT"
+  PLOT 53,2.5 ; 55,2.5 ; 55,1.5 ; 53,1.5 ; 53,2.5
+
+  DO
+    CALL TW_EVENT(TIMER, TYPE1$, WINDOW, X1, X2)
+
+    IF TYPE1$ = "SINGLE" THEN
+      IF X1>33 AND X1<35 AND X2>1.5 AND X2<2.5 THEN
+        CALL STAR(34,2)
+        LET RESULT = 1
+        EXIT DO
+      ELSE IF X1>44 AND X1<46 AND X2>1.5 AND X2<2.5 THEN
+        CALL STAR(45,2)
+        LET RESULT = 2
+        EXIT DO
+      ELSE IF X1>53 AND X1<55 AND X2>1.5 AND X2<2.5 THEN
+        CALL STAR(54,2)
+        LET RESULT = 3
+        EXIT DO
+      ELSE
+        CALL MACSYSBEEP(1)
+      END IF
+    END IF
+  LOOP
+
+  BOX CLEAR  15, 61.5, 1,  3
+  SET WINDOW -.1, 2.1, -.95, 2.25
+
+END SUB !CFQ
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB RLCNQ( RESULT )  !CHANGE RLCN/QUIT
+
+  SET WINDOW  0,   81, 0, 31
+  BOX CLEAR  11, 69.5, 1,  3
+  SET TEXT JUSTIFY "CENTER", "HALF"
+
+  PLOT TEXT, AT 16, 2: "CHANGE R"
+  PLOT 21,2.5 ; 23,2.5 ; 23,1.5 ; 21,1.5 ; 21,2.5
+  PLOT TEXT, AT 28, 2: "CHANGE L"
+  PLOT 33,2.5 ; 35,2.5 ; 35,1.5 ; 33,1.5 ; 33,2.5
+  PLOT TEXT, AT 40, 2: "CHANGE C"
+  PLOT 45,2.5 ; 47,2.5 ; 47,1.5 ; 45,1.5 ; 45,2.5
+  PLOT TEXT, AT 52, 2: "CHANGE N"
+  PLOT 57,2.5 ; 59,2.5 ; 59,1.5 ; 57,1.5 ; 57,2.5
+  PLOT TEXT, AT 64, 2: "QUIT"
+  PLOT 66.5,2.5 ; 68.5,2.5 ; 68.5,1.5 ; 66.5,1.5 ; 66.5,2.5
+
+  DO
+    CALL TW_EVENT(TIMER, TYPE1$, WINDOW, X1, X2)
+
+    IF TYPE1$ = "SINGLE" THEN
+      IF X1>21 AND X1<23 AND X2>1.5 AND X2<2.5 THEN
+        CALL STAR(22,2)
+        LET RESULT = 1
+        EXIT DO
+      ELSE IF X1>33 AND X1<35 AND X2>1.5 AND X2<2.5 THEN
+        CALL STAR(34,2)
+        LET RESULT = 2
+        EXIT DO
+      ELSE IF X1>45 AND X1<47 AND X2>1.5 AND X2<2.5 THEN
+        CALL STAR(46,2)
+        LET RESULT = 3
+        EXIT DO
+      ELSE IF X1>57 AND X1<59 AND X2>1.5 AND X2<2.5 THEN
+        CALL STAR(58,2)
+        LET RESULT = 4
+        EXIT DO
+      ELSE IF X1>66.5 AND X1<68.5 AND X2>1.5 AND X2<2.5 THEN
+        CALL STAR(67.5,2)
+        LET RESULT = 5
+        EXIT DO
+      ELSE
+        CALL MACSYSBEEP(1)
+      END IF
+    END IF
+  LOOP
+
+  BOX CLEAR 11, 69.5, 1, 3
+  SET WINDOW -.1, 2.1, -.95, 2.25
+
+END SUB !RLCNQ
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END SUB !PLOT7
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB PLOT8( COLOR$, WINDOW1 )   !DEMONSTRATES DISCRETE NON-ORTHOGONALITY
+
+  DIM F(0:100)
+  DIM G(0:100)
+  OPTION ANGLE RADIANS
+  LET SHOWFLAG = 1
+
+  DO
+    LET CYCLE = 0
+    LET CLEARONCE = 1
+    LET SHOWTEXT  = 1
+
+    CLOSE #1
+    CLOSE #2
+    CLOSE #3
+
+    CLEAR
+    SET WINDOW 0, 81, 0, 31
+    SET TEXT JUSTIFY "CENTER", "HALF"
+
+    PLOT TEXT, AT 40,29 : "DEMONSTRATION OF THE NON-ORTHOGONALITY OF THE SET OF DISCRETE SINES AND COSINES"
+    PLOT TEXT, AT 40,26 : "   S = { 1,  cos(2ã k/N),  cos(2ã 2k/N),  cos(2ã 3k/N), ... cos(2ã (N-1)k/N)   "
+    PLOT TEXT, AT 40,24 : "       ... sin(2ã k/N),  sin(2ã 2k/N),  sin(2ã 3k/N), ... sin(2ã (N-1)k/N) }  "
+
+    PLOT TEXT, AT 40,20 : "        N-1                               0     p <> q  (almost!)  <----       "
+    PLOT TEXT, AT 40,19 : "         ä cos(2ã pk/N) cos(2ã qk/N)  =   N/2   p = q <> N/2 or 0              "
+    PLOT TEXT, AT 40,18 : "        k=0                               N     p = q  = N/2 or 0              "
+
+    PLOT TEXT, AT 40,14 : "                 N-1                                                           "
+    PLOT TEXT, AT 40,13 : "                  ä sin(2ã pk/N) cos(2ã qk/N)  =  0  for all p and q           "
+    PLOT TEXT, AT 40,12 : "                 k=0                                                           "
+
+    PLOT TEXT, AT 40, 8 : "        N-1                               0     p <> q  (almost!)  <----       "
+    PLOT TEXT, AT 40, 7 : "         ä sin(2ã pk/N) sin(2ã qk/N)  =   N/2   p = q <> N/2 or 0              "
+    PLOT TEXT, AT 40, 6 : "        k=0                               0     p = q  = N/2 or 0              "
+
+
+
+    CALL CQ( RESULT )
+
+    IF RESULT = 2 THEN LET GETOUT = 1
+
+    IF GETOUT = 0 THEN
+      DO
+        LET CYCLE1 = 0
+        SET WINDOW 0, 81, 0, 31
+
+        IF CLEARONCE = 1 THEN
+          CLEAR
+          LET CLEARONCE = 0
+        END IF
+
+        IF SHOWTEXT = 1 THEN
+          LET SHOWTEXT = 0
+          PLOT TEXT, AT 40,29 : "The statements                                                                "
+
+
+          PLOT TEXT, AT 40,26 : "  N-1                                                                          "
+          PLOT TEXT, AT 40,25 : "   ä  cos(2ã pk/N) cos(2ã qk/N)  =  0     ( p <> q )                           "
+          PLOT TEXT, AT 40,24 : "  k=0                                                                          "
+
+          PLOT TEXT, AT 40,21 : "and                                                                            "
+
+          PLOT TEXT, AT 40,18 : "  N-1                                                                          "
+          PLOT TEXT, AT 40,17 : "   ä  sin(2ã pk/N) sin(2ã qk/N)  =  0     ( p <> q )                           "
+          PLOT TEXT, AT 40,16 : "  k=0                                                                          "
+
+          PLOT TEXT, AT 40,13 : "are true for ALMOST all integers  p  and  q  lying in  0  to  N-1.             "
+          PLOT TEXT, AT 40,12 : "You can verify this by continuing with the demonstration that follows.         "
+
+          PLOT TEXT, AT 40, 9 : "However there are certain pairs of values of  p  and  q  (for each N)          "
+          PLOT TEXT, AT 40, 8 : "for which the above statements are not true. Try to find them.                 "
+        END IF
+
+        CALL SDQ( RESULT )
+
+        IF RESULT = 1 THEN
+          LET DFR$ = "S"
+        ELSE IF RESULT = 2 THEN
+          LET DFR$ = "WZPM"
+        ELSE IF RESULT = 3 THEN
+          LET DFR$ = "Q"
+        END IF
+
+        IF DFR$ = "Q" THEN LET CYCLE = 1
+
+        IF CYCLE = 0 THEN
+          DO
+            LET CYCLE6 = 0
+            IF DFR$ = "WZPM" THEN
+
+              CALL SCROLLER
+
+              CLOSE #1
+              CLOSE #2
+              CLOSE #3
+              LET CYCLE1    = 1
+              LET SHOWTEXT  = 1
+              LET CLEARONCE = 1
+            END IF
+
+            IF CYCLE1 = 0 AND CYCLE6 = 0 THEN
+
+              CALL SETCOLOR( COLOR$ )
+
+              DO
+                LET CYCLE2 = 0
+                WINDOW #0
+
+                LET MESSAGE$ = "WHAT IS THE VALUE OF  N"
+                LET MESSAGE$ = MESSAGE$ & "|" & "  (an integer >1 and " & CHR$(178)  & " 100) ?"
+                LET BUT = 0
+                LET MUT = 0
+
+                DO
+                  IF BUT = 1 THEN CALL MACSYSBEEP( 1 )
+
+                  CALL INPUTVALL( MESSAGE$, N, SHOWFLAG, FLAG )
+
+                  IF FLAG = 1 OR (N > 1 AND N <= 100 AND N = INT(N)) THEN LET MUT = 1
+                  LET BUT = 1
+                LOOP UNTIL MUT = 1
+
+                IF FLAG = 1 THEN
+                  LET CYCLE1 = 1
+                  CLOSE #1
+                  CLOSE #2
+                  CLOSE #3
+                END IF
+
+                IF CYCLE1 = 0 THEN
+
+                  DO
+                    LET CYCLE3 = 0
+
+                    LET MESSAGE$ = "FIRST FUNCTION IS A"
+                    LET ICON = 2
+                    LET BUTTON$ = "SINE|COSINE|QUIT"
+
+                    CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+                    IF RESULT = 1 THEN
+                       LET GTA$ = "S"
+                    ELSE IF RESULT = 2 THEN
+                       LET GTA$ = "C"
+                    ELSE IF RESULT = 3 THEN
+                       LET GTA$ = "Q"
+                    END IF
+
+                    IF GTA$ = "Q" THEN LET CYCLE2 = 1
+
+                    IF CYCLE2 = 0 THEN
+                      DO
+                        LET CYCLE4 = 0
+                        LET MESSAGE$ = "HARMONIC NUMBER"
+                        LET MESSAGE$ = MESSAGE$ & "|" & "  (an integer " & CHR$(179) & " 0 and <" & STR$(N) & " ?"
+                        LET BUN = 0
+                        LET FUN = 0
+
+                        DO
+                          IF BUN = 1 THEN CALL MACSYSBEEP( 1 )
+
+                          CALL INPUTVALL( MESSAGE$, P, SHOWFLAG, FLAG )
+
+                          IF FLAG = 1 OR (P >= 0 AND P < N AND P = INT(P)) THEN LET FUN = 1
+                          LET BUN = 1
+                        LOOP UNTIL FUN = 1
+
+                        IF FLAG = 1 THEN LET CYCLE3 = 1
+
+                        IF CYCLE3 = 0 THEN
+                          DO
+                            LET CYCLE5 = 0
+                            LET MESSAGE$ = "SECOND FUNCTION IS A"
+                            LET ICON = 2
+                            LET BUTTON$ = "SINE|COSINE|QUIT"
+
+                            CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+                            IF RESULT = 1 THEN
+                               LET GTB$ = "S"
+                            ELSE IF RESULT = 2 THEN
+                               LET GTB$ = "C"
+                            ELSE IF RESULT = 3 THEN
+                               LET GTB$ = "Q"
+                            END IF
+
+                            IF GTB$ = "Q" THEN LET CYCLE4 = 1
+
+                            IF CYCLE4 = 0 THEN
+                              LET CYCLE5 = 0
+                              LET MESSAGE$ = "HARMONIC NUMBER"
+                              LET MESSAGE$ = MESSAGE$ & "|" & "  (an integer " & CHR$(179) & " 0 and <" & STR$(N) & " ?"
+                              LET BUN = 0
+                              LET FUN = 0
+
+                              DO
+                                IF BUN = 1 THEN CALL MACSYSBEEP( 1 )
+
+                                CALL INPUTVALL( MESSAGE$, Q, SHOWFLAG, FLAG )
+
+                                IF FLAG = 1 OR (Q >= 0 AND Q < N AND Q = INT(Q)) THEN LET FUN = 1
+                                LET BUN = 1
+                              LOOP UNTIL FUN = 1
+
+                              IF FLAG = 1 THEN LET CYCLE5 = 1
+
+                              IF CYCLE5 = 0 THEN
+                                CLEAR
+
+                                CLOSE #1
+                                CLOSE #2
+                                CLOSE #3
+
+                                OPEN #1: SCREEN   0, .49, .51, 1
+                                OPEN #2: SCREEN   0, .49,   0, .49
+                                OPEN #3: SCREEN .51, 1.0,  0, 1
+
+                                CALL SETCOLOR( COLOR$ )
+
+                                LET M = 100/N
+                                FOR K = 0 TO N - 1
+                                  IF GTA$ = "S" THEN
+                                    LET F(K) = sin(2*PI*P*K/N)
+                                  ELSE IF GTA$ = "C" THEN
+                                    LET F(K) = cos(2*PI*P*K/N)
+                                  END IF
+                                  IF GTB$ = "S" THEN
+                                    LET G(K) = sin(2*PI*Q*K/N)
+                                  ELSE IF GTB$ = "C" THEN
+                                    LET G(K) = cos(2*PI*Q*K/N)
+                                  END IF
+                                NEXT K
+
+                                WINDOW #0
+                                SET WINDOW -1, 1, -1, 1
+                                PLOT -1,0;0,0
+                                PLOT 0,-1;0,1
+
+                                LET Z = 1.5
+                                LET A = -10
+                                LET B = 110
+                                LET C = -Z
+                                LET D =  Z
+
+                                WINDOW #1
+                                SET WINDOW A, 1.03*B, C-.06, D-.06
+
+                                CALL SETCOLOR( COLOR$ )
+                                CALL AXES1
+
+                                FOR K = 0 TO N - 1
+                                  PLOT K*M,0;K*M,F(K)
+                                NEXT K
+
+                                IF GTA$ = "S" THEN
+                                  LET STR1$ = "sin(2ã " & STR$(P) & " k/N)"
+                                ELSE IF GTA$ = "C" THEN
+                                  LET STR1$ = "cos(2ã " & STR$(P) & " k/N)"
+                                END IF
+                                PLOT TEXT, AT 51.5, 1.33 : STR1$
+
+                                WINDOW #2
+                                SET WINDOW A, 1.03*B, C, D
+
+                                CALL SETCOLOR( COLOR$ )
+                                CALL AXES1
+
+                                FOR K = O TO N - 1
+                                  PLOT K*M,0;K*M,G(K)
+                                NEXT K
+
+                                IF GTB$ = "S" THEN
+                                  LET STR2$ = "sin(2ã " & STR$(Q) & " k/N)"
+                                ELSE IF GTB$ = "C" THEN
+                                  LET STR2$ = "cos(2ã " & STR$(Q) & " k/N)"
+                                END IF
+                                PLOT TEXT, AT 51.5, 1.4 : STR2$
+
+                                WINDOW #3
+                                SET WINDOW A, 1.03*B, 2*(C-.02), 2*(D+.03)
+
+                                CALL SETCOLOR( COLOR$ )
+                                CALL AXES1
+
+                                LET SUM = 0
+                                FOR K = 0 TO N - 1
+                                  LET PROD = F(K)*G(K)
+                                  PLOT K*M,0;K*M,PROD
+                                  IF I < 100 THEN
+                                    LET SUM = SUM + PROD
+                                  END IF
+                                NEXT K
+
+                                LET STR3$ = " N = " & STR$(N)
+                                PLOT TEXT, AT 51.5, 2.7 : STR3$
+
+                                LET STR4$ = STR1$ & " " & STR2$
+                                PLOT TEXT, AT 51.5, 1.7 : STR4$
+
+ !                               SOUND 2000,.1
+                                LET STR5$ = "SUM = " & STR$(SUM)
+                                PLOT TEXT, AT 51.5, -1.6 : STR5$
+
+                                CALL CQ2( RESULT )
+
+                                IF RESULT = 1 THEN
+                                  LET CYCLE2   = 1
+                                ELSE IF RESULT = 2 THEN
+                                  CLOSE #1
+                                  CLOSE #2
+                                  CLOSE #3
+                                  LET CYCLE1    = 1
+                                  LET SHOWTEXT  = 1
+                                  LET CLEARONCE = 1
+                                END IF
+
+                              END IF
+                            END IF
+                          LOOP WHILE CYCLE5 = 1
+                        END IF
+                      LOOP WHILE CYCLE4 = 1
+                    END IF
+                  LOOP WHILE CYCLE3 = 1
+                END IF
+              LOOP WHILE CYCLE2 = 1
+            END IF
+          LOOP WHILE CYCLE6 = 1
+        END IF
+      LOOP WHILE CYCLE1 = 1
+    END IF
+  LOOP WHILE CYCLE = 1
+
+  CLOSE #1
+  CLOSE #2
+  CLOSE #3
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB AXES1
+
+  PLOT -5,0;105,0
+  PLOT 0,-.02;0,.02
+  PLOT 100,-.02;100,.02
+
+  PLOT TEXT, AT  -4, -.1 : "0"
+  PLOT TEXT, AT 103, -.1 : "N"
+  PLOT TEXT, AT 108,  .1 : "k"
+
+END SUB !AXES1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB SDQ( RESULT )            !START THE DEMONSTRATION/ DISPLAY THE ANSWER/QUIT
+
+  SET WINDOW 0, 81, 0, 31
+  BOX CLEAR  0, 81, 1.5,  2.5
+  SET TEXT JUSTIFY "CENTER", "HALF"
+
+  PLOT TEXT, AT 22, 2: "START THE DEMONSTRATION"
+  PLOT 34,2.5 ; 36,2.5 ; 36,1.5 ; 34,1.5 ; 34,2.5
+  PLOT TEXT, AT 47, 2: "DISPLAY THE ANSWER"
+  PLOT 56.5,2.5 ; 58.5,2.5 ; 58.5,1.5 ; 56.5,1.5 ; 56.5,2.5
+  PLOT TEXT, AT 63, 2: "QUIT"
+  PLOT 66,2.5 ; 68,2.5 ; 68,1.5 ; 66,1.5 ; 66,2.5
+
+  DO
+    CALL TW_EVENT(TIMER, TYPE1$, WINDOW, X1, X2)
+
+    IF TYPE1$ = "SINGLE" THEN
+      IF X1>34 AND X1<36 AND X2>1.5 AND X2<2.5 THEN
+        CALL STAR(35,2)
+        LET RESULT = 1
+        EXIT DO
+      ELSE IF X1>56.5 AND X1<58.5 AND X2>1.5 AND X2<2.5 THEN
+        CALL STAR(57.5,2)
+        LET RESULT = 2
+        EXIT DO
+      ELSE IF X1>66 AND X1<68 AND X2>1.5 AND X2<2.5 THEN
+        CALL STAR(67,2)
+        LET RESULT = 3
+        EXIT DO
+      ELSE
+        CALL MACSYSBEEP(1)
+      END IF
+    END IF
+  LOOP
+
+  BOX CLEAR  0, 81, 1.5,  2.5
+
+END SUB !SDQ
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB SCROLLER
+
+  DIM D$(69)
+
+  LET D$(1) = "Whenever  p  and  q  satisfy the relationship:"
+  LET D$(2) = ""
+  LET D$(3) = "   p <> q   and  p + q = N"
+  LET D$(4) = ""
+  LET D$(5) = "you will find that"
+  LET D$(6) = ""
+  LET D$(7) = "   N-1"
+  LET D$(8) = "    ä  cos(2ã pk/N) cos(2ã qk/N)  =  N/2        (1)"
+  LET D$(9) = "   k=0"
+  LET D$(10) = ""
+  LET D$(11) = "and"
+  LET D$(12) = ""
+  LET D$(13) = "   N-1"
+  LET D$(14) = "    ä  sin(2ã pk/N) sin(2ã qk/N)  =  -N/2      (2)"
+  LET D$(15) = "   k=0"
+  LET D$(16) = ""
+  LET D$(17) = "If the set of discrete sines and cosines were orthogonal and"
+  LET D$(18) = " p <> q  then both of these sums should have given zero."
+  LET D$(19) = ""
+  LET D$(20) = "However the sums do not give zero for  p <> q  when  p + q = N,"
+  LET D$(21) = "and so orthogonality is not present."
+  LET D$(22) = ""
+  LET D$(23) = ""
+  LET D$(24) = ""
+  LET D$(25) = "To prove that (1) is true we proceed as follows:"
+  LET D$(26) = ""
+  LET D$(27) = ""
+  LET D$(28) = "If  p + q = N  then  p = N - q,  and so"
+  LET D$(29) = ""
+  LET D$(30) = "   cos(2ã pk/N)  =  cos(2ã (N-q)k/N)"
+  LET D$(31) = ""
+  LET D$(32) = "                 =  cos(2ã Nk/N) cos(2ã qk/N) + sin(2ã Nk/N) sin(2ã qk/N)"
+  LET D$(33) = ""
+  LET D$(34) = "                 =  cos(2ã qk/N)"
+  LET D$(35) = ""
+  LET D$(36) = "This means that"
+  LET D$(37) = ""
+  LET D$(38) = "   N-1                               N-1"
+  LET D$(39) = "    ä  cos(2ã pk/N) cos(2ã qk/N)  =   ä  ( cos(2ã pk/N) )^2"
+  LET D$(40) = "   k=0                               k=0"
+  LET D$(41) = ""
+  LET D$(42) = "                                     N-1"
+  LET D$(43) = "                                  =   ä  ( 1 + cos(4ã pk/N) )/2"
+  LET D$(44) = "                                     k=0"
+  LET D$(45) = ""
+  LET D$(46) = "                                  =  N/2"
+  LET D$(47) = ""
+  LET D$(48) = ""
+  LET D$(49) = "Starting with  sines  we arrive similarly at (2)"
+  LET D$(50) = ""
+  LET D$(51) = ""
+  LET D$(52) = "(You can verify these statements by running the demonstration"
+  LET D$(53) = "and selecting  p  and  q  so that  p + q = N)"
+  LET D$(54) = ""
+  LET D$(55) = ""
+  LET D$(56) = ""
+  LET D$(57) = "HOWEVER...  The fact that the discrete sines and cosines do not"
+  LET D$(58) = "            form orthogonal sets has nothing whatever to do with"
+  LET D$(59) = "            the orthogonality of the DISCRETE COMPLEX EXPONENTIALS"
+  LET D$(60) = "            of order  N."
+  LET D$(61) = ""
+  LET D$(62) = "            They DEFINITELY DO form orthogonal sets, as was proved"
+  LET D$(63) = "            in Chapter 10 in the text, and that is what makes the"
+  LET D$(64) = "            DFT (and hence also the FFT) possible."
+  LET D$(65) = ""
+  LET D$(66) = ""
+  LET D$(67) = ""
+  LET D$(68) = ""
+  LET D$(69) = ""
+
+  LET ENDNUMBER = 69
+
+  WHEN ERROR IN
+
+    DECLARE DEF TW_WMAKE          !DEFINITION OF F'n to open a window
+
+    LET WINDOW2 = TW_WMAKE( "IMMUNE, TITLE, CLOSE, SIZE, VSCROLL" )
+
+    CALL TW_WSET_VISIBLE( WINDOW2,1 )
+    CALL TW_WSWITCH( WINDOW2 )
+    CALL TW_WSET_ACTIVE( WINDOW2 )
+
+  USE
+     PRINT EXTEXT$
+     GET KEY WER                    ! display error and wait
+  END WHEN
+
+
+!  DECLARE DEF TW_WMAKE          !DEFINITION OF F'n to open a window
+!
+!  LET WINDOW2 = TW_WMAKE( "IMMUNE, TITLE, CLOSE, SIZE, VSCROLL" )
+!
+!  CALL TW_WSET_VISIBLE( WINDOW2,1 )
+!  CALL TW_WSWITCH( WINDOW2 )
+!  CALL TW_WSET_ACTIVE( WINDOW2 )
+
+  SET CURSOR "OFF"
+  LET VCOUNT = 1
+  LET OFFSET = 10
+
+  DO
+
+    CALL TW_WSET_CURRENT(WINDOW2,0,1,0,1)
+    ASK MAX CURSOR NUMLINES, NUMCOLS
+    SET WINDOW 0, NUMCOLS, 0, NUMLINES
+
+    FOR K = 2 TO NUMLINES-1
+      PRINT TAB(K,OFFSET); D$(K+VCOUNT-2)
+    NEXT K
+
+    DO
+
+      CALL TW_EVENT( 0, TYPE$, WINDOW, X1, X2 )
+
+      IF TYPE$ = "HIDE" AND WINDOW = WINDOW2 THEN
+        LET SCROLLEND = 1
+        EXIT DO
+
+      ELSE IF TYPE$ = "SELECT" THEN
+        CALL TW_WSET_ACTIVE( WINDOW2 )
+
+      ELSE IF TYPE$ = "SIZE" THEN   !HERE'S WHERE I DISABLE SIZING
+        EXIT DO
+
+      ELSE IF TYPE$ = "UP" OR TYPE$ = "DOWN" THEN
+
+        IF TYPE$ = "UP" THEN
+          LET VCOUNT = VCOUNT - 1
+        ELSE IF TYPE$ = "DOWN" THEN
+          LET VCOUNT = VCOUNT + 1
+        END IF
+
+        IF VCOUNT >= 1 AND VCOUNT <= ENDNUMBER-NUMLINES+2 THEN
+
+          IF TYPE$ = "UP" THEN
+            BOX CLEAR 0, NUMCOLS, 0, 2.5
+          ELSE IF TYPE$ = "DOWN" THEN
+            BOX CLEAR 0, NUMCOLS, NUMLINES-2.25, NUMLINES
+          END IF
+
+          CALL TW_WSCROLL( WINDOW2, TYPE$, 1 )
+
+          IF TYPE$ = "UP" THEN
+            PRINT TAB(2, OFFSET) ; D$(VCOUNT)
+          ELSE IF TYPE$ = "DOWN" THEN
+            PRINT TAB(NUMLINES-1, OFFSET) ; D$(VCOUNT+NUMLINES-3)
+          END IF
+        END IF
+
+        IF VCOUNT < 1 THEN LET VCOUNT = 1
+        IF VCOUNT > ENDNUMBER-NUMLINES+2 THEN LET VCOUNT = ENDNUMBER-NUMLINES+2
+        LET POSBAR = (VCOUNT - 1)/(ENDNUMBER-NUMLINES+1)
+
+        CALL TW_WSET_VSCROLL( WINDOW2, POSBAR )
+
+      ELSE IF TYPE$ = "PAGEUP" THEN
+        CLEAR
+        LET VCOUNT = VCOUNT - (NUMLINES-2)
+        IF VCOUNT < 1 THEN LET VCOUNT = 1
+        LET POSBAR = (VCOUNT - 1)/(ENDNUMBER-NUMLINES+1)
+
+        CALL TW_WSET_VSCROLL( WINDOW2, POSBAR )
+
+        FOR K = 2 TO NUMLINES-1
+          PRINT TAB(K,OFFSET); D$(K+VCOUNT-2)
+        NEXT K
+
+      ELSE IF TYPE$ = "PAGEDOWN" THEN
+        CLEAR
+        LET VCOUNT = VCOUNT + (NUMLINES-2)
+        IF VCOUNT > ENDNUMBER-NUMLINES+2 THEN LET VCOUNT = ENDNUMBER-NUMLINES+2
+        LET POSBAR = (VCOUNT - 1)/(ENDNUMBER-NUMLINES+1)
+
+        CALL TW_WSET_VSCROLL( WINDOW2, POSBAR )
+
+        FOR K = 2 TO NUMLINES-1
+          PRINT TAB(K,OFFSET); D$(K+VCOUNT-2)
+        NEXT K
+
+      ELSE IF TYPE$ = "VSCROLL" THEN
+        CLEAR
+        LET VCOUNT = 1 + X1*(ENDNUMBER-NUMLINES+1)
+        LET POSBAR = (VCOUNT - 1)/(ENDNUMBER-NUMLINES+1)
+        IF X1 = 1 THEN BOX CLEAR 0, NUMCOLS, 0, 2.5
+
+       CALL TW_WSET_VSCROLL( WINDOW2, POSBAR )
+
+        FOR K = 2 TO NUMLINES-1
+          PRINT TAB(K,OFFSET); D$(K+VCOUNT-2)
+        NEXT K
+      END IF
+
+     LOOP
+
+  LOOP UNTIL SCROLLEND = 1
+
+  CALL TW_WKILL(WINDOW2)
+!  CALL TW_wset_current(window1, 0, 1, 0, 1)
+!  CALL TW_wset_visible(window1,1)
+  CALL tw_wswitch(window1)
+  CALL TW_EVENT(TIMER, TYPE1$, WINDOW, X1, X2)
+
+
+END SUB !SCROLLER
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+END SUB !PLOT8
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -38,6 +38,78 @@ END SUB !BOX25
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX30( Z2$, A$ )
+
+  CLEAR
+  CALL BOXU(4,16,48,11)
+  CALL LINEU(6,16,48)
+  PRINT TAB(5,30); "CREATE OR CHANGE DATA"
+  PRINT TAB(8,19); "CREATE THE  X  VECTORS ................... A"
+  PRINT TAB(10,19);"CHANGE THE  X  VECTORS ................... B"
+  PRINT TAB(12,19);"CREATE THE  F  VECTORS ................... C"
+  PRINT TAB(14,19);"CHANGE THE  F  VECTORS ................... D"
+
+  DO
+    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
+
+    CALL APROMPT( 18, 31, A$, FRAZ$, Z2$ )
+
+    IF Z2$ <> "A" AND Z2$ <> "B" AND Z2$ <> "C" AND Z2$ <> "D" AND Z2$ <> "Q" THEN SOUND 500,.1
+  LOOP UNTIL Z2$ = "A" OR Z2$ = "B" OR Z2$ = "C" OR Z2$ = "D" OR Z2$ = "Q"
+
+END SUB !BOX30
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX31( N, VAR$, Z1$, A$, NOCONV )
+
+  CLEAR
+  CALL BOXU(4,12,56,10)
+  PRINT TAB(6,37); "N = "
+  PRINT TAB(6,41); N
+  PRINT TAB(8,15);
+  IF VAR$ = "X" THEN
+    PRINT "CREATE ONLY THE  X  VECTOR"
+  ELSE IF VAR$ = "FFT" THEN
+    PRINT "CREATE ONLY THE  F  VECTOR"
+  END IF
+  PRINT TAB(10,15);
+  IF VAR$ = "X" THEN
+    PRINT "(X2  VECTOR WILL BE ALL ZEROS) ................... X"
+  ELSE IF VAR$ = "FFT" THEN
+    PRINT "(F2  VECTOR WILL BE ALL ZEROS) ................... F"
+  END IF
+  PRINT TAB(13,15);
+  IF VAR$ = "X" THEN
+    PRINT "CREATE BOTH THE  X  AND  X2  VECTORS ............. B"
+  ELSE IF VAR$ = "FFT" THEN
+    PRINT "CREATE BOTH THE  F  AND  F2  VECTORS ............. B"
+  END IF
+
+  IF NOCONV = 1 THEN PRINT TAB(13,66);" "
+
+  DO
+    IF ZWQ = 1 THEN SOUND 500,.1
+    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
+
+    CALL APROMPT( 17, 31, A$, FRAZ$, Z1$ )
+
+    IF VAR$ = "X" THEN
+      IF Z1$ = "X" OR (NOCONV = 0 AND Z1$ = "B") OR Z1$ = "Q" THEN LET RSO = 1
+    ELSE IF VAR$ = "FFT" THEN
+      IF Z1$ = "F" OR (NOCONV = 0 AND Z1$ = "B") OR Z1$ = "Q" THEN LET RSO = 1
+    END IF
+    LET ZWQ = 1
+  LOOP UNTIL RSO = 1
+
+END SUB !BOX31
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUB BOX28( VAR$, N, Z4$, A$, NUMBERR )
 
   CLEAR
@@ -115,73 +187,45 @@ END SUB !BOX29
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOX30( Z2$, A$ )
+SUB BOX60( HJWFLAG, A$, SUB, VAR$, Z3$ )
 
   CLEAR
-  CALL BOXU(4,16,48,11)
-  CALL LINEU(6,16,48)
-  PRINT TAB(5,30); "CREATE OR CHANGE DATA"
-  PRINT TAB(8,19); "CREATE THE  X  VECTORS ................... A"
-  PRINT TAB(10,19);"CHANGE THE  X  VECTORS ................... B"
-  PRINT TAB(12,19);"CREATE THE  F  VECTORS ................... C"
-  PRINT TAB(14,19);"CHANGE THE  F  VECTORS ................... D"
 
-  DO
-    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
+  IF HJWFLAG = 1 THEN LET SIG = 2
+  CALL BOXU(4,15,48,5+SIG)
 
-    CALL APROMPT( 18, 31, A$, FRAZ$, Z2$ )
-
-    IF Z2$ <> "A" AND Z2$ <> "B" AND Z2$ <> "C" AND Z2$ <> "D" AND Z2$ <> "Q" THEN SOUND 500,.1
-  LOOP UNTIL Z2$ = "A" OR Z2$ = "B" OR Z2$ = "C" OR Z2$ = "D" OR Z2$ = "Q"
-
-END SUB !BOX30
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOX31( N, VAR$, Z1$, A$, NOCONV )
-
-  CLEAR
-  CALL BOXU(4,12,56,10)
-  PRINT TAB(6,37); "N = "
-  PRINT TAB(6,41); N
-  PRINT TAB(8,15);
-  IF VAR$ = "X" THEN
-    PRINT "CREATE ONLY THE  X  VECTOR"
-  ELSE IF VAR$ = "FFT" THEN
-    PRINT "CREATE ONLY THE  F  VECTOR"
-  END IF
-  PRINT TAB(10,15);
-  IF VAR$ = "X" THEN
-    PRINT "(X2  VECTOR WILL BE ALL ZEROS) ................... X"
-  ELSE IF VAR$ = "FFT" THEN
-    PRINT "(F2  VECTOR WILL BE ALL ZEROS) ................... F"
-  END IF
-  PRINT TAB(13,15);
-  IF VAR$ = "X" THEN
-    PRINT "CREATE BOTH THE  X  AND  X2  VECTORS ............. B"
-  ELSE IF VAR$ = "FFT" THEN
-    PRINT "CREATE BOTH THE  F  AND  F2  VECTORS ............. B"
-  END IF
-
-  IF NOCONV = 1 THEN PRINT TAB(13,66);" "
-
-  DO
-    IF ZWQ = 1 THEN SOUND 500,.1
-    LET FRAZ$ = "³ SELECT OPTION ³  ?  "
-
-    CALL APROMPT( 17, 31, A$, FRAZ$, Z1$ )
-
-    IF VAR$ = "X" THEN
-      IF Z1$ = "X" OR (NOCONV = 0 AND Z1$ = "B") OR Z1$ = "Q" THEN LET RSO = 1
-    ELSE IF VAR$ = "FFT" THEN
-      IF Z1$ = "F" OR (NOCONV = 0 AND Z1$ = "B") OR Z1$ = "Q" THEN LET RSO = 1
+  IF SUB = 1 AND VAR$ = "X" THEN
+    PRINT TAB(6,18); "ALL VALUES THAT YOU CREATED HAVE BEEN LOADED"
+    IF HJWFLAG = 0 THEN
+      PRINT TAB(8,23); "F, F2 AND Y HAVE BEEN SET TO ZERO"
+    ELSE IF HJWFLAG = 1 THEN
+      PRINT TAB(8,25); "F AND Y HAVE BEEN SET TO ZERO"
     END IF
-    LET ZWQ = 1
-  LOOP UNTIL RSO = 1
 
-END SUB !BOX31
+  ELSE IF SUB = 1 AND VAR$ = "FFT" THEN
+    PRINT TAB(6,18); "ALL VALUES THAT YOU CREATED HAVE BEEN LOADED"
+    PRINT TAB(8,29); "Y HAS BEEN SET TO ZERO"
+
+  ELSE IF SUB = 2 AND VAR$ = "X" THEN
+    PRINT TAB(6,18); "ALL VALUES THAT YOU CHANGED HAVE BEEN LOADED"
+    IF HJWFLAG = 0 THEN
+      PRINT TAB(8,23); "F, F2 AND Y HAVE BEEN SET TO ZERO"
+    ELSE IF HJWFLAG = 1 THEN
+      PRINT TAB(8,25); "F AND Y HAVE BEEN SET TO ZERO"
+    END IF
+
+  ELSE IF SUB = 2 AND VAR$ = "FFT" THEN
+    PRINT TAB(6,18); "ALL VALUES THAT YOU CHANGED HAVE BEEN LOADED"
+    PRINT TAB(8,29); "Y HAS BEEN SET TO ZERO"
+  END IF
+
+  IF HJWFLAG = 1 THEN
+    PRINT TAB(10,29); "F2 HAS NOT BEEN ALTERED"
+  END IF
+
+  CALL BOX48CFIX( 12+SIG, 30, A$ )
+
+END SUB !BOX60
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
@@ -374,6 +418,30 @@ END SUB !BOX35
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX117( NEWK, GOBACK, A$ )
+
+  CLEAR
+  CALL BOXU(4, 22, 36, 3 )
+  PRINT TAB(6,25);"WHAT IS THE REQUIRED VALUE OF  k"
+
+  LET FRAZ$ = "³ AN INTEGER ³  ?  "
+  DO
+    CALL TEXTVALUEQ( FRAZ$, FDG, FLAG, 10, 32, A$ )
+    IF FLAG = 1 THEN
+      LET GOBACK = 1
+    ELSE IF FLAG = 0 THEN
+      LET GOBACK = 0
+      LET NEWK = FDG
+      IF NEWK <> INT(NEWK) THEN SOUND 500,.1
+    END IF
+  LOOP UNTIL FLAG = 1 OR NEWK = INT(NEWK)
+
+END SUB !BOX117
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUB BOX38( Z1$, A$ )
 
   CLEAR
@@ -449,51 +517,6 @@ SUB BOX59( CRT$, A$ )
   LOOP UNTIL CRT$ = "P" OR CRT$ = "Q"
 
 END SUB !BOX59
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOX60( HJWFLAG, A$, SUB, VAR$, Z3$ )
-
-  CLEAR
-
-  IF HJWFLAG = 1 THEN LET SIG = 2
-  CALL BOXU(4,15,48,5+SIG)
-
-  IF SUB = 1 AND VAR$ = "X" THEN
-    PRINT TAB(6,18); "ALL VALUES THAT YOU CREATED HAVE BEEN LOADED"
-    IF HJWFLAG = 0 THEN
-      PRINT TAB(8,23); "F, F2 AND Y HAVE BEEN SET TO ZERO"
-    ELSE IF HJWFLAG = 1 THEN
-      PRINT TAB(8,25); "F AND Y HAVE BEEN SET TO ZERO"
-    END IF
-
-  ELSE IF SUB = 1 AND VAR$ = "FFT" THEN
-    PRINT TAB(6,18); "ALL VALUES THAT YOU CREATED HAVE BEEN LOADED"
-    PRINT TAB(8,29); "Y HAS BEEN SET TO ZERO"
-
-  ELSE IF SUB = 2 AND VAR$ = "X" THEN
-    PRINT TAB(6,18); "ALL VALUES THAT YOU CHANGED HAVE BEEN LOADED"
-    IF HJWFLAG = 0 THEN
-      PRINT TAB(8,23); "F, F2 AND Y HAVE BEEN SET TO ZERO"
-    ELSE IF HJWFLAG = 1 THEN
-      PRINT TAB(8,25); "F AND Y HAVE BEEN SET TO ZERO"
-    END IF
-
-  ELSE IF SUB = 2 AND VAR$ = "FFT" THEN
-    PRINT TAB(6,18); "ALL VALUES THAT YOU CHANGED HAVE BEEN LOADED"
-    PRINT TAB(8,29); "Y HAS BEEN SET TO ZERO"
-  END IF
-
-  IF HJWFLAG = 1 THEN
-    PRINT TAB(10,29); "F2 HAS NOT BEEN ALTERED"
-  END IF
-
-  CALL BOX48CFIX( 12+SIG, 30, A$ )
-
-END SUB !BOX60
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
@@ -661,28 +684,4 @@ SUB BOX116( WCT$, A$ )
   LOOP UNTIL WCT$ = "R" OR WCT$ = "N" OR WCT$ = "Q"
 
 END SUB !BOX116
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUB BOX117( NEWK, GOBACK, A$ )
-
-  CLEAR
-  CALL BOXU(4, 22, 36, 3 )
-  PRINT TAB(6,25);"WHAT IS THE REQUIRED VALUE OF  k"
-
-  LET FRAZ$ = "³ AN INTEGER ³  ?  "
-  DO
-    CALL TEXTVALUEQ( FRAZ$, FDG, FLAG, 10, 32, A$ )
-    IF FLAG = 1 THEN
-      LET GOBACK = 1
-    ELSE IF FLAG = 0 THEN
-      LET GOBACK = 0
-      LET NEWK = FDG
-      IF NEWK <> INT(NEWK) THEN SOUND 500,.1
-    END IF
-  LOOP UNTIL FLAG = 1 OR NEWK = INT(NEWK)
-
-END SUB !BOX117
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,0 +1,630 @@
+EXTERNAL
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB Breakup(phrase$,word$,delims$)
+
+    LET phrase$ = Trim$(phrase$)
+
+    LET d = Cpos(phrase$,delims$)
+
+    IF d=0 then
+       LET word$ = phrase$
+       LET phrase$ = ""
+    ELSE
+       LET word$ = Rtrim$(phrase$[1:d-1])
+       LET phrase$ = Ltrim$(phrase$[d+1:Maxnum])
+    END IF
+
+END SUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+DEF NoSpace$(s$)
+
+    LET p1 = Len(s$)
+
+    IF p1 > 500 then
+       CALL Divide(p1,2,h,xxx)
+       LET NoSpace$ = NoSpace$(s$[1:h]) & NoSpace$(s$[h+1:maxnum])
+       EXIT DEF
+    END IF
+
+
+    DO
+       LET p = Cposr(s$," ",p1)
+       IF p = 0 then
+          LET NoSpace$ = s$
+          EXIT DEF
+       END IF
+       LET p1 = Ncposr(s$," ",p)
+       LET s$[p1+1:p] = ""
+    LOOP
+
+END DEF
+
+DEF Left$(text$,n)  = text$[1:n]
+
+DEF Right$(text$,n) = text$[Len(text$)-n+1:Maxnum]
+
+DEF Mid$(text$,i,n)
+
+    LET i = Max(i,1)
+    LET Mid$ = text$[i:i+n-1]
+
+END DEF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+MODULE String_Library
+
+    PRIVATE Eng2$,Eval_Expr
+
+    SHARE s_PLUS,s_MINUS,s_STAR,s_SLASH,s_UP,s_OPEN,s_CLOSE,s_NUMBER,s_DONE
+    SHARE evaltable$(0)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !
+    !   Eval
+    !
+    !   Evaluate a numeric expression, and return its value.
+    !   We allow the following operators:
+    !
+    !      + - * / ^     ( )
+    !
+    !   And a whole bunch of True BASIC functions (rnd, sin, etc.)
+    !   We have three error messages:
+    !
+    !      "Eval string isn't a proper expression."
+    !      "Unknown function or variable in Eval."
+    !      "Bad variable name in Eval."
+    !
+    !   Version 2.0 change: variables are now allowed.
+    !
+    !
+    !
+
+    DEF Eval(s$)
+        DECLARE DEF NoSpace$
+
+        LET text$ = Lcase$(NoSpace$(s$))
+
+        WHEN error in
+             CALL SuperVal(evaltable$(),text$,result)
+        USE
+             LET name$ = Extext$
+             LET name$[1:Pos(name$,":")+1] = ""
+             LET err = Extype
+             SELECT CASE err
+             CASE 1
+                  CAUSE ERROR 1,"Eval string isn't a proper expression."
+             CASE 2
+                  CAUSE ERROR 2,"Unknown function or variable in Eval: " & name$
+             CASE 3
+                  CAUSE ERROR 3,"Bad variable name in Eval: " & name$
+             CASE else
+                  CAUSE ERROR err
+             END SELECT
+        END WHEN
+
+        LET Eval = result         !all done
+
+    END DEF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !
+    !
+    !  SuperVal
+    !
+    !  Like Eval, except that we also allow variables to be
+    !  assigned and used.  Variables must be given a value before
+    !  being used in an expression.  Syntax is:
+    !
+    !        var1, var2, var3 = expr
+    !
+    !        expr
+    !
+    !  We're a subroutine, not a function, since we must modify
+    !  the table$ array passed to us...
+    !
+    !
+
+    SUB SuperVal(table$(),s$,value)
+        DECLARE DEF NoSpace$
+
+        WHEN error in
+             IF table$(-2)<>"table" then CAUSE ERROR 1
+        USE
+             CALL TableMake(table$,50,50)
+        END WHEN
+
+        LET text$ = Lcase$(NoSpace$(s$))    !clean up expression
+
+        IF Pos(text$,"=")>0 then CALL Breakup(text$,vars$,"=")
+
+        WHEN error in
+             CALL Eval_Expr(table$,text$,result,SYM)  !find expression's value
+             IF SYM <> s_DONE then CAUSE ERROR 1      !badly formed expression?
+
+             DO while vars$<>""   !assign value to variables
+                CALL Breakup(vars$,v$,",")  !get next variable name
+                IF v$="" or Cpos(v$,"0123456789")=1 or Ncpos(v$,"abcdefghijklmnopqrstuvwxyz0123456789_")<>0 then CAUSE ERROR 3
+                CALL TableSetsn(table$,v$,result)     !assign its value
+             LOOP
+        USE
+             LET err = Extype
+             SELECT CASE err
+             CASE 1
+                  CAUSE ERROR 1,"SuperVal string isn't a proper expression."
+             CASE 2
+                  CAUSE ERROR 2,"Unknown function or variable in SuperVal: " & Extext$
+             CASE 3
+                  CAUSE ERROR 3,"Bad variable name in SuperVal: " & v$
+             CASE else
+                  CAUSE ERROR err
+             END SELECT
+        END WHEN
+
+        LET value = result        !all done
+
+    END SUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !
+    !
+    !  Eval_Expr() --
+    !
+    !  Internal routine for Eval and SuperVal.  This is a recursive
+    !  descent parser for numeric expressions.  At the highest level,
+    !  we handle general expressions.  Each level handles one level
+    !  of priority among operators -- lower and lower levels handle,
+    !  in turn, higher and higher priorities.
+    !
+    !  The very lowest level (scan a number) may in turn call
+    !  the highest level again to handle a parenthesized expression.
+    !
+    !  We are passed a table, which we use for looking up variable
+    !  values.  Eval just passes a junk array instead of a table,
+    !  so we never find any variable in that 'table'.
+    !
+    !  Parse things:   Eval_Expr --> Expr | + Expr | - Expr
+    !
+
+    SUB Eval_Expr(table$(),text$,result,SYM)
+        LIBRARY "tablib"
+        DECLARE DEF Expr, Expon, Term, Factor, Number, Func, Var
+
+        IF s_DONE<>10 then        ! initialize "constants" (shared vars)
+           LET s_PLUS    = 1      ! +
+           LET s_MINUS   = 2      ! -
+           LET s_STAR    = 3      ! *
+           LET s_SLASH   = 4      ! /
+           LET s_UP      = 5      ! ^
+           LET s_OPEN    = 6      ! (
+           LET s_CLOSE   = 7      ! )
+           LET s_NUMBER  = 8      ! any number
+           LET s_DONE    = 10     ! end token
+        END IF
+
+        CALL Getsym               ! scan first symbol
+        LET result = Expr         ! handle expression
+
+        EXIT SUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !  Expr() --
+        !
+        !  Parse things:   Expr --> Factor | Factor + Expr | Factor - Expr
+        !
+        DEF Expr
+
+            LET xresult = Factor  ! scan first part
+
+            DO                    ! all + and - ops
+               IF SYM = s_PLUS then    ! add
+                  CALL Getsym     ! skip past '+'
+                  LET xresult = xresult + Factor      ! add right side
+
+               ELSE IF SYM = s_MINUS then   ! subtract
+                  CALL Getsym     ! skip past '-'
+                  LET xresult = xresult - Factor      ! subtract right side
+
+               ELSE
+                  LET Expr = xresult
+                  EXIT DEF
+               END IF
+            LOOP
+
+        END DEF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !  Factor() --
+        !
+        !  Parse things:   Factor --> Expon | Expon * Factor | Expon / Factor
+        !
+        DEF Factor
+
+            LET fresult = Expon   ! scan left side
+
+            DO                    ! handle all * and /
+               IF (SYM = s_STAR) then  ! multiply
+                  CALL Getsym     ! skip past '*'
+                  LET fresult = fresult * Expon  ! multiply by right side
+
+               ELSE IF (SYM = s_SLASH) then      ! divide
+                  CALL Getsym     ! skip past '/'
+                  LET fresult = fresult / Expon  ! divide by right side
+
+               ELSE
+                  LET Factor = fresult      ! all done
+                  EXIT DEF
+               END IF
+            LOOP
+
+        END DEF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !  Expon() --
+        !
+        !  Parse things:   Expon --> Term | Term ^ Expon
+        !  We handle unary plus and minus.
+        !
+        DEF Expon
+
+            LET exsign = 1
+            IF SYM = s_PLUS or SYM = s_MINUS then     !check for unary plus/minus
+               IF SYM = s_MINUS then LET exsign = -1
+               CALL Getsym        !skip past sign
+            END IF
+
+            LET eresult = Term    ! scan left side
+
+            DO while ((SYM = s_UP))    ! handle all ^
+               CALL Getsym        ! skip past '^'
+               LET eresult = eresult ^ Term      ! raise to power
+            LOOP
+
+            LET Expon = exsign*eresult      ! all done
+
+        END DEF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !  Term() --
+        !
+        !  Parse things:   Term --> number | ( Eval_Expr )
+        !
+        DEF Term
+
+            IF SYM = s_NUMBER then     ! it was a number/variable/function
+               CALL Getsym        ! skip past it
+               LET Term = VALUE   ! return number's value
+               EXIT DEF
+            END IF
+
+            IF SYM <> s_OPEN then CAUSE ERROR 1
+
+            CALL Eval_Expr(table$,text$,tresult,SYM)  ! scan an expression inside parens
+
+            IF SYM <> s_CLOSE then CAUSE ERROR 1
+
+            CALL Getsym           ! skip past )
+
+            LET Term = tresult
+
+        END DEF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !  Getsym --
+        !
+        !  Scan next symbol from 'text', and leave the result in SYM.
+        !  If it's a number/variable/function, we also leave its value in VALUE.
+        !
+        SUB Getsym
+
+            LET c$ = text$[1:1]   ! get next char from text
+
+            LET SYM = Pos("+-*/^()",c$)     ! check for an operator
+            IF SYM > 0 then
+               IF text$ = "" then
+                  LET SYM = s_DONE     ! that's it
+               ELSE
+                  LET text$[1:1] = ""
+               END IF
+               EXIT SUB
+            END IF
+
+            IF Number<>0 then     ! try to scan a number
+               LET SYM = s_NUMBER      ! was number; leave SYM and VALUE set
+               EXIT SUB           ! done
+
+            ELSE IF Var<>0 then   ! try to use as variable name
+               LET SYM = s_NUMBER      ! that worked, use its value
+               EXIT SUB
+
+            ELSE IF Func<>0 then  ! try to scan as Func
+               LET SYM = s_NUMBER      ! that worked--treat it like number
+               EXIT SUB           ! all done
+            END IF
+
+            CAUSE ERROR 1         ! if none of the above, cause error
+
+        END SUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !  Func --
+        !
+        !  Try to scan a True BASIC function; if there's none there, return 0.
+        !  Otherwise, return 1 and set VALUE equal to its value.
+        !
+        DEF Func
+
+            CALL Scanname(fn$)    !look for a function name
+            IF fn$="" then EXIT DEF    !no name there -- quit
+
+            IF Pos("pi rnd date time maxnum",fn$)=0 then   !scan () argument
+               LET ofn$ = fn$
+               CALL Getsym
+               IF SYM <> s_OPEN then CAUSE ERROR 2,fn$     !unknown func/var
+
+               CALL Eval_Expr(table$,text$,presult,SYM)    ! scan an expression inside parens
+
+               IF SYM <> s_CLOSE then CAUSE ERROR 1
+               LET fn$ = ofn$
+            END IF
+
+            SELECT CASE fn$
+            CASE "sin"
+                 LET VALUE = sin(presult)
+            CASE "cos"
+                 LET VALUE = cos(presult)
+            CASE "tan"
+                 LET VALUE = tan(presult)
+            CASE "atn"
+                 LET VALUE = atn(presult)
+            CASE "sqr"
+                 LET VALUE = sqr(presult)
+            CASE "sgn"
+                 LET VALUE = sgn(presult)
+            CASE "abs"
+                 LET VALUE = abs(presult)
+            CASE "int"
+                 LET VALUE = int(presult)
+            CASE "round"
+                 LET VALUE = round(presult)
+            CASE "log"
+                 LET VALUE = log(presult)
+            CASE "log2"
+                 LET VALUE = log2(presult)
+            CASE "log10"
+                 LET VALUE = log10(presult)
+            CASE "exp"
+                 LET VALUE = exp(presult)
+            CASE "rad"
+                 LET VALUE = rad(presult)
+            CASE "deg"
+                 LET VALUE = deg(presult)
+            CASE "eps"
+                 LET VALUE = eps(presult)
+            CASE "pi"
+                 LET VALUE = Pi
+            CASE "rnd"
+                 LET VALUE = Rnd
+            CASE "date"
+                 LET VALUE = Date
+            CASE "time"
+                 LET VALUE = Time
+            CASE "maxnum"
+                 LET VALUE = Maxnum
+            CASE else
+                 CAUSE ERROR 2,fn$     !unknown function/variable
+            END SELECT
+
+            LET Func = 1
+
+        END DEF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !  Var --
+        !
+        !  Try to scan a variable name; if there's none there, return 0.
+        !  Otherwise, return 1 and set VALUE equal to its value.
+        !
+        DEF Var
+
+            CALL Scanname(var$)   !try to scan name
+            IF var$="" then EXIT DEF   !nothing there -- quit
+
+            WHEN error in
+                 CALL TableAsksn(table$,var$,VALUE)   !look up name in table
+                 LET Var = 1      !aha! found it
+            USE
+                 LET text$[1:0] = var$      !wasn't in table...
+            END WHEN
+
+        END DEF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !  Scanname --
+        !
+        !  Try to scan a function or variable name.  Return the scanned
+        !  name in the 'name$' parameter.  We scan the longest possible
+        !  name that fits True BASIC's rules, and remove this name
+        !  from the global text$ string.
+        !
+        !  If there's no name there, just return "".
+        !
+        SUB Scanname(name$)
+
+            IF Pos("abcdefghijklmnopqrstuvwxyz",c$) = 0 then
+               LET name$ = ""
+               EXIT SUB
+            END IF
+
+            LET i = Ncpos(text$,"abcdefghijklmnopqrstuvwxyz0123456789_",2)-1
+            IF i<0 then LET i=Maxnum
+
+            LET name$ = text$[1:i]
+            LET text$[1:i] = ""
+
+        END SUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !  Number --
+        !
+        !  Try to scan a number; if there's no number there, return 0.
+        !  Otherwise, return 1 and set VALUE equal to the number's value.
+        !
+        !  We accept standard floating-point '1.0e-38' format.
+        !
+        DEF Number
+
+            IF Pos("0123456789.",c$) = 0 then    !isn't a number at all...
+               LET Number = 0     !quit now
+               EXIT DEF
+            END IF
+
+            LET i = Ncpos(text$,"0123456789",2)
+            IF i=0 then
+               LET VALUE = Val(text$)  !remainder of string is digits...
+               LET text$ = ""
+               LET Number = 1
+               EXIT DEF
+            END IF
+
+            IF text$[i:i] = "." then   !fractional part
+               LET i = Ncpos(text$,"0123456789",i+1)
+               IF i=0 then LET i=Maxnum
+            END IF
+
+            IF text$[i:i] = "e" then   !exponent "e" part
+               LET i = i+1
+               LET c$ = text$[i:i]
+               IF c$="+" or c$="-" then LET i=i+1
+               LET i = Ncpos(text$,"0123456789",i)
+               IF i=0 then LET i=Maxnum
+            END IF
+
+            LET i = i-1
+            LET VALUE = Val(text$[1:i])     !now try converting number
+            LET text$[1:i] = ""
+
+            LET Number = 1
+
+        END DEF
+
+    END SUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!
+!  RepStr$
+!
+!  Replace one sequence of characters by another throughout some
+!  string.  The code below is somewhat obscure but attempts to be
+!  as fast as possible on very long strings.  A straightforward
+!  approach would be a little faster for short text$ strings.
+!
+!
+DEF RepStr$(text$,old$,new$)
+
+    IF old$="" then
+       LET RepStr$ = text$
+       EXIT DEF
+    END IF
+
+    LET olen  = Len(old$)
+    LET olen1 = olen-1
+    LET nlen  = Len(new$)
+    LET tlen  = Len(text$)
+
+    IF tlen>500 and nlen<>olen then
+       FOR div = 2 to 3 step .1
+           CALL Divide(tlen,div,h,xxx)
+           LET h1 = h-1
+           LET p = Posr(text$,old$,h1)
+           IF p = 0 then
+              LET RepStr$ = text$[1:h1] & RepStr$(text$[h:maxnum],old$,new$)
+              EXIT DEF
+           ELSE IF not (p+olen1>=h) then
+              LET RepStr$ = RepStr$(text$[1:h1],old$,new$) & RepStr$(text$[h:maxnum],old$,new$)
+              EXIT DEF
+           END IF
+       NEXT div
+       LET p = 0
+    END IF
+
+    DO
+       LET p = Pos(text$,old$,p)
+       IF p = 0 then
+          LET RepStr$ = text$
+          EXIT DEF
+       END IF
+       LET text$[p:p+olen1] = new$
+       LET p = p + nlen
+    LOOP
+
+END DEF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+DEF RepMix$(text$,old$,new$)
+
+    IF old$ = "" then             !a special case
+       LET RepMix$ = text$
+       EXIT DEF
+    END IF
+
+    LET ltext$ = Lcase$(text$)
+    LET old$   = Lcase$(old$)
+
+    LET olen = Len(old$)-1
+    LET nlen = Max(1,Len(new$))
+
+    DO
+       LET p = Pos(ltext$,old$,p)
+       IF p = 0 then
+          LET RepMix$ = text$
+          EXIT DEF
+       END IF
+       LET text$[p:p+olen] = new$
+       LET ltext$[p:p+olen] = new$
+       LET p = p + nlen
+    LOOP
+
+END DEF
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+END MODULE

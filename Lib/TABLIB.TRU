@@ -1,0 +1,338 @@
+!
+!
+!  TabLib.               Version 2.0
+!
+!  Table library.
+!  Please read the "Advanced String Library" manual
+!  for a description of tables, and of these routines.
+!
+!  Copyright (c) 1988 by True BASIC, Inc.  All rights reserved.
+!
+!
+!  You must have version 2.0 of True BASIC to use this library.
+!
+!
+!  ------------------------------------------------------------
+!
+!  Tables are implemented as 1-dimensional string arrays.
+!  The lower bound, oddly enough, is set to -4.
+!
+!  Entries -4 to -1 are bookkeeping.  Entries 0 through
+!  the hashsize-1 are the hash table.  The remaining entries
+!  are grouped in pairs: key, value.
+!
+!  Each hash table entry, and the free list, contains a string
+!  which represents a list of 'key' locations.  Each location
+!  is packed as 24 bits into the string.
+!
+!
+!     -4  hash table size (24 bits)
+!     -3  (this spot currently unused)
+!     -2  "table"
+!     -1  free list
+!
+!     0..hashsize-1   hash table
+!     hashsize..end   entries (key, value)
+!
+!  The free list and hash table entries are both serial
+!  lists of pointers into the 'entries' table.  Only the
+!  'key' location is kept, since the value is immediately
+!  after it.
+!
+!      serial lists:   value / value / value...   (24 bits per value)
+!
+!
+MODULE Table_Library
+
+    PRIVATE TableSearch,TableAlloc,ExpandTable,TableCheck
+    PRIVATE NewHashSize,NumKeyError
+
+    SHARE hash,hashb,oldkey$,oldhsiz,num1$
+    LET num1$ = Num$(1)
+
+
+    !
+    !
+    !  TableMake
+    !
+    !  Turns any 1-dimensional array into a clear table.
+    !  Caller passes desired hashsize, and initial number of
+    !  free spots.
+    !
+    !  If we're passed a hashsize divisible by 5 or 2, we'll
+    !  pick a prime number nearby instead.  This speeds things
+    !  up a lot, and relieves the poor user from memorizing primes!
+    !
+    !
+    SUB TableMake(table$(),hash,free)
+        DECLARE DEF NewHashSize
+
+        LET hashsize = Round(hash)
+        LET freesize = Round(free)
+
+        IF hashsize < 1 then CAUSE ERROR 3,"Table hash size can't be less than 1:  " & Str$(hashsize)
+        IF freesize < 0 then CAUSE ERROR 4,"Table free size can't be negative:  " & Str$(freesize)
+
+        IF hashsize=5*Int(hashsize/5) or hashsize=2*Int(hashsize/2) then
+           LET hashsize = NewHashSize(hashsize)
+        END IF
+
+        LET ub = hashsize-1+2*freesize
+        MAT redim table$(-4 to ub)     !resize array
+
+        FOR i = hashsize to ub step 2  !create free list
+            CALL Packb(fl$,maxnum,24,i)
+        NEXT i
+
+        LET table$(-1) = fl$
+        LET table$(-2) = "table"
+        LET table$(-3) = ""       !currently unused spot
+        CALL Packb(table$(-4),1,24,hashsize)     !hash table size
+
+    END SUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    SUB TableSet(table$(),key$,value$)
+
+        CALL TableSearch(table$,key$,i)
+
+        IF i = 0 then             !not there yet
+           CALL TableAlloc(table$,key$,i)   !allocate a new entry
+           LET table$(i) = key$   !put key in entry
+        END IF
+
+        LET table$(i+1) = value$  !put new value in entry
+
+    END SUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    SUB TableAsk(table$(),key$,value$)
+
+        CALL TableSearch(table$,key$,i)
+
+        IF i=0 then CAUSE ERROR 2, "No such key: " & key$
+
+        LET value$ = table$(i+1)
+
+    END SUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    SUB TableSetsn(table$(),key$,value)
+
+        CALL TableSet(table$,key$,Num$(value))
+
+    END SUB
+
+
+    SUB TableAsksn(table$(),key$,value)
+
+        CALL TableAsk(table$,key$,value$)
+
+        LET value = Num(value$)
+
+    END SUB
+
+
+    !
+    ! ------------------------- Internal Routines --------------------
+    !
+    !
+    !  TableSearch
+    !
+    !  Internal routine which looks up a key in a table.  It returns
+    !  the hash table entry in (shared) 'hash', and the key location in 'i'.
+    !  If the key isn't found, it returns i=0.
+    !
+    !  Compute the hash number for a table key.  This hashing
+    !  function is designed so that it tends to hash similar strings
+    !  to different locations.  PLUS it also hashes similar IEEE
+    !  numbers (8 bytes) to different locations.
+    !
+    !  This lets us index tables by numbers without having a huge
+    !  number of collisions in the hashing algorithm.
+    !
+    !  We cache the last hash value, since multiple uses of an
+    !  item are fairly common, and computing the hash value takes time.
+    !  We also cache "hashb" so TableDel runs faster.
+    !
+    !
+
+    SUB TableSearch(table$(),key$,i)
+
+        CALL TableCheck(table$)
+
+        LET hashsize = Unpackb(table$(-4),1,24)
+
+        IF key$=oldkey$ and hashsize=oldhsiz then
+           LET i = Unpackb(table$(hash),hashb,24)
+           IF table$(i) = key$ then EXIT SUB
+        ELSE
+           LET oldkey$ = key$
+           LET oldhsiz = hashsize
+        END IF
+
+        LET c1 = Len(key$)
+        LET c2 = Unpackb(key$,1,24)    !use 24 bits for Num$ numbers!
+        LET c3 = Unpackb(key$,8*c1-7,8)
+
+        LET n = 1009 * c2 + (97 * c1 + c3)
+
+        CALL Divide(n,hashsize,xxx,hash)
+
+        LET t$ = table$(hash)     !get t$ = hash bucket list
+
+        FOR hashb = 1 to 8*Len(t$) step 24  !look for key in hash list
+            LET i = Unpackb(t$,hashb,24)
+            IF table$(i) = key$ then EXIT SUB
+        NEXT hashb
+
+        LET i = 0                 !not found
+
+    END SUB
+
+
+    !
+    !
+    !  TableAlloc
+    !
+    !  Internal routine which allocates a new table element.
+    !  It pulls an entry off the free list, and adds it to the
+    !  appropriate hash table bucket.
+    !
+    !  If the free list is empty, this routine automatically
+    !  expands the table, thus growing the free list.
+    !
+    !
+
+    SUB TableAlloc(table$(),key$,i)
+
+        DO
+           LET p = Len(table$(-1))
+           IF p <> 0 then EXIT DO
+           CALL ExpandTable(table$)
+        LOOP
+
+        LET p2 = p-2
+
+        LET s$ = table$(-1)[p2:p]
+        LET table$(-1)[p2:p] = ""      !remove from free list
+        LET i = Unpackb(s$,1,24)  !return new spot
+
+        LET table$(hash)[maxnum:0] = s$     !add to hash bucket list
+
+    END SUB
+
+
+    !
+    !
+    !  ExpandTable
+    !
+    !  Internal routine which expands a table.  We add another 500
+    !  array elements (250 table elements), and add all the new
+    !  entries to the free list.
+    !
+    !
+
+    SUB ExpandTable(table$())
+
+        LET s =  Ubound(table$)
+        LET s1 = s+500
+
+        MAT redim table$(-4 : s1)      !make table bigger
+
+        FOR i = s+1 to s1 step 2  !add new spots...
+            CALL Packb(fl$,maxnum,24,i)     !...to free list
+        NEXT i
+        LET table$(-1)[maxnum:0] = fl$
+
+    END SUB
+
+
+    !
+    !
+    !  TableCheck
+    !
+    !  Internal routine that checks to make sure an array is really
+    !  a table.  We make two checks:
+    !
+    !       table$(-2)    must exist
+    !       table$(-2)    must = "table"
+    !
+    !  This isn't surefire, but it's pretty close.
+    !
+    !
+
+    SUB TableCheck(table$())
+
+        WHEN error in
+             IF table$(-2)<>"table" then CAUSE ERROR 1
+        USE
+             CAUSE ERROR 1,"Array isn't a table."
+        END WHEN
+
+    END SUB
+
+
+    !
+    !
+    !  NewHashSize
+    !
+    !  Internal routine to pick a better (i.e., prime) hashsize somewhere
+    !  near what the user asked for.  We're a bit heavy-handed, but collisions
+    !  are a bad thing.  The main idea is to make hashsizes of 100, etc,
+    !  work a bit better.
+    !
+    !
+
+    DEF NewHashSize(h)
+
+        SELECT CASE h
+        CASE is <= 50
+             LET NewHashSize = 53
+        CASE is <= 100
+             LET NewHashSize = 101
+        CASE is <= 250
+             LET NewHashSize = 251
+        CASE is <= 500
+             LET NewHashSize = 503
+        CASE is <= 1000
+             LET NewHashSize = 1013
+        CASE is <= 2000
+             LET NewHashSize = 2003
+        CASE is <= 2500
+             LET NewHashSize = 2503
+        CASE is <= 5000
+             LET NewHashSize = 5003
+        CASE is <= 7500
+             LET NewHashSize = 7507
+        CASE is <= 10000
+             LET NewHashSize = 10007
+        CASE is <= 12000
+             LET NewHashSize = 12007
+        CASE is <= 15000
+             LET NewHashSize = 15013
+        CASE is <= 20000
+             LET NewHashSize = 20011
+        CASE is <= 30000
+             LET NewHashSize = 30011
+        CASE is <= 40000
+             LET NewHashSize = 40009
+        CASE is <= 49000
+             LET NewHashSize = 49003
+        CASE else
+             LET NewHashSize = h
+        END SELECT
+
+    END DEF
+
+
+END MODULE

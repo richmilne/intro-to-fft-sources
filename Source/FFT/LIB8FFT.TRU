@@ -1,1 +1,795 @@
-EXTERNAL      !LIB8FFT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB TESTFORMFFT( CONCORFLAG, FORM$, N, NU, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), IBR, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, KLEEN$ )  CALL BOX54( "A", Z0$, N, CONCORFLAG )  IF Z0$ = "Y" THEN    LET CONVFLAG = 0    MAT FFTRE  = 0    MAT FFTIM  = 0    MAT IFFTRE = 0    MAT IFFTIM = 0    LET IFFTFLAG = 0    LET TIMESTART = TIME    IF FORM$ = "POWEROF2" THEN      CALL RUNFFT1( N, NU, XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), IBR, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG )      LET TIMEEND = TIME      LET TOTALTIME = TIMEEND - TIMESTART      CALL BOX57( "B", TOTALTIME, CONCORFLAG )      PRINT      CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, KLEEN$ )    ELSE IF FORM$ = "COMPOSITE" OR FORM$ = "PRIME" THEN      CALL RUNFFT2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, FORM$ )      LET TIMEEND = TIME      LET TOTALTIME = TIMEEND - TIMESTART      CALL BOX57( "C", TOTALTIME, CONCORFLAG )      PRINT      CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, KLEEN$ )    END IF    CALL TW_WKILL( 2 )    CALL TW_WSWITCH( 1 )  END IFEND SUB !TESTFORMFFT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB TESTFORMIFFT( CONCORFLAG, FORM$, N, NU, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), IBR, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )CALL BOX54( "S", Z0$, N, CONCORFLAG )  IF Z0$ = "Y" THEN    MAT IFFTRE = 0    MAT IFFTIM = 0    LET TIMESTART = TIME    IF FORM$ = "POWEROF2" THEN      CALL RUNIFFT1( N, NU, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), IBR, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG )      LET TIMEEND = TIME      LET TOTALTIME = TIMEEND - TIMESTART      CALL BOX57( "D", TOTALTIME, CONCORFLAG )      PRINT      CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )    ELSE IF FORM$ = "COMPOSITE" OR FORM$ = "PRIME" THEN      CALL RUNIFFT2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, FORM$, CONVFLAG )      LET TIMEEND = TIME      LET TOTALTIME = TIMEEND - TIMESTART      CALL BOX57( "E", TOTALTIME, CONCORFLAG )      PRINT      CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )    END IF    CALL TW_WKILL( 2 )    CALL TW_WSWITCH( 1 )  END IFEND SUB !TESTFORMIFFT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB RUNFFT1( N, NU, XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), IBR, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG )  IF REALFLAGX = 0 OR NU = 1 THEN   ! DATA IS COMPLEX OR  N = 2. MUST RUN    FOR K = 0 TO N - 1             ! FFT WITH FULL VALUE FOR  N      LET TEMPRE(K) = XRE(K)      LET TEMPIM(K) = XIM(K)    NEXT K    LET SIGN = 1    CALL XFORM1( N, NU, TEMPRE(), TEMPIM(), KOS(), ZIN(), IBR, SIGN )    LET FFTFLAG = 1    FOR K = 0 TO N - 1      LET FFTRE(K) = TEMPRE(K)  ! FFT IS NOW COMPLETE FOR THE COMPLEX DATA CASE      LET FFTIM(K) = TEMPIM(K)  ! OR  N = 2    NEXT K  ELSE IF REALFLAGX = 1 AND NU >= 2 THEN  ! DATA IS REAL AND N >= 4. (N IS EVEN)    FOR K = 0 TO N - 2 STEP 2            ! THIS IS WHERE WE PACK THE DATA      LET TEMPRE(K/2) = XRE(K)           ! WHEN IT IS REAL AND N >= 4    NEXT K    FOR K = 1 TO N - 1 STEP 2      LET TEMPIM((K-1)/2) = XRE(K)    NEXT K    LET M = N/2                          ! THIS IS WHERE WE SET N TO N/2    LET MU = NU - 1    LET SIGN = 1    CALL XFORM1( M, MU, TEMPRE(), TEMPIM(), KOS(), ZIN(), IBR, SIGN )    LET FFTFLAG = 1    LET TEMPRE(M) = TEMPRE(0)    LET TEMPIM(M) = TEMPIM(0)    LET ARG = PI/M    PRINT    PRINT "NOW RUNNING THE UNSCRAMBLER ..."    PRINT    LET P = M/4    FOR K = 0 TO M      LET FFTRE(K) = ( TEMPRE(K) + TEMPRE(M-K) + COS(K*ARG)*(TEMPIM(K) + TEMPIM(M-K)) - SIN(K*ARG)*(TEMPRE(K) - TEMPRE(M-K)))/2      LET FFTRE(N-K) = FFTRE(K)      LET FFTIM(K) = ( TEMPIM(K) - TEMPIM(M-K) - SIN(K*ARG)*(TEMPIM(K) + TEMPIM(M-K)) - COS(K*ARG)*(TEMPRE(K) - TEMPRE(M-K)))/2      LET FFTIM(N-K) = -FFTIM(K)                                   ! FFT IS NOW COMPLETE FOR THE REAL DATA CASE      IF P <> 0 THEN        IF K/P = INT(K/P) THEN          PRINT 4 - K/P;"|";          CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)          CALL TW_WSET_ACTIVE(2)        END IF      END IF    NEXT K    PRINT  END IFEND SUB !RUNFFT1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB RUNIFFT1( N, NU, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), IBR, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG )  LET TIMESTART = TIME  LET SIGN = -1  FOR K = 0 TO N - 1    LET TEMPRE(K) =   FFTRE(K)    LET TEMPIM(K) =  -FFTIM(K)     !FORM CONJUGATE OF INPUT  NEXT K  CALL XFORM1( N, NU, TEMPRE(), TEMPIM(), KOS(), ZIN(), IBR, SIGN )  FOR K = 0 TO N - 1    LET IFFTRE(K) =   TEMPRE(K)/N   !FORM CONJUGATE OF OUTPUT & THIS IS WHERE    LET IFFTIM(K) =  -TEMPIM(K)/N   !WE DIVIDE BY N... DFT STRUCTURE REQUIRES IT  NEXT KEND SUB !RUNIFFT1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB XFORM1( N, NU, TEMPRE(), TEMPIM(), KOS(), ZIN(), IBR, SIGN )  CLEAR  PRINT  IF SIGN = 1 THEN    PRINT "NOW RUNNING POWER-OF-2 ANALYSIS USING  N ="; N ; "..."  ELSE IF SIGN = -1 THEN    PRINT "NOW RUNNING POWER-OF-2 SYNTHESIS USING  N ="; N ; "..."  END IF  LET SHORTFLAG = 1  CALL LOADSINCOS( N, KOS(), ZIN(), SHORTFLAG )  PRINT  IF SIGN = 1 THEN    PRINT "NOW RUNNING THE MAIN FFT ALGORITHM ..."  ELSE IF SIGN = -1 THEN    PRINT "NOW RUNNING THE MAIN IFFT ALGORITHM ..."  END IF  PRINT  LET N2 = N/2  LET NU1 = NU - 1  LET K = 0  FOR C = 1 TO NU    PRINT NU - C + 1 ; "|";    CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)    CALL TW_WSET_ACTIVE(2)    DO      FOR I = 1 TO N2        LET M = INT(K/2^NU1)        CALL IBRSUB( M, NU, IBR )        LET T1RE = TEMPRE(K+N2)*KOS(IBR) - TEMPIM(K+N2)*ZIN(IBR)        LET T1IM = TEMPIM(K+N2)*KOS(IBR) + TEMPRE(K+N2)*ZIN(IBR)        LET TEMPRE(K + N2) = TEMPRE(K) - T1RE        LET TEMPIM(K + N2) = TEMPIM(K) - T1IM             LET TEMPRE(K) = TEMPRE(K) + T1RE             LET TEMPIM(K) = TEMPIM(K) + T1IM        LET K = K + 1      NEXT I      LET K = K + N2    LOOP UNTIL K >= N - 1    LET N2 = N2/2    LET NU1 = NU1 - 1    LET K = 0  NEXT C  PRINT 0;"|"  CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)  CALL TW_WSET_ACTIVE(2)  PRINT  PRINT "NOW RUNNING THE BIT REVERSAL ..."  PRINT  LET D = N/4  FOR K = 0 TO N - 1    CALL IBRSUB( K, NU, IBR )    IF IBR > K THEN      LET T3RE = TEMPRE(K)      LET T3IM = TEMPIM(K)      LET TEMPRE(K) = TEMPRE(IBR)      LET TEMPIM(K) = TEMPIM(IBR)      LET TEMPRE(IBR) = T3RE      LET TEMPIM(IBR) = T3IM    END IF    IF D <> 0 THEN      IF K/D = INT(K/D) THEN        PRINT  4 - K/D;"|";        CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)        CALL TW_WSET_ACTIVE(2)        LET LASTVAL = 4 - K/D      END IF    END IF  NEXT K  IF LASTVAL <> 0 THEN    PRINT " 0 |";    CALL TW_EVENT(TIMER, TYPEA$, WINDOW, X1, X2)    CALL TW_WSET_ACTIVE(2)  END IF  PRINTEND SUB !XFORM1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB LOADSINCOS( N, KOS(), ZIN(), SHORTFLAG )  PRINT  PRINT "NOW CREATING THE SINE/COSINE LOOKUP TABLE ..."  LET ARG = -2*PI/N  LET SUM = 0  LET P = INT(N/4)  PRINT  IF SHORTFLAG = 0 THEN    LET UPLIM = N - 1    LET VALL = 4  ELSE IF SHORTFLAG = 1 THEN    LET UPLIM = N/2 - 1    LET VALL = 2  END IF  FOR K = 0 TO UPLIM    LET KOS(K) = COS(SUM)    LET ZIN(K) = SIN(SUM)    LET SUM = SUM + ARG    IF P <> 0 THEN      IF K/P = INT(K/P) THEN        PRINT VALL - K/P;"|";        CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)        CALL TW_WSET_ACTIVE(2)        LET IKP = K/P      END IF    END IF  NEXT K  IF IKP <> VALL THEN    PRINT 0;"|"    CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)    CALL TW_WSET_ACTIVE(2)  ELSE    PRINT  END IFEND SUB !LOADSINCOS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB IBRSUB( M, NU, IBR )  LET IBR = 0  LET K = M  FOR I = 1 TO NU    LET J = INT(K/2)    LET IBR = IBR + IBR + (K - (J+J))    LET K = J  NEXT IEND SUB !IBRSUB!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB RUNFFT2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, FORM$ )  IF (REALFLAGX = 0) OR (N/2 <> INT(N/2)) THEN    FOR K = 0 TO N - 1      LET TEMPRE(K) = XRE(K)      LET TEMPIM(K) = XIM(K)    NEXT K    LET SIGN = 1    CALL XFORM2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), KOS(), ZIN(), SIGN, FORM$ )    LET FFTFLAG = 1    FOR K = 0 TO N - 1      LET FFTRE(K) = TEMPRE(K)      LET FFTIM(K) = TEMPIM(K)    NEXT K  ELSE IF REALFLAGX = 1 AND N/2 = INT(N/2) THEN    FOR K = 0 TO N - 2 STEP 2      LET TEMPRE(K/2) = XRE(K)    NEXT K    FOR K = 1 TO N - 1 STEP 2      LET TEMPIM((K-1)/2) = XRE(K)    NEXT K    LET M = N/2    LET SIGN = 1    CALL FACTORIZE( M, Q, R() )    CALL XFORM2( M, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), KOS(), ZIN(), SIGN, FORM$ )    LET FFTFLAG = 1    LET TEMPRE(M) = TEMPRE(0)    LET TEMPIM(M) = TEMPIM(0)    LET ARG = PI/M    PRINT    PRINT "NOW RUNNING THE UNSCRAMBLER ..."    PRINT    LET P = M/4    FOR K = 0 TO M      LET FFTRE(K) = ( TEMPRE(K) + TEMPRE(M-K) + COS(K*ARG)*(TEMPIM(K) + TEMPIM(M-K)) - SIN(K*ARG)*(TEMPRE(K) - TEMPRE(M-K)))/2      LET FFTRE(N-K) = FFTRE(K)      LET FFTIM(K) = ( TEMPIM(K) - TEMPIM(M-K) - SIN(K*ARG)*(TEMPIM(K) + TEMPIM(M-K)) - COS(K*ARG)*(TEMPRE(K) - TEMPRE(M-K)))/2      LET FFTIM(N-K) = -FFTIM(K)      IF P <> 0 THEN        IF K/P = INT(K/P) THEN          PRINT 4 - K/P;"|";          CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)          CALL TW_WSET_ACTIVE(2)          LET LASTVAL = 4 - K/P        END IF      END IF    NEXT K    IF LASTVAL <> 0 THEN      PRINT " 0 |;"      CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)      CALL TW_WSET_ACTIVE(2)    END IF    PRINT  END IFEND SUB !RUNFFT2!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB RUNIFFT2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, FORM$, CONVFLAG )  LET SIGN = -1  FOR K = 0 TO N - 1    LET TEMPRE(K) =  FFTRE(K)    LET TEMPIM(K) = -FFTIM(K)     !FORM CONJUGATE OF INPUT  NEXT K  CALL FACTORIZE( N, Q, R() )  CALL XFORM2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), KOS(), ZIN(), SIGN, FORM$ )  FOR K = 0 TO N - 1    LET IFFTRE(K) =  TEMPRE(K)/N  !FORM CONJUGATE OF OUTPUT AND THIS IS WHERE    LET IFFTIM(K) = -TEMPIM(K)/N  !WE DIVIDE BY N ... STRUCTURE OF DFT  NEXT KEND SUB !RUNIFFT2!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB XFORM2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), KOS(), ZIN(), SIGN, FORM$ )  CLEAR  PRINT  IF FORM$ = "COMPOSITE" THEN    IF SIGN = 1 THEN      PRINT "NOW RUNNING COMPOSITE ANALYSIS USING  N =" ; N ; "..."    ELSE IF SIGN = -1 THEN      PRINT "RUNNING COMPOSITE SYNTHESIS USING  N =" ; N ; "..."    END IF  ELSE IF FORM$ = "PRIME" THEN    IF SIGN = 1 THEN      PRINT "N IS A PRIME! RUNNING THE DISCRETE FOURIER TRANSFORM USING  N ="; N ; "..."    ELSE IF SIGN = -1 THEN      PRINT "N IS A PRIME! RUNNING THE DISCRETE INVERSE FOURIER TRANSFORM USING  N =";N ; "..."    END IF  END IF  IF N/4 = INT(N/4) THEN    LET FLAGDIV = 4  ELSE IF N/2 = INT(N/2) THEN    LET FLAGDIV = 2  ELSE    LET FLAGDIV = 0  END IF  CALL LOADTABLE( N, Q, R(), MATK(,), DITK() )  CALL LOADSINCOS( N, KOS(), ZIN(), SHORTFLAG )  PRINT  IF SIGN = 1 THEN    PRINT "NOW RUNNING THE MAIN FFT ALGORITHM ..."  ELSE IF SIGN = -1 THEN    PRINT "NOW RUNNING THE MAIN IFFT ALGORITHM ..."  END IF  PRINT  FOR I = 1 TO Q                         !I IS THE RADIX STAGE    PRINT Q - I + 1;"|";    CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)    CALL TW_WSET_ACTIVE(2)    LET C = INT(N/10)    FOR J = 0 TO N - 1                   !J IS THE POSITION IN THE VECTOR      IF C <> 0 THEN        IF J/C = INT(J/C) AND J/C <= 10 THEN          PRINT 10 - J/C;"|";          CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)          CALL TW_WSET_ACTIVE(2)          LET LASTVAL = 10 - J/C        END IF      END IF      LET SIGMASUMRE = 0      LET SIGMASUMIM = 0      FOR A = 0 TO Q-1        LET DITK(A) = MATK(J,A)      NEXT A      FOR G = 0 TO R(I)-1                !G IS THE SUMMING VARIABLE Ksub(q-i)        LET DITK(Q-I) = G        CALL DECODE(N, Q, R(), DITK(), DEC )        LET T1RE   = TEMPRE(DEC)        LET T1IM   = TEMPIM(DEC)        LET NKPROD = MATK(J,Q-I)*G*N/R(I)        LET NKPROD = MOD(NKPROD,N)        IF NKPROD <> 0 THEN          IF FLAGDIV = 4 THEN            IF NKPROD = 0.5*N THEN              LET T2RE = -T1RE              LET T2IM = -T1IM            ELSE IF NKPROD = 0.25*N THEN              LET T2RE =  T1IM              LET T2IM = -T1RE            ELSE IF NKPROD = 0.75*N THEN              LET T2RE = -T1IM              LET T2IM =  T1RE            ELSE              LET T2RE = T1RE*KOS(NKPROD) - T1IM*ZIN(NKPROD)              LET T2IM = T1IM*KOS(NKPROD) + T1RE*ZIN(NKPROD)            END IF          ELSE IF FLAGDIV = 2 THEN            IF NKPROD = 0.5*N THEN              LET T2RE = -T1RE              LET T2IM = -T1IM            ELSE              LET T2RE = T1RE*KOS(NKPROD) - T1IM*ZIN(NKPROD)              LET T2IM = T1IM*KOS(NKPROD) + T1RE*ZIN(NKPROD)            END IF          ELSE            LET T2RE = T1RE*KOS(NKPROD) - T1IM*ZIN(NKPROD)            LET T2IM = T1IM*KOS(NKPROD) + T1RE*ZIN(NKPROD)          END IF          LET T1RE = T2RE          LET T1IM = T2IM        END IF        LET SIGMASUMRE = SIGMASUMRE + T1RE        LET SIGMASUMIM = SIGMASUMIM + T1IM      NEXT G      LET TEMP2RE(J) = SIGMASUMRE      LET TEMP2IM(J) = SIGMASUMIM      IF I < Q THEN        IF I = Q-1 THEN          LET RPROD = 1        ELSE IF I < Q-1 THEN          LET RPROD = 1          FOR A = I+2 TO Q            LET RPROD = RPROD*R(A)          NEXT A        END IF        LET KRPROD = MATK(J,Q-I-1)*RPROD        LET RMULT = 1        LET NRSUM = MATK(J,Q-1)        FOR B = 1 TO I-1          LET RMULT = RMULT*R(B)          LET NRSUM = NRSUM + MATK(J,Q-1-B)*RMULT        NEXT B        LET LONGMULT = NRSUM*KRPROD        LET LONGMULT = MOD(LONGMULT,N)        IF LONGMULT <> 0 THEN          LET T1RE = TEMP2RE(J)*KOS(LONGMULT) - TEMP2IM(J)*ZIN(LONGMULT)          LET T1IM = TEMP2IM(J)*KOS(LONGMULT) + TEMP2RE(J)*ZIN(LONGMULT)          LET TEMP2RE(J) = T1RE          LET TEMP2IM(J) = T1IM        END IF      END IF    NEXT J    FOR J = 0 TO N - 1      LET TEMPRE(J) = TEMP2RE(J)      LET TEMPIM(J) = TEMP2IM(J)    NEXT J    IF LASTVAL <> 0 THEN      PRINT " 0 |";      CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)      CALL TW_WSET_ACTIVE(2)    END IF    PRINT  NEXT I  PRINT  PRINT "NOW RUNNING THE BIT REVERSAL ..."  PRINT  LET P = INT(N/4)  FOR J = 0 TO N - 1    IF P <> 0 THEN      IF J/P = INT(J/P) THEN        PRINT 4 - J/P;"|";        CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)        CALL TW_WSET_ACTIVE(2)        LET LASTVAL = 4 - J/P      END IF    END IF    CALL ENCODE( Q, R(), J, DITK() )    FOR A = 0 TO Q - 1      LET TEMPDITK(A) = DITK(Q-1-A)      LET TEMPR(A+1) = R(Q-A)    NEXT A    CALL DECODE( N, Q, TEMPR(), TEMPDITK(), DEC )    LET TEMP2RE(DEC) = TEMPRE(J)    LET TEMP2IM(DEC) = TEMPIM(J)  NEXT J  IF LASTVAL <> 0 THEN    PRINT " 0 |";    CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)    CALL TW_WSET_ACTIVE(2)  END IF  PRINT  FOR J = 0 TO N - 1    LET TEMPRE(J) = TEMP2RE(J)    LET TEMPIM(J) = TEMP2IM(J)  NEXT JEND SUB !XFORM2!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB FACTORIZE( N, Q, R() )  LET NUM = N  LET RADIX = 2  LET B = 1  DO    IF ABS( NUM/RADIX - INT(NUM/RADIX + .0001) ) < .0001  THEN      LET R(B) = RADIX      LET B = B + 1      LET NUM = INT(NUM/RADIX + .0001)    ELSE      LET RADIX = RADIX + 1    END IF  LOOP UNTIL RADIX = NUM  LET R(B) = RADIX      !R() ARE THE FACTORS  LET Q = B             !Q IS NUMBER OF FACTORSEND SUB !FACTORIZE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB LOADTABLE( N, Q, R(), MATK(,), DITK() )  PRINT  PRINT "NOW CREATING THE FACTORS LOOKUP TABLE ..."  PRINT  LET P = INT(N/4)  FOR J = 0 TO N - 1    CALL ENCODE ( Q, R(), J, DITK() )    FOR U = 0 TO Q-1      LET MATK(J,U) = DITK(U)    NEXT U    IF P <> 0 THEN      IF J/P = INT(J/P) THEN        PRINT 4 - J/P;"|";        CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)        CALL TW_WSET_ACTIVE(2)        LET IJP = J/P      END IF    END IF  NEXT J  IF IJP <> 4 THEN    PRINT " 0 |";    CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)    CALL TW_WSET_ACTIVE(2)  END IF  PRINTEND SUB !LOADTABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB ENCODE( Q, R(), J, DITK() )  LET B = Q  LET E = Q  LET G = J  DO    LET A = INT(G/R(E))    LET DITK(B-E) = G - R(E)*A    LET G = A    LET E = E - 1  LOOP UNTIL E = 0END SUB !ENCODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB DECODE( N, Q, R(), DITK(), DEC )  LET MULT = 1  LET DEC = DITK(0)  FOR J = 0 TO Q - 2    LET MULT = MULT * R(Q-J)    LET DEC = DEC + DITK(J+1) * MULT  NEXT JEND SUB !DECODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+EXTERNAL      !LIB8FFT
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB TESTFORMFFT( CONCORFLAG, FORM$, N, NU, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), IBR, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, CONVFLAG, KLEEN$ )
+
+  DECLARE PUBLIC window1
+  DECLARE PUBLIC window2
+
+  CALL BOX54( "A", Z0$, N, CONCORFLAG )
+
+  IF Z0$ = "Y" THEN
+
+    LET CONVFLAG = 0
+
+    MAT FFTRE  = 0
+    MAT FFTIM  = 0
+    MAT IFFTRE = 0
+    MAT IFFTIM = 0
+    LET IFFTFLAG = 0
+
+    LET TIMESTART = TIME
+
+    IF FORM$ = "POWEROF2" THEN
+
+      CALL RUNFFT1( N, NU, XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), IBR, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG )
+
+      LET TIMEEND = TIME
+      LET TOTALTIME = TIMEEND - TIMESTART
+
+      CALL BOX57( "B", TOTALTIME, CONCORFLAG )
+
+!      PRINT
+
+      CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, KLEEN$ )
+
+    ELSE IF FORM$ = "COMPOSITE" OR FORM$ = "PRIME" THEN
+
+      CALL RUNFFT2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, FORM$ )
+
+      LET TIMEEND = TIME
+      LET TOTALTIME = TIMEEND - TIMESTART
+
+      CALL BOX57( "C", TOTALTIME, CONCORFLAG )
+
+!      PRINT
+
+      CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, KLEEN$ )
+
+    END IF
+
+!    CALL TC_Free( window2 )
+!    CALL Timer_Free
+    CALL TC_Win_Switch( window1 )
+
+  END IF
+
+END SUB !TESTFORMFFT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB TESTFORMIFFT( CONCORFLAG, FORM$, N, NU, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), IBR, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )
+
+  DECLARE PUBLIC window1
+  DECLARE PUBLIC window2
+
+CALL BOX54( "S", Z0$, N, CONCORFLAG )
+
+  IF Z0$ = "Y" THEN
+    MAT IFFTRE = 0
+    MAT IFFTIM = 0
+
+    LET TIMESTART = TIME
+    IF FORM$ = "POWEROF2" THEN
+
+      CALL RUNIFFT1( N, NU, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), IBR, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG )
+
+      LET TIMEEND = TIME
+      LET TOTALTIME = TIMEEND - TIMESTART
+
+      CALL BOX57( "D", TOTALTIME, CONCORFLAG )
+
+!      PRINT
+
+      CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )
+
+    ELSE IF FORM$ = "COMPOSITE" OR FORM$ = "PRIME" THEN
+
+      CALL RUNIFFT2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, FORM$, CONVFLAG )
+
+      LET TIMEEND = TIME
+      LET TOTALTIME = TIMEEND - TIMESTART
+
+      CALL BOX57( "E", TOTALTIME, CONCORFLAG )
+
+!      PRINT
+
+      CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )
+
+    END IF
+
+!    CALL TC_Free( window2 )
+!    CALL Timer_Free
+    CALL TC_Win_Switch( window1 )
+
+  END IF
+
+END SUB !TESTFORMIFFT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB RUNFFT1( N, NU, XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), IBR, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG )
+
+  DECLARE PUBLIC window1
+  DECLARE PUBLIC window2
+
+  IF REALFLAGX = 0 OR NU = 1 THEN   ! DATA IS COMPLEX OR  N = 2. MUST RUN
+    FOR K = 0 TO N - 1             ! FFT WITH FULL VALUE FOR  N
+      LET TEMPRE(K) = XRE(K)
+      LET TEMPIM(K) = XIM(K)
+    NEXT K
+    LET SIGN = 1
+
+    CALL XFORM1( N, NU, TEMPRE(), TEMPIM(), KOS(), ZIN(), IBR, SIGN )
+
+    LET FFTFLAG = 1
+
+    FOR K = 0 TO N - 1
+      LET FFTRE(K) = TEMPRE(K)  ! FFT IS NOW COMPLETE FOR THE COMPLEX DATA CASE
+      LET FFTIM(K) = TEMPIM(K)  ! OR  N = 2
+    NEXT K
+
+  ELSE IF REALFLAGX = 1 AND NU >= 2 THEN  ! DATA IS REAL AND N >= 4. (N IS EVEN)
+
+    FOR K = 0 TO N - 2 STEP 2            ! THIS IS WHERE WE PACK THE DATA
+      LET TEMPRE(K/2) = XRE(K)           ! WHEN IT IS REAL AND N >= 4
+    NEXT K
+    FOR K = 1 TO N - 1 STEP 2
+      LET TEMPIM((K-1)/2) = XRE(K)
+    NEXT K
+
+    LET M = N/2                          ! THIS IS WHERE WE SET N TO N/2
+    LET MU = NU - 1
+    LET SIGN = 1
+
+    CALL XFORM1( M, MU, TEMPRE(), TEMPIM(), KOS(), ZIN(), IBR, SIGN )
+
+    LET FFTFLAG = 1
+
+    LET TEMPRE(M) = TEMPRE(0)
+    LET TEMPIM(M) = TEMPIM(0)
+    LET ARG = PI/M
+
+!    PRINT
+!    PRINT "NOW RUNNING THE UNSCRAMBLER ..."
+!    PRINT
+    CALL Timer_SetText("NOW RUNNING THE UNSCRAMBLER ...")
+
+    LET P = M/4
+    FOR K = 0 TO M
+      LET FFTRE(K) = ( TEMPRE(K) + TEMPRE(M-K) + COS(K*ARG)*(TEMPIM(K) + TEMPIM(M-K)) - SIN(K*ARG)*(TEMPRE(K) - TEMPRE(M-K)))/2
+      LET FFTRE(N-K) = FFTRE(K)
+      LET FFTIM(K) = ( TEMPIM(K) - TEMPIM(M-K) - SIN(K*ARG)*(TEMPIM(K) + TEMPIM(M-K)) - COS(K*ARG)*(TEMPRE(K) - TEMPRE(M-K)))/2
+      LET FFTIM(N-K) = -FFTIM(K)
+                                   ! FFT IS NOW COMPLETE FOR THE REAL DATA CASE
+      IF P <> 0 THEN
+
+!        IF K/P = INT(K/P) THEN
+!          PRINT 4 - K/P;"|";
+           CALL Timer_SetPercent( (K/P)/4 )
+!          CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!          CALL TC_Win_Active(window2)
+!        END IF
+      END IF
+    NEXT K
+
+!    PRINT
+
+  END IF
+
+END SUB !RUNFFT1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB RUNIFFT1( N, NU, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), IBR, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG )
+
+  LET TIMESTART = TIME
+
+  LET SIGN = -1
+  FOR K = 0 TO N - 1
+    LET TEMPRE(K) =   FFTRE(K)
+    LET TEMPIM(K) =  -FFTIM(K)     !FORM CONJUGATE OF INPUT
+  NEXT K
+
+  CALL XFORM1( N, NU, TEMPRE(), TEMPIM(), KOS(), ZIN(), IBR, SIGN )
+
+  FOR K = 0 TO N - 1
+    LET IFFTRE(K) =   TEMPRE(K)/N   !FORM CONJUGATE OF OUTPUT & THIS IS WHERE
+    LET IFFTIM(K) =  -TEMPIM(K)/N   !WE DIVIDE BY N... DFT STRUCTURE REQUIRES IT
+  NEXT K
+
+END SUB !RUNIFFT1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB XFORM1( N, NU, TEMPRE(), TEMPIM(), KOS(), ZIN(), IBR, SIGN )
+
+  DECLARE PUBLIC window1
+  DECLARE PUBLIC window2
+
+  !CLEAR
+  !PRINT
+  IF SIGN = 1 THEN
+    LET text$ = "NOW RUNNING POWER-OF-2 ANALYSIS USING  N =" & STR$(N) & "..."
+    CALL Timer_SetText(text$)
+  ELSE IF SIGN = -1 THEN
+    LET text$ = "NOW RUNNING POWER-OF-2 SYNTHESIS USING  N =" & STR$(N) & "..."
+    CALL Timer_SetText(text$)
+  END IF
+  LET SHORTFLAG = 1
+
+  CALL LOADSINCOS( N, KOS(), ZIN(), SHORTFLAG )
+
+  !PRINT
+  IF SIGN = 1 THEN
+    LET text$ = "NOW RUNNING THE MAIN FFT ALGORITHM ..."
+    CALL Timer_SetText(text$)
+  ELSE IF SIGN = -1 THEN
+    LET text$ = "NOW RUNNING THE MAIN IFFT ALGORITHM ..."
+    CALL Timer_SetText(text$)
+  END IF
+  !PRINT
+
+  LET N2 = N/2
+  LET NU1 = NU - 1
+  LET K = 0
+
+  FOR C = 1 TO NU
+     CALL Timer_SetPercent(C/NU)
+
+!    PRINT NU - C + 1 ; "|";
+!    CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!    CALL TC_Win_Active(window2)
+
+    DO
+      FOR I = 1 TO N2
+
+        LET M = INT(K/2^NU1)
+        CALL IBRSUB( M, NU, IBR )
+
+        LET T1RE = TEMPRE(K+N2)*KOS(IBR) - TEMPIM(K+N2)*ZIN(IBR)
+        LET T1IM = TEMPIM(K+N2)*KOS(IBR) + TEMPRE(K+N2)*ZIN(IBR)
+
+        LET TEMPRE(K + N2) = TEMPRE(K) - T1RE
+        LET TEMPIM(K + N2) = TEMPIM(K) - T1IM
+
+             LET TEMPRE(K) = TEMPRE(K) + T1RE
+             LET TEMPIM(K) = TEMPIM(K) + T1IM
+
+        LET K = K + 1
+      NEXT I
+      LET K = K + N2
+    LOOP UNTIL K >= N - 1
+    LET N2 = N2/2
+    LET NU1 = NU1 - 1
+    LET K = 0
+  NEXT C
+
+!  PRINT 0;"|"
+!  CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!  CALL TC_Win_Active(window2)
+
+!  PRINT
+  LET text$ = "NOW RUNNING THE BIT REVERSAL ..."
+!  PRINT
+  CALL Timer_SetText(text$)
+  LET D = N/4
+  FOR K = 0 TO N - 1
+    CALL IBRSUB( K, NU, IBR )
+    IF IBR > K THEN
+      LET T3RE = TEMPRE(K)
+      LET T3IM = TEMPIM(K)
+
+      LET TEMPRE(K) = TEMPRE(IBR)
+      LET TEMPIM(K) = TEMPIM(IBR)
+
+      LET TEMPRE(IBR) = T3RE
+      LET TEMPIM(IBR) = T3IM
+    END IF
+    IF D <> 0 THEN
+      IF K/D = INT(K/D) THEN
+!        PRINT  4 - K/D;"|";
+	CALL Timer_SetPercent( (K/D)/4)
+!        CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!        CALL TC_Win_Active(window2)
+        LET LASTVAL = 4 - K/D
+      END IF
+    END IF
+  NEXT K
+
+  CALL Timer_Clear
+  IF LASTVAL <> 0 THEN
+!    PRINT " 0 |";
+!    CALL TC_Event(TIMER, TYPEA$, WINDOW, X1, X2)
+!    CALL TC_Win_Active(window2)
+  END IF
+!  PRINT
+
+END SUB !XFORM1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB LOADSINCOS( N, KOS(), ZIN(), SHORTFLAG )
+
+  DECLARE PUBLIC window1
+  DECLARE PUBLIC window2
+
+!  PRINT
+  LET text$ = "NOW CREATING THE SINE/COSINE LOOKUP TABLE ..."
+  CALL Timer_SetText(text$)
+
+  LET ARG = -2*PI/N
+  LET SUM = 0
+
+  LET P = INT(N/4)
+!  PRINT
+
+  IF SHORTFLAG = 0 THEN
+    LET UPLIM = N - 1
+    LET VALL = 4
+  ELSE IF SHORTFLAG = 1 THEN
+    LET UPLIM = N/2 - 1
+    LET VALL = 2
+  END IF
+
+  FOR K = 0 TO UPLIM
+
+    LET KOS(K) = COS(SUM)
+    LET ZIN(K) = SIN(SUM)
+    LET SUM = SUM + ARG
+    IF P <> 0 THEN
+      IF K/P = INT(K/P) THEN
+!        PRINT VALL - K/P;"|";
+	 CALL Timer_SetPercent( (K/P)/VALL )
+!        CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!        CALL TC_Win_Active(window2)
+        LET IKP = K/P
+      END IF
+    END IF
+  NEXT K
+
+  CALL Timer_Clear
+  IF IKP <> VALL THEN
+!    PRINT 0;"|"
+!    CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!    CALL TC_Win_Active(window2)
+!  ELSE
+!    PRINT
+  END IF
+
+END SUB !LOADSINCOS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB IBRSUB( M, NU, IBR )
+
+  LET IBR = 0
+  LET K = M
+
+  FOR I = 1 TO NU
+    LET J = INT(K/2)
+    LET IBR = IBR + IBR + (K - (J+J))
+    LET K = J
+  NEXT I
+
+END SUB !IBRSUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB RUNFFT2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), XRE(), XIM(), X2RE(), X2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, FORM$ )
+
+  DECLARE PUBLIC window1
+  DECLARE PUBLIC window2
+
+  IF (REALFLAGX = 0) OR (N/2 <> INT(N/2)) THEN
+    FOR K = 0 TO N - 1
+      LET TEMPRE(K) = XRE(K)
+      LET TEMPIM(K) = XIM(K)
+    NEXT K
+    LET SIGN = 1
+
+    CALL XFORM2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), KOS(), ZIN(), SIGN, FORM$ )
+
+    LET FFTFLAG = 1
+
+    FOR K = 0 TO N - 1
+      LET FFTRE(K) = TEMPRE(K)
+      LET FFTIM(K) = TEMPIM(K)
+    NEXT K
+
+  ELSE IF REALFLAGX = 1 AND N/2 = INT(N/2) THEN
+
+    FOR K = 0 TO N - 2 STEP 2
+      LET TEMPRE(K/2) = XRE(K)
+    NEXT K
+
+    FOR K = 1 TO N - 1 STEP 2
+      LET TEMPIM((K-1)/2) = XRE(K)
+    NEXT K
+
+    LET M = N/2
+    LET SIGN = 1
+
+    CALL FACTORIZE( M, Q, R() )
+
+    CALL XFORM2( M, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), KOS(), ZIN(), SIGN, FORM$ )
+
+    LET FFTFLAG = 1
+
+    LET TEMPRE(M) = TEMPRE(0)
+    LET TEMPIM(M) = TEMPIM(0)
+    LET ARG = PI/M
+
+!    PRINT
+    LET text$ = "NOW RUNNING THE UNSCRAMBLER ..."
+    CALL Timer_SetText(text$)
+!    PRINT
+    LET P = M/4
+    FOR K = 0 TO M
+      LET FFTRE(K) = ( TEMPRE(K) + TEMPRE(M-K) + COS(K*ARG)*(TEMPIM(K) + TEMPIM(M-K)) - SIN(K*ARG)*(TEMPRE(K) - TEMPRE(M-K)))/2
+      LET FFTRE(N-K) = FFTRE(K)
+      LET FFTIM(K) = ( TEMPIM(K) - TEMPIM(M-K) - SIN(K*ARG)*(TEMPIM(K) + TEMPIM(M-K)) - COS(K*ARG)*(TEMPRE(K) - TEMPRE(M-K)))/2
+      LET FFTIM(N-K) = -FFTIM(K)
+      IF P <> 0 THEN
+        IF K/P = INT(K/P) THEN
+!          PRINT 4 - K/P;"|";
+	  CALL Timer_SetPercent( (K/P)/4 )
+!          CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!          CALL TC_Win_Active(window2)
+          LET LASTVAL = 4 - K/P
+        END IF
+      END IF
+    NEXT K
+
+    CALL Timer_Clear
+    IF LASTVAL <> 0 THEN
+!      PRINT " 0 |;"
+!      CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!      CALL TC_Win_Active(window2)
+    END IF
+
+!    PRINT
+
+  END IF
+
+END SUB !RUNFFT2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB RUNIFFT2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IFFTRE(), IFFTIM(), KOS(), ZIN(), FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, FORM$, CONVFLAG )
+
+  LET SIGN = -1
+  FOR K = 0 TO N - 1
+    LET TEMPRE(K) =  FFTRE(K)
+    LET TEMPIM(K) = -FFTIM(K)     !FORM CONJUGATE OF INPUT
+  NEXT K
+
+  CALL FACTORIZE( N, Q, R() )
+
+  CALL XFORM2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), KOS(), ZIN(), SIGN, FORM$ )
+
+  FOR K = 0 TO N - 1
+    LET IFFTRE(K) =  TEMPRE(K)/N  !FORM CONJUGATE OF OUTPUT AND THIS IS WHERE
+    LET IFFTIM(K) = -TEMPIM(K)/N  !WE DIVIDE BY N ... STRUCTURE OF DFT
+  NEXT K
+
+END SUB !RUNIFFT2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB XFORM2( N, Q, R(), TEMPR(), MATK(,), DITK(), TEMPDITK(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), KOS(), ZIN(), SIGN, FORM$ )
+
+  DECLARE PUBLIC window1
+  DECLARE PUBLIC window2
+
+!  CLEAR
+!  PRINT
+  IF FORM$ = "COMPOSITE" THEN
+    IF SIGN = 1 THEN
+      LET text$ = "NOW RUNNING COMPOSITE ANALYSIS USING  N =" & STR$(N) & "..."
+    ELSE IF SIGN = -1 THEN
+      LET text$ = "RUNNING COMPOSITE SYNTHESIS USING  N =" & STR$(N) & "..."
+    END IF
+  ELSE IF FORM$ = "PRIME" THEN
+    IF SIGN = 1 THEN
+      LET text$ = "N IS A PRIME! RUNNING THE DISCRETE FOURIER TRANSFORM USING  N =" & STR$(N) & "..."
+    ELSE IF SIGN = -1 THEN
+      LET text$ = "N IS A PRIME! RUNNING THE DISCRETE INVERSE FOURIER TRANSFORM USING  N =" & STR$(N) & "..."
+    END IF
+  END IF
+  CALL Timer_SetText(text$)
+
+  IF N/4 = INT(N/4) THEN
+    LET FLAGDIV = 4
+  ELSE IF N/2 = INT(N/2) THEN
+    LET FLAGDIV = 2
+  ELSE
+    LET FLAGDIV = 0
+  END IF
+
+  CALL LOADTABLE( N, Q, R(), MATK(,), DITK() )
+  CALL LOADSINCOS( N, KOS(), ZIN(), SHORTFLAG )
+
+!  PRINT
+  IF SIGN = 1 THEN
+    LET text$ = "NOW RUNNING THE MAIN FFT ALGORITHM ..."
+  ELSE IF SIGN = -1 THEN
+    LET text$ = "NOW RUNNING THE MAIN IFFT ALGORITHM ..."
+  END IF
+!  PRINT
+  CALL Timer_SetText(text$)
+
+  FOR I = 1 TO Q                         !I IS THE RADIX STAGE
+!    PRINT Q - I + 1;"|";
+!    CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!    CALL TC_Win_Active(window2)
+    LET C = INT(N/10)
+
+    FOR J = 0 TO N - 1                   !J IS THE POSITION IN THE VECTOR
+      IF C <> 0 THEN
+        IF J/C = INT(J/C) AND J/C <= 10 THEN
+!          PRINT 10 - J/C;"|";
+!          CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!          CALL TC_Win_Active(window2)
+          LET LASTVAL = 10 - J/C
+        END IF
+      END IF
+      LET SIGMASUMRE = 0
+      LET SIGMASUMIM = 0
+
+      FOR A = 0 TO Q-1
+        LET DITK(A) = MATK(J,A)
+      NEXT A
+
+      FOR G = 0 TO R(I)-1                !G IS THE SUMMING VARIABLE Ksub(q-i)
+        LET DITK(Q-I) = G
+
+        CALL DECODE(N, Q, R(), DITK(), DEC )
+
+        LET T1RE   = TEMPRE(DEC)
+        LET T1IM   = TEMPIM(DEC)
+        LET NKPROD = MATK(J,Q-I)*G*N/R(I)
+        LET NKPROD = MOD(NKPROD,N)
+
+        IF NKPROD <> 0 THEN
+          IF FLAGDIV = 4 THEN
+            IF NKPROD = 0.5*N THEN
+              LET T2RE = -T1RE
+              LET T2IM = -T1IM
+            ELSE IF NKPROD = 0.25*N THEN
+              LET T2RE =  T1IM
+              LET T2IM = -T1RE
+            ELSE IF NKPROD = 0.75*N THEN
+              LET T2RE = -T1IM
+              LET T2IM =  T1RE
+            ELSE
+              LET T2RE = T1RE*KOS(NKPROD) - T1IM*ZIN(NKPROD)
+              LET T2IM = T1IM*KOS(NKPROD) + T1RE*ZIN(NKPROD)
+            END IF
+          ELSE IF FLAGDIV = 2 THEN
+            IF NKPROD = 0.5*N THEN
+              LET T2RE = -T1RE
+              LET T2IM = -T1IM
+            ELSE
+              LET T2RE = T1RE*KOS(NKPROD) - T1IM*ZIN(NKPROD)
+              LET T2IM = T1IM*KOS(NKPROD) + T1RE*ZIN(NKPROD)
+            END IF
+          ELSE
+            LET T2RE = T1RE*KOS(NKPROD) - T1IM*ZIN(NKPROD)
+            LET T2IM = T1IM*KOS(NKPROD) + T1RE*ZIN(NKPROD)
+          END IF
+
+          LET T1RE = T2RE
+          LET T1IM = T2IM
+        END IF
+
+        LET SIGMASUMRE = SIGMASUMRE + T1RE
+        LET SIGMASUMIM = SIGMASUMIM + T1IM
+      NEXT G
+
+      LET TEMP2RE(J) = SIGMASUMRE
+      LET TEMP2IM(J) = SIGMASUMIM
+
+      IF I < Q THEN
+        IF I = Q-1 THEN
+          LET RPROD = 1
+        ELSE IF I < Q-1 THEN
+          LET RPROD = 1
+          FOR A = I+2 TO Q
+            LET RPROD = RPROD*R(A)
+          NEXT A
+        END IF
+        LET KRPROD = MATK(J,Q-I-1)*RPROD
+        LET RMULT = 1
+        LET NRSUM = MATK(J,Q-1)
+        FOR B = 1 TO I-1
+          LET RMULT = RMULT*R(B)
+          LET NRSUM = NRSUM + MATK(J,Q-1-B)*RMULT
+        NEXT B
+        LET LONGMULT = NRSUM*KRPROD
+        LET LONGMULT = MOD(LONGMULT,N)
+        IF LONGMULT <> 0 THEN
+          LET T1RE = TEMP2RE(J)*KOS(LONGMULT) - TEMP2IM(J)*ZIN(LONGMULT)
+          LET T1IM = TEMP2IM(J)*KOS(LONGMULT) + TEMP2RE(J)*ZIN(LONGMULT)
+          LET TEMP2RE(J) = T1RE
+          LET TEMP2IM(J) = T1IM
+        END IF
+      END IF
+
+    NEXT J
+
+    FOR J = 0 TO N - 1
+      LET TEMPRE(J) = TEMP2RE(J)
+      LET TEMPIM(J) = TEMP2IM(J)
+    NEXT J
+
+    CALL Timer_SetPercent( I/Q )
+    IF LASTVAL <> 0 THEN
+!      PRINT " 0 |";
+!      CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!      CALL TC_Win_Active(window2)
+    END IF
+!    PRINT
+  NEXT I
+  CALL Timer_Clear
+
+!  PRINT
+  LET text$ = "NOW RUNNING THE BIT REVERSAL ..."
+  CALL Timer_SetText(text$)
+!  PRINT
+  LET P = INT(N/4)
+  FOR J = 0 TO N - 1
+    IF P <> 0 THEN
+      IF J/P = INT(J/P) THEN
+!        PRINT 4 - J/P;"|";
+	CALL Timer_SetPercent( (J/P)/4 )
+!        CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!        CALL TC_Win_Active(window2)
+        LET LASTVAL = 4 - J/P
+      END IF
+    END IF
+
+    CALL ENCODE( Q, R(), J, DITK() )
+
+    FOR A = 0 TO Q - 1
+      LET TEMPDITK(A) = DITK(Q-1-A)
+      LET TEMPR(A+1) = R(Q-A)
+    NEXT A
+
+    CALL DECODE( N, Q, TEMPR(), TEMPDITK(), DEC )
+
+    LET TEMP2RE(DEC) = TEMPRE(J)
+    LET TEMP2IM(DEC) = TEMPIM(J)
+
+  NEXT J
+
+  CALL Timer_Clear
+  IF LASTVAL <> 0 THEN
+!    PRINT " 0 |";
+!    CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!    CALL TC_Win_Active(window2)
+  END IF
+!  PRINT
+
+  FOR J = 0 TO N - 1
+    LET TEMPRE(J) = TEMP2RE(J)
+    LET TEMPIM(J) = TEMP2IM(J)
+  NEXT J
+
+END SUB !XFORM2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB FACTORIZE( N, Q, R() )
+
+  LET NUM = N
+  LET RADIX = 2
+  LET B = 1
+  DO
+!    IF ABS( NUM/RADIX - INT(NUM/RADIX + .0001) ) < .0001  THEN
+    IF NUM/RADIX - INT(NUM/RADIX)  = 0  THEN
+      LET R(B) = RADIX
+      LET B = B + 1
+      LET NUM = INT(NUM/RADIX + .0001)
+    ELSE
+      LET RADIX = RADIX + 1
+    END IF
+  LOOP UNTIL RADIX = NUM
+  LET R(B) = RADIX      !R() ARE THE FACTORS
+  LET Q = B             !Q IS NUMBER OF FACTORS
+
+END SUB !FACTORIZE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB LOADTABLE( N, Q, R(), MATK(,), DITK() )
+
+  DECLARE PUBLIC window2
+
+!  PRINT
+  LET text$ = "NOW CREATING THE FACTORS LOOKUP TABLE ..."
+  CALL Timer_SetText(text$)
+!  PRINT
+  LET P = INT(N/4)
+  FOR J = 0 TO N - 1
+    CALL ENCODE ( Q, R(), J, DITK() )
+    FOR U = 0 TO Q-1
+      LET MATK(J,U) = DITK(U)
+    NEXT U
+    IF P <> 0 THEN
+      IF J/P = INT(J/P) THEN
+!        PRINT 4 - J/P;"|";
+	CALL Timer_SetPercent( (J/P)/4 )
+!        CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!        CALL TC_Win_Active(window2)
+        LET IJP = J/P
+      END IF
+    END IF
+  NEXT J
+
+  CALL Timer_Clear
+  IF IJP <> 4 THEN
+!    PRINT " 0 |";
+!    CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+!    CALL TC_Win_Active(window2)
+  END IF
+!  PRINT
+
+END SUB !LOADTABLE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ENCODE( Q, R(), J, DITK() )
+
+  LET B = Q
+  LET E = Q
+  LET G = J
+
+  DO
+    LET A = INT(G/R(E))
+    LET DITK(B-E) = G - R(E)*A
+    LET G = A
+    LET E = E - 1
+  LOOP UNTIL E = 0
+
+END SUB !ENCODE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB DECODE( N, Q, R(), DITK(), DEC )
+
+  LET MULT = 1
+  LET DEC = DITK(0)
+  FOR J = 0 TO Q - 2
+    LET MULT = MULT * R(Q-J)
+    LET DEC = DEC + DITK(J+1) * MULT
+  NEXT J
+
+END SUB !DECODE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

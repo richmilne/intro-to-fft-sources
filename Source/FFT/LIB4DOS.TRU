@@ -1,1 +1,545 @@
-EXTERNAL             !LIB4DOS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX21( ZAZ, Z11$ )  LET ICON = 2  IF ZAZ = 1 THEN    LET MESSAGE$ = "TIME DOMAIN ... X AND Y   :   FREQUENCY DOMAIN ... F "    LET BUTTON$ = "X AND Y|F|QUIT"  ELSE IF ZAZ = 2 THEN    LET MESSAGE$ = "TIME DOMAIN ... X2   :   FREQUENCY DOMAIN ... F2"    LET BUTTON$ = "X2|F2|QUIT"  END IF  LET DEFAULT = 0  CALL TW_DWARN(ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT)  IF RESULT = 1 THEN    LET Z11$ = "X"  ELSE IF RESULT = 2 THEN    LET Z11$ = "F"  ELSE IF RESULT = 3 THEN    LET Z11$ = "Q"  END IF  IF Z11$ = "X" THEN CLEAREND SUB !BOX21!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX22( TYPE$, CR$ )  LET ICON = 2  LET MESSAGE$ = "WHICH FORM OF THE SPECTRUM DO YOU WANT ?"  IF TYPE$ = "PER" THEN    LET MESSAGE$ = MESSAGE$ & "||" & "COMPLEX FORM A(n), B(n)     REAL FORM a(n), b(n)"    LET BUTTON$ = "COMPLEX|REAL|QUIT"  ELSE IF TYPE$ = "PUL" THEN    LET MESSAGE$ = MESSAGE$ & "||" & "SINGLE PULSE   :   ETERNAL TRAIN"    LET BUTTON$ = "SINGLE|ETERNAL|QUIT"  END IF  LET DEFAULT = 1  CALL TW_DWARN(ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT)  IF TYPE$ = "PER" THEN    IF RESULT = 1 THEN      LET CR$ = "C"    ELSE IF RESULT = 2 THEN      LET CR$ = "R"    ELSE IF RESULT = 3 THEN      LET CR$ = "Q"    END IF  ELSE IF TYPE$ = "PUL" THEN    IF RESULT = 1 THEN      LET CR$ = "S"    ELSE IF RESULT = 2 THEN      LET CR$ = "I"    ELSE IF RESULT = 3 THEN      LET CR$ = "Q"    END IF  END IF  CLEAREND SUB !BOX22!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX45( ZAZ )  IF ZAZ = 1 THEN    PRINT " n      An              Bn           | Fn |          THETAn        | Fn |^2"  ELSE IF ZAZ = 2 THEN    PRINT " n      A2n             B2n          | F2n |         THETA2n       | F2n |^2"  END IFEND SUB !BOX45!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX50( ZAZ )  IF ZAZ = 1 THEN    PRINT " n      A(n)            B(n)         | F(n) |       THETA(n)       POWER(n)"  ELSE IF ZAZ = 2 THEN    PRINT " n      A2(n)           B2(n)       | F2(n) |       THETA2(n)      POWER2(n)"  END IFEND SUB !BOX50!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX51( ZAZ )  IF ZAZ = 1 THEN    PRINT " n      A(n)            B(n)         | F(n) |       THETA(n)       ENERGY(n)"  ELSE IF ZAZ = 2 THEN    PRINT " n      A2(n)           B2(n)       | F2(n) |       THETA2(n)      ENERGY2(n)"  END IFEND SUB !BOX51!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX76( ZAZ )  IF ZAZ = 1 THEN    PRINT " n      a(n)            b(n)           H(n)          PHI(n)        H(n)^2"  ELSE IF ZAZ = 2 THEN    PRINT " n      a2(n)           b2(n)          H2(n)         PHI2(n)       H2(n)^2"  END IFEND SUB !BOX76!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX61( Z3$, XFLAG, X2FLAG, FFTFLAG, FFT2FLAG, IFFTFLAG, TAG )  !THIS IS FOR N <= 16  DIM MENU$(0:1,0:1)       !dimensioning for two menus, APPLE and NUMBERS  DIM CC$(0:1,0:1)         !required later for transposing  DIM LIST$(1)             !to hold the ID list  LET L = 1  LET DIMFLAG = 0  LET MENU$(1,0) = "Info Page..."  LET MENU$(0,1) = "NUMBERS MENU"  IF (XFLAG = 1 OR IFFTFLAG = 1) AND TAG <> 1 THEN    LET DIMFLAG = 1    LET MENU$(L,1) = "X @X"    LET LIST$(L) = "X"    LET L = L+1  END IF  IF X2FLAG = 1 AND TAG <> 2 THEN    IF DIMFLAG = 1 THEN      MAT REDIM MENU$(0:L,0:1)    END IF    LET DIMFLAG = 1    LET MENU$(L,1) =   "X2 @Z"    MAT REDIM LIST$(L)    LET LIST$(L) = "X2"    LET L = L+1  END IF  IF FFTFLAG = 1 AND TAG <> 3 THEN    IF DIMFLAG = 1 THEN      MAT REDIM MENU$(0:L,0:1)    END IF    LET DIMFLAG = 1    LET MENU$(L,1) =   "F @F"    MAT REDIM LIST$(L)    LET LIST$(L) = "F"    LET L = L+1  END IF  IF FFT2FLAG = 1 AND TAG <> 4 THEN    IF DIMFLAG = 1 THEN      MAT REDIM MENU$(0:L,0:1)    END IF    LET DIMFLAG = 1    LET MENU$(L,1) =   "F2 @G"    MAT REDIM LIST$(L)    LET LIST$(L) = "F2"    LET L = L+1  END IF  MAT REDIM MENU$(0:L,0:1)  LET MENU$(L,1) = "@"  LET L = L+1  MAT REDIM MENU$(0:L,0:1)  LET MENU$(L,1) = "Quit @Q"  MAT REDIM LIST$(L)  LET LIST$(L) = "Q"  !  !now transposing  !  MAT REDIM CC$(0:1,0:L)  FOR I = 0 TO L    FOR J = 0 TO 1      LET CC$(J,I) = MENU$(I,J)    NEXT J  NEXT I  MAT REDIM MENU$(0:1,0:L)  MAT MENU$ = CC$  CALL TW_menu_set(menu$)       !remove current menus, install menu$  DO    LET CYCLEFLAG = 0    DO             ! Here's our event loop      CALL tw_event(0,type1$,window1,x1,x2)      SELECT CASE type1$      CASE "MENU"        !        ! Note what was selected        !        LET mitem$ = menu$(x1,x2)        LET p = Pos(mitem$,"@")        IF p > 0 then LET mitem$[p:maxnum] = ""   ! strip shortcuts        LET mtitle$ = menu$(x1,0)        IF X1 = 0 THEN          IF X2 = 1 THEN            CALL TW_MENU_CLEAR            CALL BOX138            CALL TW_menu_set(menu$)            LET CYCLEFLAG = 1          END IF        ELSE IF X1 = 1 THEN          FOR K = 1 TO L            IF X2 = K THEN              LET Z3$ = LIST$(K)            END IF          NEXT K        END IF        EXIT DO      CASE "SINGLE"        CALL MACSYSBEEP(1)      CASE "DOUBLE"        CALL MACSYSBEEP(1)      CASE ELSE          !          ! Ignore other events          !      END SELECT    LOOP  LOOP WHILE CYCLEFLAG = 1  CALL TW_MENU_CLEAREND SUB !BOX61!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX68( Z3$, VALUE, NUMFLAG, XFLAG, X2FLAG, FFTFLAG, FFT2FLAG, IFFTFLAG, TAG )  !THIS IS FOR N > 16  DIM MENU$(0:6, 0:1)      !dimensioning for two menus, APPLE and NUMBERS MENU  DIM CC$(0:1,0:1)         !required later for transposing  DIM LIST$(1)             !to hold the ID list  LET DIMFLAG = 0  LET MENU$(1,0) = "Info Page..."  LET MENU$(0,1) = "NUMBERS MENU"  LET MENU$(1,1) = "Up @U"  LET MENU$(2,1) = "Down @D"  LET MENU$(3,1) = "Home @H"  LET MENU$(4,1) = "Any Integer @N"  LET MENU$(5,1) = "@"  LET L = 6  IF (XFLAG = 1 OR IFFTFLAG = 1) AND TAG <> 1 THEN    LET DIMFLAG = 1    LET MENU$(L,1) = "X @X"    MAT REDIM LIST$(L)    LET LIST$(L) = "X"    LET L = L+1  END IF  IF X2FLAG = 1 AND TAG <> 2 THEN    IF DIMFLAG = 1 THEN      MAT REDIM MENU$(0:L,0:1)    END IF    LET DIMFLAG = 1    LET MENU$(L,1) =   "X2 @Z"    MAT REDIM LIST$(L)    LET LIST$(L) = "X2"    LET L = L+1  END IF  IF FFTFLAG = 1 AND TAG <> 3 THEN    IF DIMFLAG = 1 THEN      MAT REDIM MENU$(0:L,0:1)    END IF    LET DIMFLAG = 1    LET MENU$(L,1) =   "F @F"    MAT REDIM LIST$(L)    LET LIST$(L) = "F"    LET L = L+1  END IF  IF FFT2FLAG = 1 AND TAG <> 4 THEN    IF DIMFLAG = 1 THEN      MAT REDIM MENU$(0:L,0:1)    END IF    LET DIMFLAG = 1    LET MENU$(L,1) =   "F2 @G"    MAT REDIM LIST$(L)    LET LIST$(L) = "F2"    LET L = L+1  END IF  MAT REDIM MENU$(0:L,0:1)  LET MENU$(L,1) = "@"  LET L = L+1  MAT REDIM MENU$(0:L,0:1)  LET MENU$(L,1) = "Quit @Q"  MAT REDIM LIST$(L)  LET LIST$(L) = "Q"  !  !now transposing  !  MAT REDIM CC$(0:1,0:L)  FOR I = 0 TO L    FOR J = 0 TO 1      LET CC$(J,I) = MENU$(I,J)    NEXT J  NEXT I  MAT REDIM MENU$(0:1,0:L)  MAT MENU$ = CC$  CALL TW_MENU_SET(MENU$)       !remove current menus, install menu$  DO    LET CYCLEFLAG = 0    DO           ! Here's our event loop      CALL TW_EVENT(0, TYPEA$, WINDOW, X1, X2)      IF TYPEA$ = "SELECT" AND WINDOW = 1 THEN        CALL TW_WSET_ACTIVE( 2 )        CALL MACSYSBEEP( 1 )      ELSE IF TYPEA$ = "MENU" THEN        !        ! Note what was selected        !        LET mitem$ = menu$(x1,x2)        LET p = Pos(mitem$,"@")        IF p > 0 then LET mitem$[p:maxnum] = ""   ! strip shortcuts        LET mtitle$ = menu$(x1,0)        LET NUMFLAG = 0        IF X1 = 0 AND X2 = 1 THEN          CALL TW_MENU_CLEAR          CALL BOX138          CALL TW_menu_set(menu$)          LET CYCLEFLAG = 1          EXIT DO        ELSE IF X1 = 1 THEN          IF  X2 = 1 THEN            LET Z3$ = "U"            EXIT DO          ELSE IF X2 = 2 THEN            LET Z3$ = "D"            EXIT DO          ELSE IF X2 = 3 THEN            LET Z3$ = "H"            EXIT DO          ELSE IF X2 = 4 THEN            LET FRAZX$ = "ANY INTEGER > -10000 AND < 9984"            DO              CALL INPUTVALL( FRAZX$, VALL, SHOWFLAG, FLAG )              IF FLAG = 0 THEN                         !A VALID NUMBER                IF VALL = INT(VALL) AND VALL > -10000 AND VALL < 9984 THEN                  LET VALUE = VALL                  LET NUMFLAG = 1                  EXIT DO                ELSE                  CALL MACSYSBEEP(1)                END IF              ELSE IF FLAG = 1 THEN                    !QUIT                LET NUMFLAG = 0                EXIT DO              END IF            LOOP            IF NUMFLAG = 1 THEN EXIT DO          ELSE            FOR K = 5 TO L              IF X2 = K THEN                LET Z3$ = LIST$(K)              END IF            NEXT K            EXIT DO          END IF        END IF      END IF    LOOP  LOOP WHILE CYCLEFLAG = 1  CALL TW_MENU_CLEAREND SUB !BOX68!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX72( ZAZ, WURDD$, STAR$ )  IF ZAZ = 1 THEN    PRINT TAB(2,20);"( " & WURDD$ & " run:  F" & STAR$ & "  multiplied by  F2 )                 "    PRINT TAB(3,24);"( and result multiplied by T/N^2 )                "  ELSE IF ZAZ = 2 THEN    PRINT TAB(2,24);"( F2  has been multiplied by  1/N )               "  END IFEND SUB !BOX72!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX73( ZAZ, WURDD$, STAR$ )  IF ZAZ = 1 THEN    PRINT TAB(2,20);"( " & WURDD$ & " run: F" & STAR$ & "  multiplied by  F2 )                 "    PRINT TAB(3,23);"( and result multiplied by (T/N)^2 )                 "  ELSE IF ZAZ = 2 THEN    PRINT TAB(2,24);"( F2  has been multiplied by  T/N )                  "  END IFEND SUB !BOX73!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX74( ZAZ )  IF ZAZ = 1 THEN    PRINT TAB(2,24); "( F  has been multiplied by 2¹/N )        (ETERNAL TRAIN)"  ELSE IF ZAZ = 2 THEN    PRINT TAB(2,23);"( F2  has been multiplied by 2¹/N )        (ETERNAL TRAIN)"  END IFEND SUB !BOX74!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX75( ZAZ, WURDD$, STAR$ )  IF ZAZ = 1 THEN    PRINT TAB(2,20);"( " & WURDD$ & " run:  F" & STAR$ & "  multiplied by  F2 )                 "    PRINT TAB(3,23);"( and result multiplied by (2¹/N)^2 )                 "  ELSE IF ZAZ = 2 THEN    PRINT TAB(2,23);"( F2  has been multiplied by 2¹/N )                   "  END IFEND SUB !BOX75!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+EXTERNAL             !LIB4DOS
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX21( ZAZ, Z11$ )
+
+  LET ICON = 2
+
+  IF ZAZ = 1 THEN
+    LET MESSAGE$ = "TIME DOMAIN ... X AND Y   :   FREQUENCY DOMAIN ... F "
+    LET BUTTON$ = "X AND Y|F|QUIT"
+  ELSE IF ZAZ = 2 THEN
+    LET MESSAGE$ = "TIME DOMAIN ... X2   :   FREQUENCY DOMAIN ... F2"
+    LET BUTTON$ = "X2|F2|QUIT"
+  END IF
+
+  LET DEFAULT = 0
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT)
+
+  IF RESULT = 1 THEN
+    LET Z11$ = "X"
+  ELSE IF RESULT = 2 THEN
+    LET Z11$ = "F"
+  ELSE IF RESULT = 3 THEN
+    LET Z11$ = "Q"
+  END IF
+
+  IF Z11$ = "X" THEN CLEAR
+
+END SUB !BOX21
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX22( TYPE$, CR$ )
+
+  LET ICON = 2
+
+  LET MESSAGE$ = "WHICH FORM OF THE SPECTRUM DO YOU WANT ?"
+
+  IF TYPE$ = "PER" THEN
+    LET MESSAGE$ = MESSAGE$ & "||" & "COMPLEX FORM A(n), B(n)     REAL FORM a(n), b(n)"
+    LET BUTTON$ = "COMPLEX|REAL|QUIT"
+  ELSE IF TYPE$ = "PUL" THEN
+    LET MESSAGE$ = MESSAGE$ & "||" & "SINGLE PULSE   :   ETERNAL TRAIN"
+    LET BUTTON$ = "SINGLE|ETERNAL|QUIT"
+  END IF
+
+  LET DEFAULT = 1
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT)
+
+  IF TYPE$ = "PER" THEN
+    IF RESULT = 1 THEN
+      LET CR$ = "C"
+    ELSE IF RESULT = 2 THEN
+      LET CR$ = "R"
+    ELSE IF RESULT = 3 THEN
+      LET CR$ = "Q"
+    END IF
+  ELSE IF TYPE$ = "PUL" THEN
+    IF RESULT = 1 THEN
+      LET CR$ = "S"
+    ELSE IF RESULT = 2 THEN
+      LET CR$ = "I"
+    ELSE IF RESULT = 3 THEN
+      LET CR$ = "Q"
+    END IF
+  END IF
+
+  CLEAR
+
+END SUB !BOX22
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX45( ZAZ )
+
+  IF ZAZ = 1 THEN
+    PRINT " n      An              Bn           | Fn |          THETAn        | Fn |^2"
+  ELSE IF ZAZ = 2 THEN
+    PRINT " n      A2n             B2n          | F2n |         THETA2n       | F2n |^2"
+  END IF
+
+END SUB !BOX45
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX50( ZAZ )
+
+  IF ZAZ = 1 THEN
+    PRINT " n      A(n)            B(n)         | F(n) |       THETA(n)       POWER(n)"
+  ELSE IF ZAZ = 2 THEN
+    PRINT " n      A2(n)           B2(n)       | F2(n) |       THETA2(n)      POWER2(n)"
+  END IF
+
+END SUB !BOX50
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX51( ZAZ )
+
+  IF ZAZ = 1 THEN
+    PRINT " n      A(n)            B(n)         | F(n) |       THETA(n)       ENERGY(n)"
+
+  ELSE IF ZAZ = 2 THEN
+    PRINT " n      A2(n)           B2(n)       | F2(n) |       THETA2(n)      ENERGY2(n)"
+  END IF
+
+END SUB !BOX51
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX76( ZAZ )
+
+  IF ZAZ = 1 THEN
+    PRINT " n      a(n)            b(n)           H(n)          PHI(n)        H(n)^2"
+
+  ELSE IF ZAZ = 2 THEN
+    PRINT " n      a2(n)           b2(n)          H2(n)         PHI2(n)       H2(n)^2"
+  END IF
+
+END SUB !BOX76
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX61( Z3$, XFLAG, X2FLAG, FFTFLAG, FFT2FLAG, IFFTFLAG, TAG )
+
+  !THIS IS FOR N <= 16
+
+  DECLARE PUBLIC window2
+
+  DIM MENU$(0:1,2)       !dimensioning for two menus, APPLE and NUMBERS
+
+  DIM CC$(0:1,2)         !required later for transposing
+
+  DIM LIST$(1)             !to hold the ID list
+
+  LET L = 1
+
+  LET DIMFLAG = 0
+
+  LET MENU$(0,2) = "INFO@I"
+  LET MENU$(1,2) = "Info Page...@I"
+
+  LET MENU$(0,1) = "NUMBERS MENU@N"
+
+  IF (XFLAG = 1 OR IFFTFLAG = 1) AND TAG <> 1 THEN
+    LET DIMFLAG = 1
+    LET MENU$(L,1) = "X Vector @X"
+    LET LIST$(L) = "X"
+    LET L = L+1
+  END IF
+
+  IF X2FLAG = 1 AND TAG <> 2 THEN
+    IF DIMFLAG = 1 THEN
+      MAT REDIM MENU$(0:L,2)
+    END IF
+    LET DIMFLAG = 1
+
+    LET MENU$(L,1) =   "X2 Vector @2"
+    MAT REDIM LIST$(L)
+    LET LIST$(L) = "X2"
+    LET L = L+1
+  END IF
+
+  IF FFTFLAG = 1 AND TAG <> 3 THEN
+    IF DIMFLAG = 1 THEN
+      MAT REDIM MENU$(0:L,2)
+    END IF
+    LET DIMFLAG = 1
+
+    LET MENU$(L,1) =   "F Vector @F"
+    MAT REDIM LIST$(L)
+    LET LIST$(L) = "F"
+    LET L = L+1
+  END IF
+
+  IF FFT2FLAG = 1 AND TAG <> 4 THEN
+    IF DIMFLAG = 1 THEN
+      MAT REDIM MENU$(0:L,2)
+    END IF
+    LET DIMFLAG = 1
+
+    LET MENU$(L,1) =   "F2 Vector@V"
+    MAT REDIM LIST$(L)
+    LET LIST$(L) = "F2"
+    LET L = L+1
+  END IF
+
+  MAT REDIM MENU$(0:L,2)
+  LET MENU$(L,1) = "@"
+  LET L = L+1
+
+  MAT REDIM MENU$(0:L,2)
+  LET MENU$(L,1) = "Quit @Q"
+  MAT REDIM LIST$(L)
+  LET LIST$(L) = "Q"
+
+  !
+  !now transposing
+  !
+
+  MAT REDIM CC$(2,0:L)
+
+  FOR I = 0 TO L
+    FOR J = 1 TO 2
+      LET CC$(J,I) = MENU$(I,J)
+    NEXT J
+  NEXT I
+
+  MAT REDIM MENU$(2,0:L)
+  MAT MENU$ = CC$
+
+  ! Check to see if the numbers menu is already installed
+  WHEN ERROR IN
+    CALL TC_Menu_GetText(window2, 1,0, text$)
+  USE
+    CALL TC_Menu_Set(window2, MENU$)
+  END WHEN
+
+  DO
+    LET CYCLEFLAG = 0
+
+    DO             ! Here's our event loop
+
+      CALL TC_Event(0,type1$,window,x1,x2)
+
+      SELECT CASE type1$
+
+      CASE "MENU"
+        !
+        ! Note what was selected
+        !
+        LET mitem$ = menu$(x1,x2)
+        LET p = Pos(mitem$,"@")
+        IF p > 0 then LET mitem$[p:maxnum] = ""   ! strip shortcuts
+        LET mtitle$ = menu$(x1,0)
+
+        IF X1 = 2 THEN
+          IF X2 = 1 THEN
+
+!            CALL TC_Menu_Free(window1)
+            CALL BOX138
+	    CALL TC_Win_Active(window2)
+!            CALL TC_Menu_Set(window1, menu$)
+
+            LET CYCLEFLAG = 1
+          END IF
+
+        ELSE IF X1 = 1 THEN
+          FOR K = 1 TO L
+            IF X2 = K THEN
+              LET Z3$ = LIST$(K)
+	      CALL TC_Menu_Free(window2)
+            END IF
+          NEXT K
+
+        END IF
+
+        EXIT DO
+
+      CASE "SINGLE"
+        Sound 500, .1
+      CASE "DOUBLE"
+        Sound 500, .1
+
+      CASE ELSE
+          !
+          ! Ignore other events
+          !
+
+      END SELECT
+    LOOP
+  LOOP WHILE CYCLEFLAG = 1
+
+!  CALL TC_Menu_Free(window2)
+
+END SUB !BOX61
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX68( Z3$, VALUE, NUMFLAG, XFLAG, X2FLAG, FFTFLAG, FFT2FLAG, IFFTFLAG, TAG )
+
+  !THIS IS FOR N > 16
+
+  DECLARE PUBLIC window1
+  DECLARE PUBLIC window2
+
+  DIM MENU$(0:6, 2)      !dimensioning for two menus, APPLE and NUMBERS MENU
+
+  DIM CC$(0:1,2)         !required later for transposing
+
+  DIM LIST$(1)             !to hold the ID list
+
+  LET DIMFLAG = 0
+
+  LET MENU$(0,2) = "INFO@I"
+  LET MENU$(1,2) = "Info Page...@I"
+
+  LET MENU$(0,1) = "NUMBERS MENU@N"
+  LET MENU$(1,1) = "Up @U"
+  LET MENU$(2,1) = "Down @D"
+  LET MENU$(3,1) = "Home @H"
+  LET MENU$(4,1) = "Any Integer @A"
+  LET MENU$(5,1) = "@"
+
+  LET L = 6
+
+  IF (XFLAG = 1 OR IFFTFLAG = 1) AND TAG <> 1 THEN
+    LET DIMFLAG = 1
+    LET MENU$(L,1) = "X Vector@X"
+
+    MAT REDIM LIST$(L)
+    LET LIST$(L) = "X"
+    LET L = L+1
+  END IF
+
+  IF X2FLAG = 1 AND TAG <> 2 THEN
+    IF DIMFLAG = 1 THEN
+      MAT REDIM MENU$(0:L,2)
+    END IF
+    LET DIMFLAG = 1
+
+    LET MENU$(L,1) =   "X2 Vector@2"
+
+    MAT REDIM LIST$(L)
+    LET LIST$(L) = "X2"
+    LET L = L+1
+  END IF
+
+  IF FFTFLAG = 1 AND TAG <> 3 THEN
+    IF DIMFLAG = 1 THEN
+      MAT REDIM MENU$(0:L,2)
+    END IF
+    LET DIMFLAG = 1
+
+    LET MENU$(L,1) =   "F Vector@F"
+
+    MAT REDIM LIST$(L)
+    LET LIST$(L) = "F"
+    LET L = L+1
+  END IF
+
+  IF FFT2FLAG = 1 AND TAG <> 4 THEN
+    IF DIMFLAG = 1 THEN
+      MAT REDIM MENU$(0:L,2)
+    END IF
+    LET DIMFLAG = 1
+
+    LET MENU$(L,1) =   "F2 Vector@V"
+
+    MAT REDIM LIST$(L)
+    LET LIST$(L) = "F2"
+    LET L = L+1
+  END IF
+
+  MAT REDIM MENU$(0:L,2)
+  LET MENU$(L,1) = "@"
+  LET L = L+1
+
+  MAT REDIM MENU$(0:L,2)
+
+  LET MENU$(L,1) = "Quit @Q"
+  MAT REDIM LIST$(L)
+  LET LIST$(L) = "Q"
+
+  !
+  !now transposing
+  !
+
+  MAT REDIM CC$(2,0:L)
+
+  FOR I = 0 TO L
+    FOR J = 1 TO 2
+      LET CC$(J,I) = MENU$(I,J)
+    NEXT J
+  NEXT I
+
+  MAT REDIM MENU$(2,0:L)
+  MAT MENU$ = CC$
+
+  ! Check to see if the numbers menu is already installed
+  WHEN ERROR IN
+    CALL TC_Menu_GetText(window2, 1,0, text$)
+  USE
+    CALL TC_Menu_Set(window2, MENU$)
+  END WHEN
+
+  DO
+    LET CYCLEFLAG = 0
+
+    DO           ! Here's our event loop
+
+      CALL TC_Event(0, TYPEA$, WINDOW, X1, X2)
+
+      IF TYPEA$ = "SELECT" AND WINDOW = window1 THEN
+
+        CALL TC_Win_Active( window2 )
+
+      ELSE IF TYPEA$ = "MENU" THEN
+        !
+        ! Note what was selected
+        !
+        LET mitem$ = menu$(x1,x2)
+        LET p = Pos(mitem$,"@")
+        IF p > 0 then LET mitem$[p:maxnum] = ""   ! strip shortcuts
+        LET mtitle$ = menu$(x1,0)
+
+        LET NUMFLAG = 0
+
+        IF X1 = 2 AND X2 = 1 THEN
+
+          CALL BOX138
+
+          LET CYCLEFLAG = 1
+          EXIT DO
+
+        ELSE IF X1 = 1 THEN
+
+          IF  X2 = 1 THEN
+            LET Z3$ = "U"
+            EXIT DO
+          ELSE IF X2 = 2 THEN
+            LET Z3$ = "D"
+            EXIT DO
+          ELSE IF X2 = 3 THEN
+            LET Z3$ = "H"
+            EXIT DO
+          ELSE IF X2 = 4 THEN
+
+            LET FRAZX$ = "ANY INTEGER > -10000 AND < 9984"
+
+            DO
+
+              CALL INPUTVALL( FRAZX$, VALL, SHOWFLAG, FLAG )
+
+              IF FLAG = 0 THEN                         !A VALID NUMBER
+                IF VALL = INT(VALL) AND VALL > -10000 AND VALL < 9984 THEN
+                  LET VALUE = VALL
+                  LET NUMFLAG = 1
+                  EXIT DO
+                ELSE
+                  Sound 500, .1
+                END IF
+              ELSE IF FLAG = 1 THEN                    !QUIT
+                LET NUMFLAG = 0
+                EXIT DO
+              END IF
+            LOOP
+            IF NUMFLAG = 1 THEN EXIT DO
+
+          ELSE
+            FOR K = 5 TO L
+              IF X2 = K THEN
+                LET Z3$ = LIST$(K)
+		CALL TC_Menu_Free(window2)
+              END IF
+            NEXT K
+            EXIT DO
+
+          END IF
+        END IF
+
+      END IF
+    LOOP
+  LOOP WHILE CYCLEFLAG = 1
+
+!  IF Z3$ = "Q" THEN CALL TC_Menu_Free(window2)
+
+END SUB !BOX68
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX72( ZAZ, WURDD$, STAR$ )
+
+  IF ZAZ = 1 THEN
+    PRINT TAB(2,20);"( " & WURDD$ & " run:  F" & STAR$ & "  multiplied by  F2 )                 "
+    PRINT TAB(3,24);"( and result multiplied by T/N^2 )"!                "
+  ELSE IF ZAZ = 2 THEN
+    PRINT TAB(2,24);"( F2  has been multiplied by  1/N )"!               "
+  END IF
+
+END SUB !BOX72
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX73( ZAZ, WURDD$, STAR$ )
+
+  IF ZAZ = 1 THEN
+    PRINT TAB(2,20);"( " & WURDD$ & " run: F" & STAR$ & "  multiplied by  F2 )                 "
+    PRINT TAB(3,23);"( and result multiplied by (T/N)^2 )"
+  ELSE IF ZAZ = 2 THEN
+    PRINT TAB(2,24);"( F2  has been multiplied by  T/N )"!                  "
+  END IF
+
+END SUB !BOX73
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX74( ZAZ )
+
+  IF ZAZ = 1 THEN
+    PRINT TAB(2,24); "( F  has been multiplied by 2"&chr$(227)&"/N )      (ETERNAL TRAIN)"
+  ELSE IF ZAZ = 2 THEN
+    PRINT TAB(2,23);"( F2  has been multiplied by 2"&chr$(227)&"/N )      (ETERNAL TRAIN)"
+  END IF
+
+END SUB !BOX74
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX75( ZAZ, WURDD$, STAR$ )
+
+  IF ZAZ = 1 THEN
+    PRINT TAB(2,20);"( " & WURDD$ & " run:  F" & STAR$ & "  multiplied by  F2 )                 "
+    PRINT TAB(3,23);"( and result multiplied by (2"&chr$(227)&"/N)^2 )                 "
+  ELSE IF ZAZ = 2 THEN
+    PRINT TAB(2,23);"( F2  has been multiplied by 2"&chr$(227)&"/N )                   "
+  END IF
+
+END SUB !BOX75
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

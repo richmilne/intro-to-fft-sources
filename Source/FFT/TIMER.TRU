@@ -1,0 +1,99 @@
+MODULE TimerBar
+
+LIBRARY "c:\tbgold\tblibs\truectrl.trc"
+
+OPTION TYPO
+  PUBLIC Timer_Init		! Sets up timer
+  PUBLIC Timer_Clear		! Clears the percentage bar
+  PUBLIC Timer_SetText		! Prints information text above the bar
+  PUBLIC Timer_SetPercent	! Adjusts bar graphic to reflect percent
+  PUBLIC Timer_Free		! Destroys the timer
+  PUBLIC Timer_Hide		! Makes the timer invisible
+
+  SHARE identity(3)		! Array to hold id's
+  SHARE length, height
+  SHARE percent			! Percentage reflected by bar graphic
+  SHARE per$			! Text appearing under bar graphic
+  SHARE show_flag		! Determines whether or not timer is visible
+
+SUB Timer_Init
+
+  LOCAL left, right, bottom, top
+  LOCAL x, y
+
+  LET length = 21*16
+  LET height = 8*16
+
+  CALL TC_SetUnitsToPixels
+  CALL TC_GetScreenSize(left, right, bottom, top)
+  LET right = right + 1
+  LET bottom = bottom + 1
+  LET x = (right - length)/2
+  LET y = (bottom - height)/2
+
+  CALL TC_Win_Create(identity(1),"immune", x, x+length, y+height, y)
+  CALL TC_Win_SetTitle(identity(1),"Processing...")
+
+  CALL TC_SText_Create(identity(2), "|Center", 32, 32+(17*16), 16, 48)
+  CALL TC_SText_Create(identity(3), "|Center", 16, length-16, height-16,height-32)
+  CALL Timer_Clear
+
+  LET show_flag = 0
+
+END SUB		!Timer_Init
+
+SUB Timer_Hide
+
+  CALL TC_Erase(identity(1))
+  LET show_flag = 0
+
+END SUB
+
+SUB Timer_Free
+  LOCAL i
+
+  FOR i = 3 to 1 step -1
+    CALL TC_Free(identity(i))
+  NEXT i
+
+  CALL TC_SetUnitsToUsers
+
+END SUB
+
+SUB Timer_SetText(text$)
+
+  CALL TC_SetText(identity(2), text$)
+  CALL Timer_Clear
+
+END SUB
+
+SUB Timer_Clear
+
+  BOX CLEAR 16/length, (length-16)/length, 52/height, 76/height
+  BOX LINES 16/length, (length-16)/length, 52/height, 76/height
+  LET percent = 0
+  LET per$ = "Task " & str$(percent) & "% Complete..."
+  CALL TC_SetText(identity(3), per$)
+
+END SUB
+
+SUB Timer_SetPercent(per)
+
+  IF show_flag = 0 then
+    CALL TC_Show(identity(1))
+    CALL TC_Win_Active(identity(1))
+  END IF
+
+  LET show_flag = 1
+
+  SET COLOR "RED"
+  BOX AREA 16/length, 16/length+per*(length-32)/length, 58/height, 70/height
+  SET COLOR "BLACK"
+
+  LET percent = int(per*100)
+  LET per$ = "Task " & str$(percent) & "% Complete..."
+  CALL TC_SetText(identity(3), per$)
+
+END SUB
+
+END MODULE

@@ -1,1 +1,592 @@
-EXTERNAL             !LIB6DOS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX24( Z1$ )  BOX CLEAR 0, 81, 30, 31  DIM menu$(0:1,0:9)               !dimensioning for two menus, APPLE AND LOAD  LET MENU$(0,1) = "Info Page..."  LET MENU$(1,0) = "LOAD MENU"  LET MENU$(1,1) = "XRE                   @A"  LET MENU$(1,2) = "XRE & X2RE            @B"  LET MENU$(1,3) = "XRE & XIM             @C"  LET MENU$(1,4) = "XRE, XIM, X2RE & X2IM @D"  LET MENU$(1,5) = "@"  LET MENU$(1,6) = "FRE & FIM             @E"  LET MENU$(1,7) = "FRE, FIM, F2RE & F2IM @F"  LET MENU$(1,8) = "@"  LET MENU$(1,9) = "Quit                  @Q"  CALL TW_menu_set(menu$)       !remove current menus, install new ones  LET ICON = 2  LET MESSAGE$ = "PLEASE PULL DOWN MENU ABOVE..."  LET MESSAGE$ = MESSAGE$ & "|" & "  AND SELECT FORMAT OF FILE TO BE LOADED..."  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "ALL VALUES MUST BE ASCII-NUMERIC, ONE TO A LINE..."  LET MESSAGE$ = MESSAGE$ & "|" & "  NULL LINES ACCEPTED."  LET BUTTON$ = "GO|QUIT"  CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )  IF RESULT = 1 THEN    DO      LET CYCLEFLAG = 0      DO                                        ! Here's our event loop        CALL tw_event(0,type1$,window1,x1,x2)        SELECT CASE type1$        CASE "MENU"          !          ! Note what was selected          !          LET mitem$ = menu$(x1,x2)          LET p = Pos(mitem$,"@")          IF p > 0 then LET mitem$[p:maxnum] = ""   ! strip shortcuts          LET mtitle$ = menu$(x1,0)          IF X1 = 0 AND X2 = 1 THEN            CALL TW_MENU_CLEAR            CALL BOX138            CALL TW_menu_set(menu$)            LET CYCLEFLAG = 1            EXIT DO          ELSE IF X1 = 1 THEN            IF  X2 = 1 THEN              LET Z1$ = "A"            ELSE IF X2 = 2 THEN              LET Z1$ = "B"            ELSE IF X2 = 3 THEN              LET Z1$ = "C"            ELSE IF X2 = 4 THEN              LET Z1$ = "D"            ELSE IF X2 = 6 THEN              LET Z1$ = "E"            ELSE IF X2 = 7 THEN              LET Z1$ = "F"            ELSE IF X2 = 9 THEN              LET Z1$ = "Q"            END IF            EXIT DO          END IF        CASE "SINGLE"          CALL MACSYSBEEP(1)        CASE "DOUBLE"          CALL MACSYSBEEP(1)        CASE ELSE            !            ! Ignore other events            !        END SELECT      LOOP    LOOP WHILE CYCLEFLAG = 1    SET TEXT JUSTIFY "CENTER", "HALF"    CALL TW_MENU_CLEAR  ELSE IF RESULT = 2 THEN    LET Z1$ = "Q"  END IFEND SUB !BOX24!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX27A( FDT$ )   !FILETODISK  LET MESSAGE$ = "WHICH TYPE OF FILE DO YOU WANT TO SEND..."  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "ASCII-SEQUENTIAL OR PRINT-IMAGE ?"  LET ICON = 2  LET BUTTON$ = "ASCII|PRINT|QUIT"  CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )  IF RESULT = 1 THEN    LET FDT$ = "A"  ELSE IF RESULT = 2 THEN    LET FDT$ = "P"  ELSE IF RESULT = 3 THEN    LET FDT$ = "Q"  END IFEND SUB !BOX27A!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX27B( FDT$ )   !DATAFILETODISK  BOX CLEAR 0, 81, 29, 31  DIM menu$(0:1,0:10)               !dimensioning for two menus, APPLE AND VECTORS  LET MENU$(0,1) = "Info Page..."  LET MENU$(1,0) =  "VECTORS MENU"  LET MENU$(1,1) =  "X                     @A"  LET MENU$(1,2) =  "X & X2                @B"  LET MENU$(1,3) =  "F                     @C"  LET MENU$(1,4) =  "F & F2                @D"  LET MENU$(1,5) =  "Y                     @E"  LET MENU$(1,6) =  "@"  LET MENU$(1,7) =  "X, F & Y              @F"  LET MENU$(1,8) =  "X, X2, F, F2 & Y      @G"  LET MENU$(1,9) =  "@"  LET MENU$(1,10) = "Quit                  @Q"  CALL TW_menu_set(menu$)       !remove current menus, install new ones  LET ICON = 2  LET MESSAGE$ = "PLEASE PULL DOWN MENU ABOVE..."  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "AND SELECT THE VECTORS"  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "  THAT YOU WANT TO SEND"  LET BUTTON$ = "GO|QUIT"  CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )  IF RESULT = 1 THEN    DO      LET CYCLEFLAG = 0      DO                                        ! Here's our event loop        CALL tw_event(0,type1$,window1,x1,x2)        SELECT CASE type1$        CASE "MENU"          !          ! Note what was selected          !          LET mitem$ = menu$(x1,x2)          LET p = Pos(mitem$,"@")          IF p > 0 then LET mitem$[p:maxnum] = ""   ! strip shortcuts          LET mtitle$ = menu$(x1,0)          IF X1 = 0 AND X2 = 1 THEN            CALL TW_MENU_CLEAR            CALL BOX138            CALL TW_menu_set(menu$)            LET CYCLEFLAG = 1            EXIT DO          ELSE IF X1 = 1 THEN            IF  X2 = 1 THEN              LET FDT$ = "A"            ELSE IF X2 = 2 THEN              LET FDT$ = "B"            ELSE IF X2 = 3 THEN              LET FDT$ = "C"            ELSE IF X2 = 4 THEN              LET FDT$ = "D"            ELSE IF X2 = 5 THEN              LET FDT$ = "E"            ELSE IF X2 = 7 THEN              LET FDT$ = "F"            ELSE IF X2 = 8 THEN              LET FDT$ = "G"            ELSE IF X2 = 10 THEN              LET FDT$ = "Q"            END IF            EXIT DO          END IF        CASE "SINGLE"          CALL MACSYSBEEP(1)        CASE "DOUBLE"          CALL MACSYSBEEP(1)        CASE ELSE            !            ! Ignore other events            !        END SELECT      LOOP    LOOP WHILE CYCLEFLAG = 1    SET TEXT JUSTIFY "CENTER", "HALF"    CALL TW_MENU_CLEAR  ELSE IF RESULT = 2 THEN    LET FDT$ = "Q"  END IFEND SUB !BOX27B!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX100( XFLAG, X2FLAG, FFTFLAG, FFT2FLAG, IFFTFLAG, Z15$ )  LET MESSAGE$ = "THE SYSTEM VECTORS ARE AS FOLLOWS:"  LET G$ = "      ZERO"  LET H$ = "                           NONZERO"  IF XFLAG       = 0 THEN    LET MESSAGE$ = MESSAGE$ & "|" & "|" & "        X         " & G$  ELSE IF XFLAG  = 1 THEN    LET MESSAGE$ = MESSAGE$ & "|" & "|" & "        X     " & H$  END IF  IF X2FLAG      = 0 THEN    LET MESSAGE$ = MESSAGE$ & "|" & "        X2       " & G$  ELSE IF X2FLAG = 1 THEN    LET MESSAGE$ = MESSAGE$ & "|" & "        X2   " & H$  END IF  IF FFTFLAG      = 0 THEN    LET MESSAGE$  = MESSAGE$ & "|" & "        F         " & G$  ELSE IF FFTFLAG = 1 THEN    LET MESSAGE$  = MESSAGE$ & "|" & "        F     " & H$  END IF  IF FFT2FLAG      = 0 THEN    LET MESSAGE$   = MESSAGE$ & "|" & "        F2       " & G$  ELSE IF FFT2FLAG = 1 THEN    LET MESSAGE$   = MESSAGE$ & "|" & "        F2   " & H$  END IF  IF IFFTFLAG      = 0 THEN    LET MESSAGE$   = MESSAGE$ & "|" & "        Y         " & G$  ELSE IF IFFTFLAG = 1 THEN    LET MESSAGE$   = MESSAGE$ & "|" & "        Y     " & H$  END IF  LET ICON = 2  LET BUTTON$ = "GO|QUIT"  LET DEFAULT = 1  CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )  IF RESULT = 1 THEN    LET Z15$ = "C"  ELSE IF RESULT = 2 THEN    LET Z15$ = "Q"  END IFEND SUB !BOX100!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX124( PR$ )  LET MESSAGE$ = "THE OUTPUT VALUES CAN BE IN STANDARD"  LET MESSAGE$ = MESSAGE$ & "|" & "OR DOUBLE PRECISION..."  LET ICON = 2  LET BUTTON$ = "STANDARD|DOUBLE|QUIT"  CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )  IF RESULT = 1 THEN    LET PR$ = "S"  ELSE IF RESULT = 2 THEN    LET PR$ = "D"  ELSE IF RESULT = 3 THEN    LET PR$ = "Q"  END IFEND SUB !BOX124!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX125( GPR$ )  LET MESSAGE$ = "THE DATA VALUES CAN BE SEQUENTIALLY NUMBERED"  LET MESSAGE$ = MESSAGE$ & "|" & "OR UN-NUMBERED..."  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "NUMBERED ... N   :   UN-NUMBERED ... U"  LET ICON = 2  LET BUTTON$ = "N|U|QUIT"  CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )  IF RESULT = 1 THEN    LET GPR$ = "N"  ELSE IF RESULT = 2 THEN    LET GPR$ = "U"  ELSE IF RESULT = 3 THEN    LET GPR$ = "Q"  END IFEND SUB !BOX125!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX126( FILENAME$, BOXNO )  SOUND 1000,.1  IF BOXNO = 1 THEN    LET MESSAGE$ = "OK: THE ITEMS HAVE BEEN SENT TO"  ELSE IF BOXNO = 2 THEN    LET MESSAGE$ = "OK: YOUR PRINT FILE HAS BEEN SENT TO"  ELSE IF BOXNO = 3 THEN    BOX CLEAR 0, 31, 28, 31    LET MESSAGE$ = "OK: WE HAVE LOADED THE FOLLOWING FILE"  END IF  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "----->  " & FILENAME$ & "  <-----"  LET ICON = 2  LET BUTTON$ = "GO"  LET DEFAULT = 1  CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )  CLEAREND SUB !BOX126!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX133( CONT, FILENAME$ )  IF FILENAME$ = "Q" OR FILENAME$ = "q" THEN LET FILENAME$ = ""  IF CONT = 0 THEN    LET MESSAGE$ = "NAME OF DISC FILE THAT YOU WANT TO LOAD ?"  ELSE IF CONT = 1 THEN    LET MESSAGE$ = "NAME OF DISC FILE THAT YOU WANT TO CREATE ? "  END IF  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "PLEASE SPECIFY USING FULL MAC FORMAT"  LET MESSAGE$ = MESSAGE$ & "|" & "( IF IN DOUBT, SEE README_16 )"  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "THE FILE NAME IS..."  LET BUTTON$ = "GO|QUIT"  LET DEFAULT = 1  CALL TW_DINPUT( MESSAGE$, BUTTON$, DEFAULT, FILENAME$, RESULT )  IF RESULT = 2 THEN LET FILENAME$ = "Q"END SUB !BOX133!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX134( MESG$, Z0$ )  CALL MACSYSBEEP(1)  LET MESSAGE$ = "AN ERROR HAS OCCURRED."  LET MESSAGE$ = MESSAGE$ & "|" & "THE ERROR MESSAGE READS..."  LET MESSAGE$ = MESSAGE$ & "|" & "|" & MESG$  LET ICON = 3  LET BUTTON$ = "GO|QUIT"  LET DEFAULT = 1  CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )  IF RESULT = 1 THEN    LET ZO$ = "C"  ELSE IF RESULT = 2 THEN    LET ZO$ = "Q"  END IFEND SUB !BOX134!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX135(MESG$, R$, MM, VSQ$)  CALL MACSYSBEEP(1)  LET MESSAGE$ = "AN ERROR HAS OCCURRED IN LINE NUMBER " & STR$(MM)  LET MESSAGE$ = MESSAGE$ & "|" & "OF YOUR DATA FILE."  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "THE LINE WHICH HAS BEEN READ IS:"  LET MESSAGE$ = MESSAGE$ & "|" & """" & R$ & """"  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "THE ERROR DIAGNOSTIC READS:"  LET MESSAGE$ = MESSAGE$ & "|" & MESG$  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "IGNORE THIS LINE OR QUIT"  LET ICON = 3  LET BUTTON$ = "IGNORE|QUIT"  LET DEFAULT = 1  CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )  IF RESULT = 1 THEN    LET VSQ$ = "D"  ELSE IF RESULT = 2 THEN    LET VSQ$ = "Q"  END IFEND SUB !BOX135!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX136( FILENAME$, Z11$ )  LET MESSAGE$ = "OK: WE ARE GOING TO SEND A FILE TO"  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "-----> " & FILENAME$ & " <-----"  LET COUNT2 = LEN(FRAZ2$)  LET ICON = 2  LET BUTTON$ = "PROCEED|CHANGE"  LET DEFAULT = 1  CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )  IF RESULT = 1 THEN    LET Z11$ = "P"  ELSE IF RESULT = 2 THEN    LET Z11$ = "G"  ELSE IF RESULT = 3 THEN    LET Z11$ = "Q"  END IF  CLEAREND SUB !BOX136!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB BOX137( FDT$, CZE$, SDT$ )  LET MESSAGE$ = "THE FORMAT OF YOUR DATA FILE"  LET MESSAGE$ = MESSAGE$ & "|" & "WILL BE AS FOLLOWS..."  IF FDT$ = "A" OR FDT$ = "B" OR FDT$ = "F" OR FDT$ = "G" THEN    LET MESSAGE$ = MESSAGE$ & "|" & "|" & "N  NUMBERS FOR  XRE"    LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  XIM"    LET COUNT = 3  END IF  IF FDT$ = "B" OR FDT$ = "G" THEN    LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  X2RE"    LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  X2IM"    LET COUNT = COUNT + 3  END IF  IF FDT$ = "C" OR FDT$ = "D" OR FDT$ = "F" OR FDT$ = "G" THEN    IF CZE$ = "C" OR CZE$ = "S" OR CZE$ = "DD" THEN      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "N  NUMBERS FOR  FRE"      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  FIM"    ELSE IF CZE$ = "R" THEN      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "N/2  NUMBERS FOR  a(n)"      LET MESSAGE$ = MESSAGE$ & "|" & "N/2  NUMBERS FOR  b(n)"    ELSE IF CZE$ = "I" THEN      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "N  NUMBERS FOR THE WEIGHTS IN  FRE"      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR THE WEIGHTS IN  FIM"    END IF    LET COUNT = COUNT + 3  END IF  IF FDT$ = "D" OR FDT$ = "G" THEN    IF CZE$ = "C" OR CZE$ = "S" OR CZE$ = "DD" THEN      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  F2RE"      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  F2IM"    ELSE IF CZE$ = "R" THEN      LET MESSAGE$ = MESSAGE$ & "|" & "N/2  NUMBERS FOR  a2(n)"      LET MESSAGE$ = MESSAGE$ & "|" & "N/2  NUMBERS FOR  b2(n)"    ELSE IF CZE$ = "I" THEN      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR THE WEIGHTS IN  F2RE"      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR THE WEIGHTS IN  F2IM"    END IF    LET COUNT = COUNT + 3  END IF  IF FDT$ = "E" OR FDT$ = "F" OR FDT$ = "G" THEN    LET MESSAGE$ = MESSAGE$ & "|" & "|" & "N  NUMBERS FOR  YRE"    LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  YIM"    LET COUNT = COUNT + 3  END IF  LET ICON = 2  LET BUTTON$ = "GO|QUIT"  LET DEFAULT = 1  CALL TW_DWARN( ICON, MESSAGE$, BUTTON$, DEFAULT, RESULT )  IF RESULT = 1 THEN    LET SDT$ = "C"  ELSE IF RESULT = 2 THEN    LET SDT$ = "Q"  END IFEND SUB !BOX137!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+EXTERNAL             !LIB6DOS
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX24( Z1$ )
+
+!  BOX CLEAR 0, 81, 30, 31
+
+  DECLARE PUBLIC window1
+  CALL TC_Win_SetCursor(window1, "ARROW")
+
+  DIM menu$(2,0:9)               !dimensioning for two menus, APPLE AND LOAD
+
+  LET MENU$(2,0) = "INFO@I"
+  LET MENU$(2,1) = "Info Page...@I"
+
+  LET MENU$(1,0) = "LOAD MENU@L"
+  LET MENU$(1,1) = "XRE                   @X"
+  LET MENU$(1,2) = "XRE & X2RE            @R"
+  LET MENU$(1,3) = "XRE & XIM             @E"
+  LET MENU$(1,4) = "XRE, XIM, X2RE & X2IM @M"
+  LET MENU$(1,5) = "@"
+  LET MENU$(1,6) = "FRE & FIM             @I"
+  LET MENU$(1,7) = "FRE, FIM, F2RE & F2IM @2"
+  LET MENU$(1,8) = "@"
+  LET MENU$(1,9) = "Quit                  @Q"
+
+  CALL TC_Menu_Set(window1, menu$)       !remove current menus, install new ones
+
+  LET ICON = 2
+
+  LET MESSAGE$ = "PLEASE PULL DOWN MENU ABOVE..."
+  LET MESSAGE$ = MESSAGE$ & "|" & "  AND SELECT FORMAT OF FILE TO BE LOADED..."
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "ALL VALUES MUST BE ASCII-NUMERIC, ONE TO A LINE..."
+  LET MESSAGE$ = MESSAGE$ & "|" & "  NULL LINES ACCEPTED."
+
+  LET BUTTON$ = "GO|QUIT"
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+  IF RESULT = 1 THEN
+    DO
+      LET CYCLEFLAG = 0
+
+      DO                                        ! Here's our event loop
+
+        CALL TC_Event(0,type1$,window,x1,x2)
+
+        SELECT CASE type1$
+
+        CASE "MENU"
+          !
+          ! Note what was selected
+          !
+          LET mitem$ = menu$(x1,x2)
+          LET p = Pos(mitem$,"@")
+          IF p > 0 then LET mitem$[p:maxnum] = ""   ! strip shortcuts
+          LET mtitle$ = menu$(x1,0)
+
+          IF X1 = 2 AND X2 = 1 THEN
+
+  !          CALL TC_Menu_Free(window1)
+
+            CALL BOX138
+
+  !          CALL TC_Menu_Set(window1, menu$)
+
+            LET CYCLEFLAG = 1
+            EXIT DO
+          ELSE IF X1 = 1 THEN
+            IF  X2 = 1 THEN
+              LET Z1$ = "A"
+            ELSE IF X2 = 2 THEN
+              LET Z1$ = "B"
+            ELSE IF X2 = 3 THEN
+              LET Z1$ = "C"
+            ELSE IF X2 = 4 THEN
+              LET Z1$ = "D"
+            ELSE IF X2 = 6 THEN
+              LET Z1$ = "E"
+            ELSE IF X2 = 7 THEN
+              LET Z1$ = "F"
+            ELSE IF X2 = 9 THEN
+              LET Z1$ = "Q"
+            END IF
+            EXIT DO
+          END IF
+
+        CASE "SINGLE"
+          Sound 500, .1
+        CASE "DOUBLE"
+          Sound 500, .1
+
+        CASE ELSE
+            !
+            ! Ignore other events
+            !
+
+        END SELECT
+      LOOP
+    LOOP WHILE CYCLEFLAG = 1
+
+    SET TEXT JUSTIFY "CENTER", "HALF"
+
+  ELSE IF RESULT = 2 THEN
+    LET Z1$ = "Q"
+  END IF
+
+  CALL TC_Menu_Free(window1)
+
+END SUB !BOX24
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX27A( FDT$ )   !FILETODISK
+
+  LET MESSAGE$ = "WHICH TYPE OF FILE DO YOU WANT TO SEND..."
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "ASCII-SEQUENTIAL OR PRINT-IMAGE ?"
+
+  LET ICON = 2
+
+  LET BUTTON$ = "ASCII|PRINT|QUIT"
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+  IF RESULT = 1 THEN
+    LET FDT$ = "A"
+  ELSE IF RESULT = 2 THEN
+    LET FDT$ = "P"
+  ELSE IF RESULT = 3 THEN
+    LET FDT$ = "Q"
+  END IF
+
+END SUB !BOX27A
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX27B( FDT$ )   !DATAFILETODISK
+
+!  BOX CLEAR 0, 81, 29, 31
+
+  DECLARE PUBLIC window1
+
+  DIM menu$(2,0:10)               !dimensioning for two menus, APPLE AND VECTORS
+
+  LET MENU$(2,0) = "INFO@I"
+  LET MENU$(2,1) = "Info Page...@I"
+
+  LET MENU$(1,0) =  "VECTORS MENU@V"
+  LET MENU$(1,1) =  "X Vector@X"
+  LET MENU$(1,2) =  "X & X2 Vectors@2"
+  LET MENU$(1,3) =  "F Vector@F"
+  LET MENU$(1,4) =  "F & F2 Vectors@V"
+  LET MENU$(1,5) =  "Y Vector@Y"
+  LET MENU$(1,6) =  "@"
+  LET MENU$(1,7) =  "X, F & Y Vectors@e"
+  LET MENU$(1,8) =  "X, X2, F, F2 & Y Vectors@c"
+  LET MENU$(1,9) =  "@"
+  LET MENU$(1,10) = "Quit@Q"
+
+  CALL TC_Menu_Set(window1, menu$)       !remove current menus, install new ones
+
+  LET ICON = 2
+
+  LET MESSAGE$ = "PLEASE PULL DOWN MENU ABOVE..."
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "AND SELECT THE VECTORS"
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "  THAT YOU WANT TO SEND"
+
+  LET BUTTON$ = "GO|QUIT"
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+  IF RESULT = 1 THEN
+
+    DO
+      LET CYCLEFLAG = 0
+
+      DO                                        ! Here's our event loop
+
+        CALL TC_Event(0,type1$,window,x1,x2)
+
+        SELECT CASE type1$
+
+        CASE "MENU"
+          !
+          ! Note what was selected
+          !
+          LET mitem$ = menu$(x1,x2)
+          LET p = Pos(mitem$,"@")
+          IF p > 0 then LET mitem$[p:maxnum] = ""   ! strip shortcuts
+          LET mtitle$ = menu$(x1,0)
+
+          IF X1 = 2 AND X2 = 1 THEN
+
+!            CALL TC_Menu_Free(window1)
+
+            CALL BOX138
+
+!            CALL TC_Menu_Set(window1, menu$)
+
+            LET CYCLEFLAG = 1
+            EXIT DO
+          ELSE IF X1 = 1 THEN
+            IF  X2 = 1 THEN
+              LET FDT$ = "A"
+            ELSE IF X2 = 2 THEN
+              LET FDT$ = "B"
+            ELSE IF X2 = 3 THEN
+              LET FDT$ = "C"
+            ELSE IF X2 = 4 THEN
+              LET FDT$ = "D"
+            ELSE IF X2 = 5 THEN
+              LET FDT$ = "E"
+            ELSE IF X2 = 7 THEN
+              LET FDT$ = "F"
+            ELSE IF X2 = 8 THEN
+              LET FDT$ = "G"
+            ELSE IF X2 = 10 THEN
+              LET FDT$ = "Q"
+            END IF
+            EXIT DO
+          END IF
+
+        CASE "SINGLE"
+          Sound 500, .1
+        CASE "DOUBLE"
+          Sound 500, .1
+
+        CASE ELSE
+            !
+            ! Ignore other events
+            !
+
+        END SELECT
+      LOOP
+    LOOP WHILE CYCLEFLAG = 1
+
+    SET TEXT JUSTIFY "CENTER", "HALF"
+
+  ELSE IF RESULT = 2 THEN
+    LET FDT$ = "Q"
+  END IF
+
+  CALL TC_Menu_Free(window1)
+
+END SUB !BOX27B
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX100( XFLAG, X2FLAG, FFTFLAG, FFT2FLAG, IFFTFLAG, Z15$ )
+
+  LET MESSAGE$ = "THE SYSTEM VECTORS ARE AS FOLLOWS:"
+
+  LET tab$ = chr$(9)
+
+  LET G$ = tab$ & tab$ & "ZERO"
+  LET H$ = tab$ & tab$ & tab$ & "NONZERO"
+
+  IF XFLAG       = 0 THEN
+    LET MESSAGE$ = MESSAGE$ & "|" & "|" & tab$ & "X" & G$
+  ELSE IF XFLAG  = 1 THEN
+    LET MESSAGE$ = MESSAGE$ & "|" & "|" & tab$ & "X" & H$
+  END IF
+
+  IF X2FLAG      = 0 THEN
+    LET MESSAGE$ = MESSAGE$ & "|" & tab$ & "X2" & G$
+  ELSE IF X2FLAG = 1 THEN
+    LET MESSAGE$ = MESSAGE$ & "|" & tab$ & "X2" & H$
+  END IF
+
+  IF FFTFLAG      = 0 THEN
+    LET MESSAGE$  = MESSAGE$ & "|" & tab$ & "F" & G$
+  ELSE IF FFTFLAG = 1 THEN
+    LET MESSAGE$  = MESSAGE$ & "|" & tab$ & "F" & H$
+  END IF
+
+  IF FFT2FLAG      = 0 THEN
+    LET MESSAGE$   = MESSAGE$ & "|" & tab$ & "F2" & G$
+  ELSE IF FFT2FLAG = 1 THEN
+    LET MESSAGE$   = MESSAGE$ & "|" & tab$ & "F2" & H$
+  END IF
+
+  IF IFFTFLAG      = 0 THEN
+    LET MESSAGE$   = MESSAGE$ & "|" & tab$ & "Y" & G$
+  ELSE IF IFFTFLAG = 1 THEN
+    LET MESSAGE$   = MESSAGE$ & "|" & tab$ & "Y" & H$
+  END IF
+
+  LET ICON = 2
+
+  LET BUTTON$ = "GO|QUIT"
+
+  LET DEFAULT = 1
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+  IF RESULT = 1 THEN
+    LET Z15$ = "C"
+  ELSE IF RESULT = 2 THEN
+    LET Z15$ = "Q"
+  END IF
+
+END SUB !BOX100
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX124( PR$ )
+
+  LET MESSAGE$ = "THE OUTPUT VALUES CAN BE IN STANDARD"
+  LET MESSAGE$ = MESSAGE$ & "|" & "OR DOUBLE PRECISION..."
+
+  LET ICON = 2
+
+  LET BUTTON$ = "STANDARD|DOUBLE|QUIT"
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+  IF RESULT = 1 THEN
+    LET PR$ = "S"
+  ELSE IF RESULT = 2 THEN
+    LET PR$ = "D"
+  ELSE IF RESULT = 3 THEN
+    LET PR$ = "Q"
+  END IF
+
+END SUB !BOX124
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX125( GPR$ )
+
+  LET MESSAGE$ = "THE DATA VALUES CAN BE SEQUENTIALLY NUMBERED"
+  LET MESSAGE$ = MESSAGE$ & "|" & "OR UN-NUMBERED..."
+
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "NUMBERED ... N   :   UN-NUMBERED ... U"
+
+  LET ICON = 2
+
+  LET BUTTON$ = "N|U|QUIT"
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+  IF RESULT = 1 THEN
+    LET GPR$ = "N"
+  ELSE IF RESULT = 2 THEN
+    LET GPR$ = "U"
+  ELSE IF RESULT = 3 THEN
+    LET GPR$ = "Q"
+  END IF
+
+END SUB !BOX125
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX126( FILENAME$, BOXNO )
+
+  SOUND 1000,.1
+
+  IF BOXNO = 1 THEN
+    LET MESSAGE$ = "OK: THE ITEMS HAVE BEEN SENT TO"
+  ELSE IF BOXNO = 2 THEN
+    LET MESSAGE$ = "OK: YOUR PRINT FILE HAS BEEN SENT TO"
+  ELSE IF BOXNO = 3 THEN
+    BOX CLEAR 0, 31, 28, 31
+    LET MESSAGE$ = "OK: WE HAVE LOADED THE FOLLOWING FILE"
+  END IF
+
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "----->  " & FILENAME$ & "  <-----"
+
+  LET ICON = 2
+
+  LET BUTTON$ = "GO"
+
+  LET DEFAULT = 1
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+  CLEAR
+
+END SUB !BOX126
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX133( CONT, FILENAME$ )
+
+  IF FILENAME$ = "Q" OR FILENAME$ = "q" THEN LET FILENAME$ = ""
+
+  IF CONT = 0 THEN
+    LET MESSAGE$ = "NAME OF DISC FILE THAT YOU WANT TO LOAD ?"
+  ELSE IF CONT = 1 THEN
+    LET MESSAGE$ = "NAME OF DISC FILE THAT YOU WANT TO CREATE ? "
+  END IF
+
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "PLEASE SPECIFY USING FULL DOS FORMAT"
+  LET MESSAGE$ = MESSAGE$ & "|" & "( IF IN DOUBT, SEE README_16 )"
+
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "THE FILE NAME IS..."
+
+  LET BUTTON$ = "GO|QUIT"
+
+  LET DEFAULT = 1
+
+  CALL TD_Input( MESSAGE$, BUTTON$, FILENAME$, DEFAULT, RESULT )
+
+  IF RESULT = 2 THEN LET FILENAME$ = "Q"
+
+END SUB !BOX133
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX134( MESG$, Z0$ )
+
+  Sound 500, .1
+
+  LET MESSAGE$ = "AN ERROR HAS OCCURRED."
+  LET MESSAGE$ = MESSAGE$ & "|" & "THE ERROR MESSAGE READS..."
+
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & MESG$
+
+  LET ICON = 3
+
+  LET BUTTON$ = "GO|QUIT"
+
+  LET DEFAULT = 1
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+  IF RESULT = 1 THEN
+    LET ZO$ = "C"
+  ELSE IF RESULT = 2 THEN
+    LET ZO$ = "Q"
+  END IF
+
+END SUB !BOX134
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX135(MESG$, R$, MM, VSQ$)
+
+  Sound 500, .1
+
+  LET MESSAGE$ = "AN ERROR HAS OCCURRED IN LINE NUMBER " & STR$(MM)
+  LET MESSAGE$ = MESSAGE$ & "|" & "OF YOUR DATA FILE."
+
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "THE LINE WHICH HAS BEEN READ IS:"
+  LET MESSAGE$ = MESSAGE$ & "|" & """" & R$ & """"
+
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "THE ERROR DIAGNOSTIC READS:"
+  LET MESSAGE$ = MESSAGE$ & "|" & MESG$
+
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "IGNORE THIS LINE OR QUIT"
+
+  LET ICON = 3
+
+  LET BUTTON$ = "IGNORE|QUIT"
+
+  LET DEFAULT = 1
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+  IF RESULT = 1 THEN
+    LET VSQ$ = "D"
+  ELSE IF RESULT = 2 THEN
+    LET VSQ$ = "Q"
+  END IF
+
+END SUB !BOX135
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX136( FILENAME$, Z11$ )
+
+
+  LET MESSAGE$ = "OK: WE ARE GOING TO SEND A FILE TO"
+  LET MESSAGE$ = MESSAGE$ & "|" & "|" & "-----> " & FILENAME$ & " <-----"
+  LET COUNT2 = LEN(FRAZ2$)
+
+  LET ICON = 2
+
+  LET BUTTON$ = "PROCEED|CHANGE"
+
+  LET DEFAULT = 1
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+  IF RESULT = 1 THEN
+    LET Z11$ = "P"
+  ELSE IF RESULT = 2 THEN
+    LET Z11$ = "G"
+  ELSE IF RESULT = 3 THEN
+    LET Z11$ = "Q"
+  END IF
+
+  CLEAR
+
+END SUB !BOX136
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB BOX137( FDT$, CZE$, SDT$ )
+
+  LET MESSAGE$ = "THE FORMAT OF YOUR DATA FILE"
+  LET MESSAGE$ = MESSAGE$ & "|" & "WILL BE AS FOLLOWS..."
+
+  IF FDT$ = "A" OR FDT$ = "B" OR FDT$ = "F" OR FDT$ = "G" THEN
+    LET MESSAGE$ = MESSAGE$ & "|" & "|" & "N  NUMBERS FOR  XRE"
+    LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  XIM"
+    LET COUNT = 3
+  END IF
+
+  IF FDT$ = "B" OR FDT$ = "G" THEN
+    LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  X2RE"
+    LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  X2IM"
+    LET COUNT = COUNT + 3
+  END IF
+
+  IF FDT$ = "C" OR FDT$ = "D" OR FDT$ = "F" OR FDT$ = "G" THEN
+    IF CZE$ = "C" OR CZE$ = "S" OR CZE$ = "DD" THEN
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "N  NUMBERS FOR  FRE"
+      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  FIM"
+
+    ELSE IF CZE$ = "R" THEN
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "N/2  NUMBERS FOR  a(n)"
+      LET MESSAGE$ = MESSAGE$ & "|" & "N/2  NUMBERS FOR  b(n)"
+
+    ELSE IF CZE$ = "I" THEN
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "N  NUMBERS FOR THE WEIGHTS IN  FRE"
+      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR THE WEIGHTS IN  FIM"
+    END IF
+    LET COUNT = COUNT + 3
+  END IF
+
+  IF FDT$ = "D" OR FDT$ = "G" THEN
+    IF CZE$ = "C" OR CZE$ = "S" OR CZE$ = "DD" THEN
+      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  F2RE"
+      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  F2IM"
+
+    ELSE IF CZE$ = "R" THEN
+      LET MESSAGE$ = MESSAGE$ & "|" & "N/2  NUMBERS FOR  a2(n)"
+      LET MESSAGE$ = MESSAGE$ & "|" & "N/2  NUMBERS FOR  b2(n)"
+
+    ELSE IF CZE$ = "I" THEN
+      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR THE WEIGHTS IN  F2RE"
+      LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR THE WEIGHTS IN  F2IM"
+    END IF
+    LET COUNT = COUNT + 3
+  END IF
+
+  IF FDT$ = "E" OR FDT$ = "F" OR FDT$ = "G" THEN
+    LET MESSAGE$ = MESSAGE$ & "|" & "|" & "N  NUMBERS FOR  YRE"
+    LET MESSAGE$ = MESSAGE$ & "|" & "N  NUMBERS FOR  YIM"
+    LET COUNT = COUNT + 3
+  END IF
+
+  LET ICON = 2
+
+  LET BUTTON$ = "GO|QUIT"
+
+  LET DEFAULT = 1
+
+  CALL TD_Warn(MESSAGE$, BUTTON$, DEFAULT, RESULT )
+
+  IF RESULT = 1 THEN
+    LET SDT$ = "C"
+  ELSE IF RESULT = 2 THEN
+    LET SDT$ = "Q"
+  END IF
+
+END SUB !BOX137
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

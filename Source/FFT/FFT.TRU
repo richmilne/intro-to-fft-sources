@@ -1,1 +1,79 @@
-!!               נננננננננננננ   נננננננננננננ   ננננננננננננננ!               נ XXXXXXXXX נ   נ XXXXXXXXX נ   נ XXXXXXXXXX נ!               נ XX ננננננננ   נ XX ננננננננ   נננננ XX נננננ!               נ XX נ          נ XX נ              נ XX נ!               נ XX נננננ      נ XX נננננ          נ XX נ!               נ XXXXXX נ      נ XXXXXX נ          נ XX נ!               נ XX נננננ      נ XX נננננ          נ XX נ!               נ XX נ          נ XX נ              נ XX נ!               נ XX נ          נ XX נ              נ XX נ!               נ XX נ          נ XX נ              נ XX נ!               ננננננ          ננננננ              ננננננ!!                             N.MORRISON!           DEPARTMENT OF MATHEMATICS, UNIVERSITY OF CAPE TOWN!!         SOURCE FOR MAIN PROGRAM "FFT" WHICH PERFORMS THE FAST!       FOURIER TRANSFORM AND ITS INVERSE ON A COMPLEX DATA VECTOR!          OF ORDER  N,  ANY INTEGER BETWEEN 2 AND WHATEVER SIZE!         THAT MEMORY WILL PERMIT, POWER OF 2, COMPOSITE OR PRIME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  LIBRARY "LIB1FFT.TRU*"  LIBRARY "LIB2FFT.TRU*"  LIBRARY "LIB3AFFT.TRU*"  LIBRARY "LIB3BFFT.TRU*"  LIBRARY "LIB3CFFT.TRU*"  LIBRARY "LIB4FFT.TRU*"  LIBRARY "LIB5AFFT.TRU*"  LIBRARY "LIB5BFFT.TRU*"  LIBRARY "LIB5CFFT.TRU*"  LIBRARY "LIB6AFFT.TRU*"  LIBRARY "LIB6BFFT.TRU*"  LIBRARY "LIB8FFT.TRU*"  LIBRARY "LIB1DOS.TRU*"  LIBRARY "LIB2DOS.TRU*"  LIBRARY "LIB3DOS.TRU*"  LIBRARY "LIB4DOS.TRU*"  LIBRARY "LIB5DOS.TRU*"  LIBRARY "LIB6DOS.TRU*"  LIBRARY "LIB8DOS.TRU*"  LIBRARY "StrLib*", "TabLib*", "TrueWindows-buttons*", "System*", "MacTools*"  LIBRARY ":LIBINFO.TRU*"  WHEN ERROR IN    CALL MAINSUB  USE    LET MESG$ = """" & EXTEXT$ & """"    LET MESSAGE$ = "AN ERROR HAS OCCURRED. THE ERROR MESSAGE READS:"    LET MESSAGE$ = MESSAGE$ & "|" & "|   " & MESG$    CALL BOX40C( MESSAGE$ )  END WHENEND !FFT.TRU!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!               ÚÄÄÄÄÄÄÄÄÄÄÄ¿   ÚÄÄÄÄÄÄÄÄÄÄÄ¿   ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+!               ³ XXXXXXXXX ³   ³ XXXXXXXXX ³   ³ XXXXXXXXXX ³
+!               ³ XX ÚÄÄÄÄÄÄÙ   ³ XX ÚÄÄÄÄÄÄÙ   ÀÄÄÄ¿ XX ÚÄÄÄÙ
+!               ³ XX ³          ³ XX ³              ³ XX ³
+!               ³ XX ÀÄÄÄ¿      ³ XX ÀÄÄÄ¿          ³ XX ³
+!               ³ XXXXXX ³      ³ XXXXXX ³          ³ XX ³
+!               ³ XX ÚÄÄÄÙ      ³ XX ÚÄÄÄÙ          ³ XX ³
+!               ³ XX ³          ³ XX ³              ³ XX ³
+!               ³ XX ³          ³ XX ³              ³ XX ³
+!               ³ XX ³          ³ XX ³              ³ XX ³
+!               ÀÄÄÄÄÙ          ÀÄÄÄÄÙ              ÀÄÄÄÄÙ
+!
+!                             N.MORRISON
+!           DEPARTMENT OF MATHEMATICS, UNIVERSITY OF CAPE TOWN
+!
+!         SOURCE FOR MAIN PROGRAM "FFT" WHICH PERFORMS THE FAST
+!       FOURIER TRANSFORM AND ITS INVERSE ON A COMPLEX DATA VECTOR
+!          OF ORDER  N,  ANY INTEGER BETWEEN 2 AND WHATEVER SIZE
+!         THAT MEMORY WILL PERMIT, POWER OF 2, COMPOSITE OR PRIME
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+LIBRARY "LIB1FFT.TRC"
+LIBRARY "LIB2FFT.TRC"
+
+LIBRARY "LIB3AFFT.TRC"
+LIBRARY "LIB3BFFT.TRC"
+LIBRARY "LIB3CFFT.TRC"
+
+LIBRARY "LIB4FFT.TRC"
+
+LIBRARY "LIB5AFFT.TRC"
+LIBRARY "LIB5BFFT.TRC"
+LIBRARY "LIB5CFFT.TRC"
+
+LIBRARY "LIB6AFFT.TRC"
+LIBRARY "LIB6BFFT.TRC"
+
+LIBRARY "LIB8FFT.TRC"
+
+LIBRARY "LIB1DOS.TRC"
+LIBRARY "LIB2DOS.TRC"
+LIBRARY "LIB3DOS.TRC"
+LIBRARY "LIB4DOS.TRC"
+LIBRARY "LIB5DOS.TRC"
+LIBRARY "LIB6DOS.TRC"
+LIBRARY "LIB8DOS.TRC"
+
+LIBRARY "StrLib.TRC", "TabLib.TRC"     !"TrueWindows-buttons*", "System*", "MacTools*"
+
+LIBRARY "LIBINFO.TRC"
+LIBRARY "TIMER.TRC"
+LIBRARY "LIB7FFT.TRC"
+
+LIBRARY "C:\TBGOLD\TBLIBS\TRUECTRL.TRC"
+LIBRARY "C:\TBGOLD\TBLIBS\TRUEDIAL.TRC"
+
+PUBLIC window1
+PUBLIC window2
+
+WHEN ERROR IN
+
+     CALL MAINSUB
+
+USE
+
+     LET MESG$ = """" & EXTEXT$ & """"
+     LET MESSAGE$ = "AN ERROR HAS OCCURRED. THE ERROR MESSAGE READS:"
+     LET MESSAGE$ = MESSAGE$ & "|" & "|   " & MESG$
+     LET MESSAGE$ = MESSAGE$ & "|At line " & str$(exline)
+     LET MESSAGE$ = MESSAGE$ & "|" & exline$
+
+     CALL BOX40C( MESSAGE$ )
+
+END WHEN
+
+END                               !FFT.TRU
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,1 +1,370 @@
-EXTERNAL             !LIB3AFFT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB ENTERNANDT( CONCORFLAG, CENTFREQ, N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, FORM$, TYPE$, T, MODE$, MMENU, HJWFLAG, FIRSTTIME, FREEMEM, KLEEN$, FILESTR$, TAXIS, FAXIS )  IF N = 0 THEN LET NZEROFLAG = 1  LET FLAGCLEARDATA = 0  DO    LET CYCLEN = 0    LET CYCLED = 0    LET CYCLET = 0    LET CYCLEP = 0    LET EXTRA = 0    IF N = 0 THEN      LET Z1$ = "A"    ELSE IF N <> 0 THEN      CALL PAINTSTATUS(CONCORFLAG, CENTFREQ, N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, HJWFLAG, TAXIS, FAXIS, FILESTR$ )      IF MODE$ = "SAMP" THEN        CALL BOX4( Z1$ )      ELSE IF MODE$ = "DISC" THEN        CALL BOX5( Z1$ )      END IF      IF Z1$ = "C" THEN        LET RETURN = 1      ELSE IF Z1$ = "Q" THEN        LET MMENU = 1      END IF    END IF    IF MMENU = 0 THEN      IF RETURN = 0 THEN        IF Z1$ = "N" OR Z1$ = "A" THEN          LET OLDN = N          DO            IF BYPASS = 0 THEN              CALL BOX6( N, NN, FLAGN, NZEROFLAG )            ELSE IF BYPASS = 1 THEN              LET BYPASS = 0              LET FLAGN = 0            END IF            IF FLAGN = 1 THEN              LET CYCLEN = 1            ELSE IF FLAGN = 0 THEN              LET NN = ROUND(NN)              LET VALN = NN              CALL POWERTEST( VALN, CNR, POT )              IF POT = 1 THEN                LET NU = CNR                LET FORM$ = "POWEROF2"              ELSE                CALL FACTORIZE( NN, Q, R() )                IF Q > 1 THEN                  LET FORM$ = "COMPOSITE"                ELSE IF Q = 1 THEN                  LET FORM$ = "PRIME"                END IF              END IF              DO                LET ERR = 0                WHEN ERROR IN                  IF NN > 256 THEN                    LET K = 0                    MAT REDIM MATK(0:K, 0:K)                    MAT REDIM XRE(0:K)                    MAT REDIM XIM(0:K)                    MAT REDIM FFTRE(0:K)                    MAT REDIM FFTIM(0:K)                    MAT REDIM X2RE(0:K)                    MAT REDIM X2IM(0:K)                    MAT REDIM FFT2RE(0:K)                    MAT REDIM FFT2IM(0:K)                    MAT REDIM IFFTRE(0:K)                    MAT REDIM IFFTIM(0:K)                    MAT REDIM TEMPRE(0:K)                    MAT REDIM TEMPIM(0:K)                    MAT REDIM TEMP2RE(0:K)                    MAT REDIM TEMP2IM(0:K)                    MAT REDIM KOS(0:K)                    MAT REDIM ZIN(0:K)                  END IF                  MAT REDIM XRE(0:NN)                  MAT REDIM XIM(0:NN)                  MAT REDIM FFTRE(0:NN)                  MAT REDIM FFTIM(0:NN)                  MAT REDIM IFFTRE(0:NN)                  MAT REDIM IFFTIM(0:NN)                  MAT REDIM TEMPRE(0:NN)                  MAT REDIM TEMPIM(0:NN)                  MAT REDIM TEMP2RE(0:NN)                  MAT REDIM TEMP2IM(0:NN)                  IF FORM$ <> "POWEROF2" THEN                    MAT REDIM MATK(0:NN, 0:Q)                    LET VV = NN                  ELSE IF FORM$ = "POWEROF2" THEN                    MAT REDIM MATK(0:1, 0:1)                    LET VV = NN/2                  END IF                  MAT REDIM KOS(0:VV)                  MAT REDIM ZIN(0:VV)                  MAT REDIM X2RE(0:NN)                  MAT REDIM X2IM(0:NN)                  MAT REDIM FFT2RE(0:NN)                  MAT REDIM FFT2IM(0:NN)                  LET N = NN                  IF N >= 2048 THEN                    CALL BOXBIGN                  END IF                USE                  LET ERR = 1                  CLEAR                  LET MESG$ = """" & EXTEXT$ & """"                END WHEN                IF ERR = 1 THEN                  CALL BOX40( MESG$, Z0$, NN )                  IF Z0$ = "A" THEN                    LET N = OLDN                    LET ANOTHERN = 1                    LET BYPASS = 1                  ELSE IF Z0$ = "B" THEN                    LET K = 0                    MAT REDIM XRE(0:K)                    MAT REDIM XIM(0:K)                    MAT REDIM FFTRE(0:K)                    MAT REDIM FFTIM(0:K)                    MAT REDIM X2RE(0:K)                    MAT REDIM X2IM(0:K)                    MAT REDIM FFT2RE(0:K)                    MAT REDIM FFT2IM(0:K)                    MAT REDIM IFFTRE(0:K)                    MAT REDIM IFFTIM(0:K)                    MAT REDIM TEMPRE(0:K)                    MAT REDIM TEMPIM(0:K)                    MAT REDIM TEMP2RE(0:K)                    MAT REDIM TEMP2IM(0:K)                    LET N = 0                    LET MODE$ = "NOT SET"                    LET FLAGCLEARDATA = 1                    LET MMENU = 1                  END IF                END IF              LOOP UNTIL ERR = 0 OR MMENU = 1 OR ANOTHERN = 1            END IF          LOOP UNTIL ERR = 0 OR MMENU = 1          IF RETURN = 0 AND MMENU = 0 AND CYCLEN = 0 THEN            IF FORM$ = "PRIME" THEN              CALL BOX41( N, FORM$, NU )            ELSE IF FORM$ = "COMPOSITE" THEN              CALL BOX42( N, Q, R() )            END IF            IF N <> OLDN THEN              LET FLAGCLEARDATA = 1            END IF          END IF        END IF      END IF    END IF    IF RETURN = 0 AND MMENU = 0 AND CYCLEN = 0 THEN      LET TFLAG = 0      LET TYPEFLAG = 0      IF Z1$ = "D" OR Z1$ = "A" THEN        LET OLDMODE$ = MODE$        CALL BOX7( MODE$, SDR$, NZEROFLAG )        IF SDR$ = "Q" THEN          LET CYCLED = 1        ELSE          IF SDR$ = "D" THEN            LET MODE$ = "DISC"            LET TYPE$ = "NOT SET"            LET T = 1          ELSE IF SDR$ = "S" THEN            LET MODE$ = "SAMP"          END IF        END IF        IF CYCLED = 0 THEN          IF MODE$ <> OLDMODE$ THEN            LET FLAGCLEARDATA = 1            LET FIRSTTIME = 1       !RESET PLOT PARAMETERS          END IF          IF MODE$ = "SAMP" AND OLDMODE$ <> "SAMP" THEN            LET TFLAG = 1            LET OLDT = T            DO              LET GOBACK = 0              CALL BOX8( T, TT, FLAGT, NZEROFLAG )              IF FLAGT = 1 THEN                IF OLDMODE$ = "NOT SET" THEN                  LET GOBACK = 1                ELSE                  LET CYCLET = 1                  LET MODE$ = "DISC"                END IF              END IF            LOOP WHILE GOBACK = 1            IF CYCLET = 0 THEN              LET T = TT              IF T <> OLDT THEN                LET FLAGCLEARDATA = 1              END IF              LET TYPEFLAG = 1              LET OLDTYPE$ = TYPE$              DO                LET GOBACK = 0                CALL BOX9( TYPE$, SGR$ )                IF SGR$ = "Q" THEN                  LET GOBACK = 1                ELSE IF SGR$ = "R" THEN                  LET TYPE$ = "PER"                ELSE IF SGR$ = "L" THEN                  LET TYPE$ = "PUL"                END IF              LOOP WHILE GOBACK = 1              IF TYPE$ <> OLDTYPE$ THEN                LET FLAGCLEARDATA = 1                LET FIRSTTIME = 1          !RESET PLOT PARAMETERS              END IF            END IF          END IF        END IF      END IF    END IF    IF RETURN = 0 AND MMENU = 0 AND CYCLEN = 0 AND CYCLED = 0 AND CYCLET = 0 THEN      IF TFLAG = 0 AND MODE$ = "SAMP" THEN        IF Z1$ = "T" OR Z1$ = "A" THEN          LET OLDT = T          CALL BOX8( T, TT, FLAGT, NZEROFLAG )          IF FLAGT = 1 THEN            LET CYCLET = 1          ELSE IF FLAGT = 0 THEN            LET T = TT            IF T <> OLDT THEN              LET FLAGCLEARDATA = 1            END IF          END IF        END IF      END IF    END IF    IF RETURN = 0 AND MMENU = 0 AND CYCLEN = 0 AND CYCLED = 0 AND CYCLET = 0 THEN      IF TYPEFLAG = 0 AND MODE$ = "SAMP" THEN        IF Z1$ = "P" OR (Z1$ = "A" AND MODE$ = "SAMP") THEN          LET OLDTYPE$ = TYPE$          CALL BOX9( TYPE$, SGR$ )          IF SGR$ = "Q" THEN            LET CYCLEP = 1          ELSE IF SGR$ = "R" THEN            LET TYPE$ = "PER"          ELSE IF SGR$ = "L" THEN            LET TYPE$ = "PUL"          END IF          IF CYCLEP = 0 THEN            IF TYPE$ <> OLDTYPE$ THEN              LET FLAGCLEARDATA = 1              LET FIRSTTIME = 1          !RESET PLOT PARAMETERS            END IF          END IF        END IF      END IF    END IF    IF RETURN = 0 AND MMENU = 0 THEN      IF CYCLEN = 0 AND CYCLED = 0 AND CYCLET = 0 AND CYCLEP = 0 THEN        LET EXTRA = 1      END IF    END IF    IF FLAGCLEARDATA = 1 THEN      LET XFLAG        = 0      LET X2FLAG       = 0      LET REALFLAGX    = 1      LET FFTFLAG      = 0      LET FFT2FLAG     = 0      LET SYMMFLAG     = 1      LET IFFTFLAG     = 0      LET REALFLAGIFFT = 1      LET HJWFLAG      = 0      LET CONVFLAG     = 0    END IF  LOOP WHILE RETURN = 0 AND MMENU = 0 AND (CYCLEN = 1 OR CYCLED = 1 OR CYCLET = 1 OR CYCLEP = 1 OR EXTRA = 1)  IF FLAGCLEARDATA = 1 THEN    CALL CLEARALL(N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, HJWFLAG )  END IFEND SUB !ENTERNANDT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB POWERTEST( VALN, CNR, POT )  LET CNR = 0  DO    LET VALN = VALN/2    LET CNR = CNR + 1    IF VALN = 1 THEN      LET POT = 1      EXIT DO    ELSE IF VALN < 1 THEN      LET POT = 2      EXIT DO    END IF  LOOPEND SUB !POWERTEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+EXTERNAL             !LIB3AFFT
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ENTERNANDT( CONCORFLAG, CENTFREQ, N, NU, Q, R(), MATK(,), XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), IBR, KOS(), ZIN(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, FORM$, TYPE$, T, MODE$, MMENU, HJWFLAG, FIRSTTIME, FREEMEM, KLEEN$, FILESTR$, TAXIS, FAXIS )
+
+  IF N = 0 THEN LET NZEROFLAG = 1
+
+  LET FLAGCLEARDATA = 0
+
+  DO
+    LET CYCLEN = 0
+    LET CYCLED = 0
+    LET CYCLET = 0
+    LET CYCLEP = 0
+    LET EXTRA = 0
+    IF N = 0 THEN
+      LET Z1$ = "A"
+    ELSE IF N <> 0 THEN
+
+      CALL PAINTSTATUS(CONCORFLAG, CENTFREQ, N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, HJWFLAG, TAXIS, FAXIS, FILESTR$ )
+
+      IF MODE$ = "SAMP" THEN
+
+        CALL BOX4( Z1$ )
+
+      ELSE IF MODE$ = "DISC" THEN
+
+        CALL BOX5( Z1$ )
+
+      END IF
+
+      IF Z1$ = "C" THEN
+        LET RETURN = 1
+      ELSE IF Z1$ = "Q" THEN
+        LET MMENU = 1
+      END IF
+    END IF
+
+    IF MMENU = 0 THEN
+      IF RETURN = 0 THEN
+        IF Z1$ = "N" OR Z1$ = "A" THEN
+          LET OLDN = N
+
+          DO
+
+            IF BYPASS = 0 THEN
+
+              CALL BOX6( N, NN, FLAGN, NZEROFLAG )
+
+            ELSE IF BYPASS = 1 THEN
+              LET BYPASS = 0
+              LET FLAGN = 0
+            END IF
+
+            IF FLAGN = 1 THEN
+              LET CYCLEN = 1
+            ELSE IF FLAGN = 0 THEN
+
+              LET NN = ROUND(NN)
+              LET VALN = NN
+
+              CALL POWERTEST( VALN, CNR, POT )
+
+              IF POT = 1 THEN
+                LET NU = CNR
+                LET FORM$ = "POWEROF2"
+              ELSE
+
+                CALL FACTORIZE( NN, Q, R() )
+
+                IF Q > 1 THEN
+                  LET FORM$ = "COMPOSITE"
+                ELSE IF Q = 1 THEN
+                  LET FORM$ = "PRIME"
+                END IF
+              END IF
+
+              DO
+                LET ERR = 0
+                WHEN ERROR IN
+
+                  IF NN > 256 THEN
+                    LET K = 0
+                    MAT REDIM MATK(0:K, 0:K)
+                    MAT REDIM XRE(0:K)
+                    MAT REDIM XIM(0:K)
+                    MAT REDIM FFTRE(0:K)
+                    MAT REDIM FFTIM(0:K)
+                    MAT REDIM X2RE(0:K)
+                    MAT REDIM X2IM(0:K)
+                    MAT REDIM FFT2RE(0:K)
+                    MAT REDIM FFT2IM(0:K)
+                    MAT REDIM IFFTRE(0:K)
+                    MAT REDIM IFFTIM(0:K)
+                    MAT REDIM TEMPRE(0:K)
+                    MAT REDIM TEMPIM(0:K)
+                    MAT REDIM TEMP2RE(0:K)
+                    MAT REDIM TEMP2IM(0:K)
+                    MAT REDIM KOS(0:K)
+                    MAT REDIM ZIN(0:K)
+                  END IF
+
+                  MAT REDIM XRE(0:NN)
+                  MAT REDIM XIM(0:NN)
+                  MAT REDIM FFTRE(0:NN)
+                  MAT REDIM FFTIM(0:NN)
+                  MAT REDIM IFFTRE(0:NN)
+                  MAT REDIM IFFTIM(0:NN)
+                  MAT REDIM TEMPRE(0:NN)
+                  MAT REDIM TEMPIM(0:NN)
+                  MAT REDIM TEMP2RE(0:NN)
+                  MAT REDIM TEMP2IM(0:NN)
+
+                  IF FORM$ <> "POWEROF2" THEN
+                    MAT REDIM MATK(0:NN, 0:Q)
+                    LET VV = NN
+                  ELSE IF FORM$ = "POWEROF2" THEN
+                    MAT REDIM MATK(0:1, 0:1)
+                    LET VV = NN/2
+                  END IF
+
+                  MAT REDIM KOS(0:VV)
+                  MAT REDIM ZIN(0:VV)
+
+                  MAT REDIM X2RE(0:NN)
+                  MAT REDIM X2IM(0:NN)
+                  MAT REDIM FFT2RE(0:NN)
+                  MAT REDIM FFT2IM(0:NN)
+
+                  LET N = NN
+
+!                  IF N >= 2048 THEN
+!
+!                    CALL BOXBIGN
+!
+!                  END IF
+
+                USE
+                  LET ERR = 1
+                  CLEAR
+                  LET MESG$ = """" & EXTEXT$ & """"
+                END WHEN
+
+                IF ERR = 1 THEN
+
+                  CALL BOX40( MESG$, Z0$, NN )
+
+                  IF Z0$ = "A" THEN
+                    LET N = OLDN
+                    LET ANOTHERN = 1
+                    LET BYPASS = 1
+                  ELSE IF Z0$ = "B" THEN
+                    LET K = 0
+                    MAT REDIM XRE(0:K)
+                    MAT REDIM XIM(0:K)
+                    MAT REDIM FFTRE(0:K)
+                    MAT REDIM FFTIM(0:K)
+                    MAT REDIM X2RE(0:K)
+                    MAT REDIM X2IM(0:K)
+                    MAT REDIM FFT2RE(0:K)
+                    MAT REDIM FFT2IM(0:K)
+                    MAT REDIM IFFTRE(0:K)
+                    MAT REDIM IFFTIM(0:K)
+                    MAT REDIM TEMPRE(0:K)
+                    MAT REDIM TEMPIM(0:K)
+                    MAT REDIM TEMP2RE(0:K)
+                    MAT REDIM TEMP2IM(0:K)
+                    LET N = 0
+                    LET MODE$ = "NOT SET"
+                    LET FLAGCLEARDATA = 1
+                    LET MMENU = 1
+                  END IF
+
+                END IF
+              LOOP UNTIL ERR = 0 OR MMENU = 1 OR ANOTHERN = 1
+            END IF
+          LOOP UNTIL ERR = 0 OR MMENU = 1
+
+          IF RETURN = 0 AND MMENU = 0 AND CYCLEN = 0 THEN
+            IF FORM$ = "PRIME" THEN
+
+              CALL BOX41( N, FORM$, NU )
+
+            ELSE IF FORM$ = "COMPOSITE" THEN
+
+              CALL BOX42( N, Q, R() )
+
+            END IF
+
+            IF N <> OLDN THEN
+              LET FLAGCLEARDATA = 1
+            END IF
+
+          END IF
+        END IF
+      END IF
+    END IF
+
+    IF RETURN = 0 AND MMENU = 0 AND CYCLEN = 0 THEN
+      LET TFLAG = 0
+      LET TYPEFLAG = 0
+      IF Z1$ = "D" OR Z1$ = "A" THEN
+        LET OLDMODE$ = MODE$
+
+        CALL BOX7( MODE$, SDR$, NZEROFLAG )
+
+        IF SDR$ = "Q" THEN
+          LET CYCLED = 1
+        ELSE
+          IF SDR$ = "D" THEN
+            LET MODE$ = "DISC"
+            LET TYPE$ = "NOT SET"
+            LET T = 1
+          ELSE IF SDR$ = "S" THEN
+            LET MODE$ = "SAMP"
+          END IF
+        END IF
+
+        IF CYCLED = 0 THEN
+          IF MODE$ <> OLDMODE$ THEN
+            LET FLAGCLEARDATA = 1
+            LET FIRSTTIME = 1       !RESET PLOT PARAMETERS
+          END IF
+
+          IF MODE$ = "SAMP" AND OLDMODE$ <> "SAMP" THEN
+            LET TFLAG = 1
+            LET OLDT = T
+
+            DO
+              LET GOBACK = 0
+
+              CALL BOX8( T, TT, FLAGT, NZEROFLAG )
+
+              IF FLAGT = 1 THEN
+                IF OLDMODE$ = "NOT SET" THEN
+                  LET GOBACK = 1
+                ELSE
+                  LET CYCLET = 1
+                  LET MODE$ = "DISC"
+                END IF
+              END IF
+            LOOP WHILE GOBACK = 1
+
+            IF CYCLET = 0 THEN
+              LET T = TT
+
+              IF T <> OLDT THEN
+                LET FLAGCLEARDATA = 1
+              END IF
+
+              LET TYPEFLAG = 1
+              LET OLDTYPE$ = TYPE$
+
+              DO
+                LET GOBACK = 0
+
+                CALL BOX9( TYPE$, SGR$ )
+
+                IF SGR$ = "Q" THEN
+                  LET GOBACK = 1
+                ELSE IF SGR$ = "R" THEN
+                  LET TYPE$ = "PER"
+                ELSE IF SGR$ = "L" THEN
+                  LET TYPE$ = "PUL"
+                END IF
+              LOOP WHILE GOBACK = 1
+
+              IF TYPE$ <> OLDTYPE$ THEN
+                LET FLAGCLEARDATA = 1
+                LET FIRSTTIME = 1          !RESET PLOT PARAMETERS
+              END IF
+            END IF
+          END IF
+        END IF
+      END IF
+    END IF
+
+    IF RETURN = 0 AND MMENU = 0 AND CYCLEN = 0 AND CYCLED = 0 AND CYCLET = 0 THEN
+      IF TFLAG = 0 AND MODE$ = "SAMP" THEN
+        IF Z1$ = "T" OR Z1$ = "A" THEN
+          LET OLDT = T
+
+          CALL BOX8( T, TT, FLAGT, NZEROFLAG )
+
+          IF FLAGT = 1 THEN
+            LET CYCLET = 1
+          ELSE IF FLAGT = 0 THEN
+            LET T = TT
+            IF T <> OLDT THEN
+              LET FLAGCLEARDATA = 1
+            END IF
+          END IF
+        END IF
+      END IF
+    END IF
+
+    IF RETURN = 0 AND MMENU = 0 AND CYCLEN = 0 AND CYCLED = 0 AND CYCLET = 0 THEN
+      IF TYPEFLAG = 0 AND MODE$ = "SAMP" THEN
+        IF Z1$ = "P" OR (Z1$ = "A" AND MODE$ = "SAMP") THEN
+          LET OLDTYPE$ = TYPE$
+
+          CALL BOX9( TYPE$, SGR$ )
+
+          IF SGR$ = "Q" THEN
+            LET CYCLEP = 1
+          ELSE IF SGR$ = "R" THEN
+            LET TYPE$ = "PER"
+          ELSE IF SGR$ = "L" THEN
+            LET TYPE$ = "PUL"
+          END IF
+
+          IF CYCLEP = 0 THEN
+            IF TYPE$ <> OLDTYPE$ THEN
+              LET FLAGCLEARDATA = 1
+              LET FIRSTTIME = 1          !RESET PLOT PARAMETERS
+            END IF
+          END IF
+        END IF
+      END IF
+    END IF
+
+    IF RETURN = 0 AND MMENU = 0 THEN
+      IF CYCLEN = 0 AND CYCLED = 0 AND CYCLET = 0 AND CYCLEP = 0 THEN
+        LET EXTRA = 1
+      END IF
+    END IF
+
+    IF FLAGCLEARDATA = 1 THEN
+      LET XFLAG        = 0
+      LET X2FLAG       = 0
+      LET REALFLAGX    = 1
+      LET FFTFLAG      = 0
+      LET FFT2FLAG     = 0
+      LET SYMMFLAG     = 1
+      LET IFFTFLAG     = 0
+      LET REALFLAGIFFT = 1
+      LET HJWFLAG      = 0
+      LET CONVFLAG     = 0
+    END IF
+
+  LOOP WHILE RETURN = 0 AND MMENU = 0 AND (CYCLEN = 1 OR CYCLED = 1 OR CYCLET = 1 OR CYCLEP = 1 OR EXTRA = 1)
+
+  IF FLAGCLEARDATA = 1 THEN
+    CALL CLEARALL(N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, HJWFLAG )
+  END IF
+
+END SUB !ENTERNANDT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB POWERTEST( VALN, CNR, POT )
+
+  LET CNR = 0
+  DO
+    LET VALN = VALN/2
+    LET CNR = CNR + 1
+    IF VALN = 1 THEN
+      LET POT = 1
+      EXIT DO
+    ELSE IF VALN < 1 THEN
+      LET POT = 2
+      EXIT DO
+    END IF
+  LOOP
+
+END SUB !POWERTEST
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

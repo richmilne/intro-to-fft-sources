@@ -1,1 +1,1503 @@
-EXTERNAL             !LIB3BFFT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB POSTPROCS( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, FORM$, TYPE$, T, MODE$, HJWFLAG, CONVFLAG, KLEEN$, ORG$, ORG2$, FREEMEM, TAXIS, FAXIS, FILESTR$ )  DO    LET LOOPUP = 0    CALL BOX11( OPTION4$ )    IF OPTION4$ = "X" THEN      IF XFLAG = 0 AND X2FLAG = 0 THEN        LET PMODE$ = "X"        CALL BOX46( PMODE$ )        LET LOOPUP = 1      ELSE        CALL CLEARTEMPS        CALL XPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), T, SOMEFLAG, MODE$, TYPE$, ORG$, ORG2$, HJWFLAG, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )      END IF    ELSE IF OPTION4$ = "F" THEN      IF FFTFLAG = 0 AND FFT2FLAG = 0 THEN        LET PMODE$ = "F"        CALL BOX46( PMODE$ )        LET LOOPUP = 1      ELSE        CALL CLEARTEMPS        CALL FPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, SOMEFLAG, MODE$, TYPE$, CONVFLAG, ORG$, ORG2$, HJWFLAG, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )      END IF    ELSE IF OPTION4$ = "Y" THEN      IF IFFTFLAG = 0 THEN        LET PMODE$ = "Y"        CALL BOX46( PMODE$ )        LET LOOPUP = 1      ELSE        CALL CLEARTEMPS        MAT TEMPIM  = 0        MAT TEMP2IM = 0        CALL YPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, T, SOMEFLAG, MODE$, TYPE$, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )      END IF    END IF  LOOP WHILE LOOPUP = 1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB CLEARTEMPS  MAT TEMPRE  = 0  MAT TEMPIM  = 0  MAT TEMP2RE = 0  MAT TEMP2IM = 0END SUB !CLEARTEMPS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!END SUB !POSTPROCESSORS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB XPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), T, SOMEFLAG, MODE$, TYPE$, ORG$, ORG2$, HJWFLAG, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )  LET SOMEFLAG = 0  DO    LET SKIP = 0    LET FLAG = 0    CALL PAINTSTATUS(CONCORFLAG, CENTFREQ, N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, HJWFLAG, TAXIS, FAXIS, FILESTR$ )    CALL BOXXPOST( Z0$, MODE$ )    PRINT TAB(1,1);    IF Z0$ <> "Q" THEN LET SOMEFLAG = 1    IF Z0$ = "CX" THEN   !COPY  X  TO  X2      MAT X2RE = XRE      MAT X2IM = XIM      LET ORG2$ = ORG$        !COPY THE ORIGIN POSITION      IF HJWFLAG = 0 THEN CALL ZF2    ELSE IF Z0$ = "CX2" THEN   !COPY  X2  TO  X      MAT XRE = X2RE      MAT XIM = X2IM      LET ORG$ = ORG2$        !COPY THE ORIGIN POSITION      CALL ZF      CALL ZY    ELSE IF Z0$ = "CFX" THEN         !COPY  F  TO  X      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )      MAT TEMPRE = FFTRE      MAT TEMPIM = FFTIM      IF KLEEN$ = "ONE" THEN        CALL CLEANUP(N, TEMPRE(), TEMPIM() )      END IF      MAT XRE = MULT*TEMPRE      MAT XIM = MULT*TEMPIM      LET ORG$ = "C"      CALL ZF      CALL ZY    ELSE IF Z0$ = "CXF" THEN         !COPY  X  TO  F      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )      MAT FFTRE = (1/MULT)*XRE      MAT FFTIM = (1/MULT)*XIM      CALL ZY    ELSE IF Z0$ = "CYX" THEN         !COPY  Y  TO  X      MAT TEMPRE = IFFTRE      MAT TEMPIM = IFFTIM      IF KLEEN$ = "ONE" THEN        CALL CLEANUP(N, TEMPRE(), TEMPIM() )      END IF      MAT XRE = TEMPRE      MAT XIM = TEMPIM      CALL ZF      CALL ZY    ELSE IF Z0$ = "AX" THEN          !ADD X  TO  X2      MAT X2RE = X2RE + XRE      MAT X2IM = X2IM + XIM      IF HJWFLAG = 0 THEN CALL ZF2    ELSE IF Z0$ = "AX2" THEN         !ADD X2  TO  X      MAT XRE = XRE + X2RE      MAT XIM = XIM + X2IM      CALL ZF      CALL ZY    ELSE IF Z0$ = "MX" THEN          !MULTIPLY  X  BY A CONSTANT      LET MESSAGE$ = "WHAT IS THE VALUE OF THE  X  MULTIPLIER  ?  "      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )      IF FLAG = 1 THEN        LET SKIP = 1      ELSE IF FLAG = 0 THEN        LET MULT = FDG        MAT XRE = MULT * XRE        MAT XIM = MULT * XIM        CALL ZF        CALL ZY      END IF    ELSE IF Z0$ = "MX2" THEN    !MULTIPLY  X2  BY A CONSTANT      LET MESSAGE$ = "WHAT IS THE VALUE OF THE  X2  MULTIPLIER  ?  "      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )      IF FLAG = 1 THEN        LET SKIP = 1      ELSE IF FLAG = 0 THEN        LET MULT = FDG        MAT X2RE = MULT * X2RE        MAT X2IM = MULT * X2IM        IF HJWFLAG = 0 THEN CALL ZF2      END IF    ELSE IF Z0$ = "EXP" THEN   !MULTIPLY  X  BY A COMPLEX EXPONENTIAL      LET MESSAGE$ = "THE EXPONENTIAL IS  exp( j wo t )... "      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT IS THE VALUE OF  wo ?"      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "(WE WILL ROUND IT TO THE NEAREST"      LET MESSAGE$ = MESSAGE$ & "|" & "    FREQUENCY-DOMAIN SAMPLING POINT)  "      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )      IF FLAG = 1 THEN        LET SKIP = 1      ELSE IF FLAG = 0 THEN        LET WO = FDG        LET WS = 2*PI/T        LET WO = WS*ROUND(WO/WS)  !ROUNDING TO THE NEAREST FREQ DOMAIN SAMPLING POINT        LET TS = T/N        FOR I = 0 TO N - 1          LET TEMPRE(I) = XRE(I) * COS(WO*I*TS) - XIM(I) * SIN(WO*I*TS)          LET TEMPIM(I) = XRE(I) * SIN(WO*I*TS) + XIM(I) * COS(WO*I*TS)        NEXT I        MAT XRE = TEMPRE        MAT XIM = TEMPIM        CALL ZF        CALL ZY      END IF    ELSE IF Z0$ = "RM" THEN   !REAL MULTIPLY  XRE  BY  X2RE      FOR K = 0 TO N - 1        LET XRE(K) = XRE(K) * X2RE(K)      NEXT K      CALL ZF      CALL ZY    ELSE IF Z0$ = "CM" THEN   !COMPLEX MULTIPLY  X  BY  X2      FOR K = 0 TO N - 1        LET TEMPRE(K) = XRE(K) * X2RE(K) - XIM(K) * X2IM(K)        LET TEMPIM(K) = XRE(K) * X2IM(K) + XIM(K) * X2RE(K)      NEXT K      FOR K = 0 TO N - 1        LET XRE(K) = TEMPRE(K)        LET XIM(K) = TEMPIM(K)      NEXT K      CALL ZF      CALL ZY    ELSE IF Z0$ = "SW" THEN         !SWOP  X  AND  X2      MAT TEMPRE = X2RE      MAT TEMPIM = X2IM      MAT X2RE = XRE      MAT X2IM = XIM      MAT XRE = TEMPRE      MAT XIM = TEMPIM      LET DFT$ = ORG$       !SWOP THE ORIGIN POSITIONS      LET ORG$ = ORG2$      LET ORG2$ = DFT$      IF HJWFLAG = 0 THEN CALL ZF2      CALL ZF      CALL ZY    ELSE IF Z0$ = "SXF" THEN         !SWOP  X  AND  F      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )      MAT TEMPRE = FFTRE      MAT TEMPIM = FFTIM      MAT FFTRE  = (1/MULT)*XRE      MAT FFTIM  = (1/MULT)*XIM      MAT XRE    = MULT*TEMPRE      MAT XIM    = MULT*TEMPIM      LET ORG$ = "C"      CALL ZY    ELSE IF Z0$ = "SWS" THEN      !SWOP  X <--> X2  F <--> F2      IF HJWFLAG = 1 THEN        CALL BOX59( CRT$ )        IF CRT$ = "Q" THEN          LET SKIP = 1        END IF      END IF      IF SKIP = 0 THEN        LET HJWFLAG = 0        MAT TEMPRE = XRE        MAT TEMPIM = XIM        MAT XRE = X2RE        MAT XIM = X2IM        PRINT "=";        MAT X2RE = TEMPRE        MAT X2IM = TEMPIM        PRINT "=";        MAT TEMPRE = FFTRE        MAT TEMPIM = FFTIM        PRINT "=";        MAT FFTRE = FFT2RE        MAT FFTIM = FFT2IM        PRINT "=";        MAT FFT2RE = TEMPRE        MAT FFT2IM = TEMPIM        PRINT "=";        LET DFT$ = ORG$       !SWOP THE ORIGIN POSITIONS        LET ORG$ = ORG2$        LET ORG2$ = DFT$        CALL ZY        PRINT "=";      END IF    ELSE IF Z0$ = "SWO" THEN      !SWOP  X <--> F  X2 <--> F2      IF HJWFLAG = 1 THEN        CALL BOX59( CRT$ )        IF CRT$ = "Q" THEN          LET SKIP = 1        END IF      END IF      IF SKIP = 0 THEN        LET HJWFLAG = 0        CALL FINDMULT( MODE$, TYPE$, N, T, MULT )        MAT TEMPRE = XRE        MAT TEMPIM = XIM        PRINT "=";        MAT XRE = MULT*FFTRE        MAT XIM = MULT*FFTIM        PRINT "=";        MAT FFTRE = (1/MULT)*TEMPRE        MAT FFTIM = (1/MULT)*TEMPIM        PRINT "=";        MAT TEMPRE = X2RE        MAT TEMPIM = X2IM        PRINT "=";        MAT X2RE = MULT*FFT2RE        MAT X2IM = MULT*FFT2IM        PRINT "=";        MAT FFT2RE = (1/MULT)*TEMPRE        MAT FFT2IM = (1/MULT)*TEMPIM        PRINT "=";        LET ORG$ = "C"        LET ORG2$ = "C"        CALL ZY        PRINT "=";      END IF    ELSE IF Z0$ = "SX" THEN          !SAMPLE  X      LET AQ = 0      DO        LET MESSAGE$ = "KEEP EVERY  M-TH  X-VALUE..."        LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT VALUE FOR  M ?"        LET MESSAGE$ = MESSAGE$ & "|" & "   ( A POSITIVE INTEGER WHICH DIVIDES INTO " & STR$(N) & " ) "        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )        IF FLAG = 1 THEN          LET SKIP = 1        ELSE IF FLAG = 0 THEN          LET M = FDG          IF M <> INT(M) OR M < 1 THEN            LET M = 0            LET AQ = 0            CALL MACSYSBEEP(1)          ELSE            LET AQ = 1          END IF          IF M <> 0 THEN            IF N/M <> INT(N/M) THEN              LET AQ = 0              CALL MACSYSBEEP(1)            ELSE              LET AQ = 1            END IF          END IF        END IF      LOOP UNTIL FLAG = 1 OR AQ = 1      IF FLAG = 0 THEN        MAT TEMPRE = 0        FOR K = 0 TO N - 1 STEP M          LET TEMPRE(K) = 1        NEXT K        FOR K = 0 TO N - 1          LET XRE(K) = XRE(K) * TEMPRE(K)          LET XIM(K) = XIM(K) * TEMPRE(K)        NEXT K        CALL ZF        CALL ZY      END IF    ELSE IF Z0$ = "ZI" THEN      !ZERO THE IMAG PART OF X VECTOR      MAT XIM = 0      CALL ZF      CALL ZY    ELSE IF Z0$ = "ZR" THEN      !ZERO THE REAL PART OF X VECTOR      MAT XRE = 0      CALL ZF      CALL ZY    ELSE IF Z0$ = "CLX" THEN       !CLEAN  X      MAT TEMPRE = XRE      MAT TEMPIM = XIM      CALL CLEANUP( N, TEMPRE(), TEMPIM() )      MAT XRE = TEMPRE      MAT XIM = TEMPIM    ELSE IF Z0$ = "CLX2" THEN      !CLEAN  X2      MAT TEMPRE = X2RE      MAT TEMPIM = X2IM      CALL CLEANUP( N, TEMPRE(), TEMPIM() )      MAT X2RE = TEMPRE      MAT X2IM = TEMPIM    END IF    IF SOMEFLAG = 1 AND Z0$ <> "Q" AND SKIP = 0 THEN      CALL TESTXDATA( N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, KLEEN$ )      CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, KLEEN$ )    END IF  LOOP UNTIL Z0$ = "Q"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB ZF  MAT FFTRE = 0  MAT FFTIM = 0END SUB !ZF!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB ZF2  MAT FFT2RE = 0  MAT FFT2IM = 0END SUB !ZF2!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB ZY  MAT IFFTRE = 0  MAT IFFTIM = 0  LET IFFTFLAG = 0  LET REALFLAGIFFT = 1END SUB !ZY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!END SUB !XPOST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB FPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, SOMEFLAG, MODE$, TYPE$, CONVFLAG, ORG$, ORG2$, HJWFLAG, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )  LET SOMEFLAG = 0  DO    LET SKIP = 0    LET FLAG = 0    CALL PAINTSTATUS(CONCORFLAG, CENTFREQ, N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, HJWFLAG, TAXIS, FAXIS, FILESTR$ )    CALL BOXFPOST(Z0$, MODE$, TYPE$ )    PRINT TAB(1,1);    IF Z0$ <> "Q" THEN LET SOMEFLAG = 1    IF Z0$ = "CF" THEN    !COPY  F  TO  F2      IF HJWFLAG = 1 THEN        CALL BOX59( CRT$ )        IF CRT$ = "Q" THEN          LET SKIP = 1        END IF      END IF      IF SKIP = 0 THEN        LET HJWFLAG = 0        MAT FFT2RE = FFTRE        MAT FFT2IM = FFTIM        LET HJWFLAG = 0      END IF      LET TESTF = 1    ELSE IF Z0$ = "CF2" THEN    !COPY  F2  TO  F      MAT FFTRE = FFT2RE      MAT FFTIM = FFT2IM      IF HJWFLAG = 1 THEN LET ORG$ = "L"      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "CFX" THEN    !COPY  F  TO  X      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )      MAT TEMPRE = FFTRE      MAT TEMPIM = FFTIM      IF KLEEN$ = "ONE" THEN        CALL CLEANUP(N, TEMPRE(), TEMPIM() )      END IF      MAT XRE = MULT*TEMPRE      MAT XIM = MULT*TEMPIM      LET ORG$ = "C"      MAT FFTRE = 0      MAT FFTIM = 0      CALL ZY      LET TESTX = 1      LET TESTF = 1    ELSE IF Z0$ = "CXF" THEN    !COPY  X  TO  F      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )      MAT FFTRE = (1/MULT) * XRE      MAT FFTIM = (1/MULT) * XIM      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "CFI" THEN    !COPY  FRE  TO  FIM      MAT FFTIM = FFTRE      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "AF" THEN     !ADD  F  TO  F2      IF HJWFLAG = 1 THEN        CALL BOX59( CRT$ )        IF CRT$ = "Q" THEN          LET SKIP = 1        END IF      END IF      IF SKIP = 0 THEN        LET HJWFLAG = 0        MAT FFT2RE = FFT2RE + FFTRE        MAT FFT2IM = FFT2IM + FFTIM      END IF      LET TESTF = 1    ELSE IF Z0$ = "AF2" THEN     !ADD  F2  TO  F      MAT FFTRE = FFTRE + FFT2RE      MAT FFTIM = FFTIM + FFT2IM      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "SW" THEN     !SWOP  F <---> F2      IF HJWFLAG = 1 THEN        CALL BOX59( CRT$ )        IF CRT$ = "Q" THEN LET SKIP = 1      END IF      IF SKIP = 0 THEN        LET HJWFLAG = 0        MAT TEMPRE = FFTRE        MAT TEMPIM = FFTIM        PRINT "=";        MAT FFTRE = FFT2RE        MAT FFTIM = FFT2IM        PRINT "=";        MAT FFT2RE = TEMPRE        MAT FFT2IM = TEMPIM        PRINT "=";        LET DFT$ = ORG$       !SWOP THE ORIGIN POSITIONS        LET ORG$ = ORG2$        LET ORG2$ = DFT$        CALL ZY        PRINT "=";      END IF      LET TESTF = 1    ELSE IF Z0$ = "SWS" THEN     !SWOP  X <--> X2  F <--> F2      IF HJWFLAG = 1 THEN        CALL BOX59( CRT$ )        IF CRT$ = "Q" THEN          LET SKIP = 1        END IF      END IF      IF SKIP = 0 THEN        LET HJWFLAG = 0        MAT TEMPRE = XRE        MAT TEMPIM = XIM        PRINT "=";        MAT XRE = X2RE        MAT XIM = X2IM        PRINT "=";        MAT X2RE = TEMPRE        MAT X2IM = TEMPIM        PRINT "=";        MAT TEMPRE = FFTRE        MAT TEMPIM = FFTIM        PRINT "=";        MAT FFTRE = FFT2RE        MAT FFTIM = FFT2IM        PRINT "=";        MAT FFT2RE = TEMPRE        MAT FFT2IM = TEMPIM        PRINT "=";        LET DFT$ = ORG$       !SWOP THE ORIGIN POSITIONS        LET ORG$ = ORG2$        LET ORG2$ = DFT$        CALL ZY        PRINT "=";        LET TESTX = 1        LET TESTF = 1      END IF    ELSE IF Z0$ = "SXF" THEN     !SWOP  X <--> F      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )      MAT TEMPRE = FFTRE      MAT TEMPIM = FFTIM      MAT FFTRE  = (1/MULT)*XRE      MAT FFTIM  = (1/MULT)*XIM      MAT XRE    = MULT*TEMPRE      MAT XIM    = MULT*TEMPIM      LET ORG$ = "C"      CALL ZY      LET TESTX = 1      LET TESTF = 1    ELSE IF Z0$ = "SWO" THEN     !SWOP  X <--> F  X2 <--> F2      IF HJWFLAG = 1 THEN        CALL BOX59( CRT$ )        IF CRT$ = "Q" THEN          LET SKIP = 1        END IF      END IF      IF SKIP = 0 THEN        LET HJWFLAG = 0        CALL FINDMULT( MODE$, TYPE$, N, T, MULT )        MAT TEMPRE = XRE        MAT TEMPIM = XIM        PRINT "=";        MAT XRE = MULT*FFTRE        MAT XIM = MULT*FFTIM        PRINT "=";        MAT FFTRE = (1/MULT)*TEMPRE        MAT FFTIM = (1/MULT)*TEMPIM        PRINT "=";        MAT TEMPRE = X2RE        MAT TEMPIM = X2IM        PRINT "=";        MAT X2RE = MULT*FFT2RE        MAT X2IM = MULT*FFT2IM        PRINT "=";        MAT FFT2RE = (1/MULT)*TEMPRE        MAT FFT2IM = (1/MULT)*TEMPIM        PRINT "=";        LET ORG$ = "C"        LET ORG2$ = "C"        CALL ZY        PRINT "=";        LET TESTX = 1        LET TESTF = 1      END IF    ELSE IF Z0$ = "SWI" THEN     !SWOP  FFTRE <--> FFTIM      MAT TEMPIM = FFTIM      MAT FFTIM  = FFTRE      MAT FFTRE  = TEMPIM      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "MF" THEN          !MULTIPLY  F  BY A CONSTANT      LET MESSAGE$ = "WHAT IS THE VALUE OF THE  F  MULTIPLIER  ?  "      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )      IF FLAG = 1 THEN        LET SKIP = 1      ELSE IF FLAG = 0 THEN        LET KK = FDG        MAT FFTRE = KK*FFTRE        MAT FFTIM = KK*FFTIM        CALL ZY        LET TESTF = 1      END IF    ELSE IF Z0$ = "MF2" THEN    !MULTIPLY  F2  BY A CONSTANT      IF HJWFLAG = 1 THEN        CALL BOX59( CRT$ )        IF CRT$ = "Q" THEN LET SKIP = 1      END IF      IF SKIP = 0 THEN        LET HJWFLAG = 0        LET MESSAGE$ = "WHAT IS THE VALUE OF THE  F2  MULTIPLIER  ?  "        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )        IF FLAG = 1 THEN          LET SKIP = 1        ELSE IF FLAG = 0 THEN          LET KK = FDG          MAT FFT2RE = KK*FFT2RE          MAT FFT2IM = KK*FFT2IM          LET HJWFLAG = 0        END IF        LET TESTF = 1      END IF    ELSE IF Z0$ = "CM" THEN      !COMPLEX MULTIPLY  F  BY  F2      FOR I = 0 TO N - 1        LET TEMP2RE(I) = FFTRE(I)*FFT2RE(I) - FFTIM(I)*FFT2IM(I)        LET TEMP2IM(I) = FFTIM(I)*FFT2RE(I) + FFTRE(I)*FFT2IM(I)      NEXT I      LET SCALE = 1      IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN        LET SCALE = 1/N      ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN        LET SCALE = T/N      END IF      MAT FFTRE = SCALE*TEMP2RE      MAT FFTIM = SCALE*TEMP2IM      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "EXP" THEN      !MULTIPLY  F  BY A COMPLEX EXPONENTIAL      LET MESSAGE$ = "THE EXPONENTIAL IS  exp( j w tau )... "      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT IS THE VALUE OF  tau ?"      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "(WE WILL ROUND IT TO THE NEAREST"      LET MESSAGE$ = MESSAGE$ & "|" & "    TIME-DOMAIN SAMPLING POINT)  "      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )      IF FLAG = 1 THEN        LET SKIP = 1      ELSE IF FLAG = 0 THEN        LET TAU = FDG        LET TS = T/N        LET TAU = ROUND( TAU/TS ) * TS        LET OMEGAs = 2*PI/T        FOR I = 0 TO INT(N/2)          LET TEMPRE(I) = SQR(FFTRE(I)^2 + FFTIM(I)^2)          CALL ARCTAN( FFTRE(I), FFTIM(I), THETA )          LET THETA = THETA + I * OMEGAs * TAU          LET TEMP2RE(I) = TEMPRE(I) * COS(THETA)          LET TEMP2IM(I) = TEMPRE(I) * SIN(THETA)        NEXT I        FOR I = 0 TO INT(N/2)          LET FFTRE(I)     = TEMP2RE(I)          LET FFTRE(N - I) = TEMP2RE(I)          LET FFTIM(I)     = TEMP2IM(I)          LET FFTIM(N - I) = -TEMP2IM(I)        NEXT I        LET FFTIM(0) = 0        IF N/2 = INT(N/2) THEN LET FFTIM(N/2) = 0        CALL ZY        LET TESTF = 1      END IF    ELSE IF Z0$ = "CJF" THEN     !CONJUGATE  F      LET  V = -1      MAT FFTIM = V*FFTIM      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "CJF2" THEN    !CONJUGATE  F2      LET  V = -1      MAT FFT2IM = V*FFT2IM      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "SH" THEN      !SHAVE... KILL ALL VALUES THAT ARE LESS THAN CLIP*MAXVALUE      DO        LET MESSAGE$ = "WHAT IS THE VALUE OF ""CLIP"" ?"        LET MESSAGE$ = MESSAGE$ & "|" & "|" & "(A NUMBER BETWEEN 0 AND 1)"        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )        IF FLAG = 1 THEN          LET SKIP = 1        ELSE IF FLAG = 0 THEN          LET CLIP = FDG          IF CLIP <= 0 OR CLIP>= 1 THEN CALL MACSYSBEEP(1)        END IF      LOOP UNTIL FLAG = 1 OR (CLIP > 0 AND CLIP < 1)      IF FLAG = 0 THEN        LET MAXVALUE = 0        FOR I = 0 TO N - 1          LET TEMPRE(I) = SQR(FFTRE(I)^2 + FFTIM(I)^2)  !TEMPRE(I) IS MODULUS OF FFT(I)          LET MAXVALUE = MAX(MAXVALUE, TEMPRE(I))         !MAXVALUE IS MAX VALUE        NEXT I        FOR I = 0 TO N - 1          IF TEMPRE(I) < CLIP * MAXVALUE THEN      !ZERO OUT IF < CLIP*MAXVALUE            LET FFTRE(I) = 0            LET FFTIM(I) = 0          END IF        NEXT I        CALL ZY        LET TESTF = 1      END IF    ELSE IF Z0$ = "LPF" THEN      !KILL ALL F VALUES BETWEEN nmax AND N - nmax      LET MESSAGE$ = "ALL VALUES OF  F(n)"      LET MESSAGE$ = MESSAGE$ & "|" & "   WILL NOW BE SET TO ZERO FOR   n > nmax"      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "THE CURRENT VALUE OF  N  IS  " & STR$(N)      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT IS THE VALUE OF  nmax  ?"      LET MESSAGE$ = MESSAGE$ & "|" & "   (AN INTEGER >= 0 AND <= " & STR$(INT(N/2)) & ")"      LET ARF = 0      LET WUS = 0      DO        IF ARF = 1 THEN CALL MACSYSBEEP(1)        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )        IF FLAG = 1 THEN          LET SKIP = 1        ELSE IF FLAG = 0 THEN          LET IMAX = FDG          IF IMAX = INT(IMAX) AND IMAX >= 0 AND IMAX <= INT(N/2) THEN LET WUS = 1        END IF        LET ARF = 1      LOOP UNTIL FLAG = 1 OR WUS = 1      IF FLAG = 0 THEN        FOR I = IMAX + 1 TO (N - IMAX - 1)          LET FFTRE(I) = 0          LET FFTIM(I) = 0        NEXT I        CALL ZY        LET TESTF = 1      END IF    ELSE IF Z0$ = "HPF" THEN      !KILL ALL F VALUES BETWEEN 0 AND nmin      LET MESSAGE$ = "ALL VALUES OF  F(n)"      LET MESSAGE$ = MESSAGE$ & "|" & "   WILL NOW BE SET TO ZERO FOR   n < nmin"      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "THE CURRENT VALUE OF  N  IS  " & STR$(N)      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT IS THE VALUE OF  nmin  ?"      LET MESSAGE$ = MESSAGE$ & "|" & "   (AN INTEGER >= 0 AND <= " & STR$(INT(N/2)) & ")"      LET SDS = 0      LET ZUR = 0      DO        IF SDS = 1 THEN CALL MACSYSBEEP(1)        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )        IF FLAG = 1 THEN          LET SKIP = 1        ELSE IF FLAG = 0 THEN          LET IMIN = FDG          IF IMIN = INT(IMIN) AND IMIN >= 0 AND IMIN <= INT(N/2) THEN LET ZUR = 1        END IF        LET SDS = 1      LOOP UNTIL FLAG = 1 OR ZUR = 1      IF FLAG = 0 THEN        FOR I = 0 TO IMIN - 1          LET FFTRE(I) = 0          LET FFTIM(I) = 0        NEXT I        FOR I = 0 TO INT(N/2)          LET FFTRE(N - I) = FFTRE(I)          LET FFTIM(N - I) = -FFTIM(I)        NEXT I        CALL ZY        LET TESTF = 1     END IF    ELSE IF Z0$ = "ZI" THEN      !ZERO THE IMAG PART OF F VECTOR      MAT FFTIM = 0      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "ZR" THEN      !ZERO THE REAL PART OF F VECTOR      MAT FFTRE = 0      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "BD" THEN      !FORM BACKWARD DIFFERENCE      LET DELT = 1      IF MODE$ = "SAMP" THEN LET DELT = T/N      FOR I = 0 TO N - 1        LET REAL = FFTRE(I)*(1 - COS(2*PI*I/N)) - FFTIM(I)*SIN(2*PI*I/N)        LET IMAG = FFTRE(I)*SIN(2*PI*I/N) + FFTIM(I)*(1 - COS(2*PI*I/N))        LET FFTRE(I) = REAL/DELT        LET FFTIM(I) = IMAG/DELT      NEXT I      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "FD" THEN      !FORM FORWARD DIFFERENCE      LET DELT = 1      IF MODE$ = "SAMP" THEN LET DELT = T/N      FOR I = 0 TO N - 1        LET REAL = FFTRE(I)*(-1 + COS(2*PI*I/N)) - FFTIM(I)*SIN(2*PI*I/N)        LET IMAG = FFTRE(I)*SIN(2*PI*I/N) + FFTIM(I)*(-1 + COS(2*PI*I/N))        LET FFTRE(I) = REAL/DELT        LET FFTIM(I) = IMAG/DELT      NEXT I      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "CD" THEN      !FORM CENTRAL DIFFERENCE      LET DELT = 1      IF MODE$ = "SAMP" THEN LET DELT = T/N      FOR I = 0 TO N - 1        LET REAL = -FFTIM(I)*SIN(2*PI*I/N)        LET IMAG =  FFTRE(I)*SIN(2*PI*I/N)        LET FFTRE(I) = REAL/DELT        LET FFTIM(I) = IMAG/DELT      NEXT I      CALL ZY      LET TESTF = 1   ELSE IF Z0$ = "CD2" THEN      !FORM SECOND DERIV BY CENTRAL DIFFERENCE      LET DELT = 1      IF MODE$ = "SAMP" THEN LET DELT = T/N      FOR I = 0 TO N - 1        LET REAL = FFTRE(I)*2*(COS(2*PI*I/N) - 1)        LET IMAG = FFTIM(I)*2*(COS(2*PI*I/N) - 1)        LET FFTRE(I) = REAL/(DELT^2)        LET FFTIM(I) = IMAG/(DELT^2)      NEXT I      CALL ZY      LET TESTF = 1    ELSE IF Z0$ = "EP" THEN      !      ! THIS PROGRAM INTEGRATES THE POWER/ENERGY SPECTRUM      ! FROM  -M*OMEGAs/2 TO M*OMEGAs/2      !      DO        LET NMAX = N/2        IF TYPE$ = "PUL" THEN          LET MESSAGE$ = "THE ENERGY SPECTRUM RUNS FROM"          LET MESSAGE$ = MESSAGE$ & "|" & "  n = " & STR$(-NMAX) & "  TO  n = " & STR$(NMAX)          LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WE WILL INTEGRATE IT FROM  -M  TO  M."        ELSE IF TYPE$ = "PER" THEN          LET MESSAGE$ = "THE POWER SPECTRUM RUNS FROM"          LET MESSAGE$ = MESSAGE$ & "|" & "  n = " & STR$(-NMAX) & "  TO  n = " & STR$(NMAX)          LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WE WILL SUM IT FROM  -M  TO  M."        END IF        LET MESSAGE$ = MESSAGE$ & "|" & "  WHAT VALUE FOR  M ?"        LET MESSAGE$ = MESSAGE$ & "|" & "    (A NONNEGATIVE INTEGER <= " & STR$(NMAX) & ")"        LET FAR = 0        LET GAR = 0        DO          IF FAR = 1 THEN CALL MACSYSBEEP(1)          CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )          IF FLAG = 1 THEN            LET SKIP = 1          ELSE IF FLAG = 0 THEN            LET M = FDG            IF M = INT(M) AND M >= 0 AND M <= N/2 THEN LET GAR = 1          END IF          LET FAR = 1        LOOP UNTIL FLAG = 1 OR GAR = 1        IF FLAG = 0 THEN          IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN            LET SUM = 0            IF CONVFLAG = 0 THEN              LET KK = (1/N)^2            ELSE IF CONVFLAG = 1 THEN              LET KK = T^2/N^4            END IF            LET WORD$ = "AVERAGE POWER = "            LET BB = FFTRE(0)^2            FOR J = 1 TO M              LET AA = FFTRE(J)^2 + FFTIM(J)^2              LET SUM = SUM + AA            NEXT J            LET SUM = (BB + 2*SUM)*KK          ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN            LET SUM = 0            IF CONVFLAG = 0 THEN              LET KK = (T/N)^2            ELSE IF CONVFLAG = 1 THEN              LET KK = (T/N)^4            END IF            LET DEN = 1/T     !(2*PI/T)/(2*PI) = 1/T            LET WORD$ = "ENERGY = "            LET BB = FFTRE(0)^2            FOR J = 1 TO M  !Left-endpoint sampling. Simpson no good for some fns.              LET AA = FFTRE(J)^2 + FFTIM(J)^2              LET SUM = SUM + AA            NEXT J            LET SUM = (BB + 2*SUM)*KK*DEN          END IF          LET MESSAGE$ = WORD$ & STR$(SUM)          CALL BOXEP( MESSAGE$, QEZ$ )        END IF      LOOP UNTIL FLAG = 1 OR QEZ$ = "Q"    ELSE IF Z0$ = "SF" THEN     !SAMPLE  F      LET MESSAGE$ = "KEEP EVERY  M-TH  F-VALUE..."      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT VALUE FOR  M ?"      LET MESSAGE$ = MESSAGE$ & "|" & "   ( A POSITIVE INTEGER WHICH DIVIDES INTO " & STR$(N) & " ) "      LET AQ = 0      DO        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )        IF FLAG = 1 THEN          LET SKIP = 1        ELSE IF FLAG = 0 THEN          LET M = FDG          IF M <> INT(M) OR M < 1 THEN            LET AQ = 0            LET M = 0            CALL MACSYSBEEP(1)          ELSE            LET AQ = 1          END IF          IF M <> 0 THEN            IF N/M <> INT(N/M) THEN              LET AQ = 0              CALL MACSYSBEEP(1)            ELSE              LET AQ = 1            END IF          END IF        END IF      LOOP UNTIL FLAG = 1 OR AQ = 1      IF FLAG = 0 THEN        MAT TEMPRE = 0        FOR K = 0 TO N/2 STEP M          LET TEMPRE(K) = 1        NEXT K        FOR K = 0 TO N/2          LET FFTRE(K) = FFTRE(K) * TEMPRE(K)          LET FFTIM(K) = FFTIM(K) * TEMPRE(K)        NEXT K        FOR K = 0 TO N/2          LET FFTRE(N - K) = FFTRE(K)          LET FFTIM(N - K) = -FFTIM(K)        NEXT K        CALL ZY        LET TESTF = 1      END IF    ELSE IF Z0$ = "PF" THEN      !POWER F      LET MESSAGE$ = "RAISE  F  TO THE M-TH POWER..."      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT VALUE FOR  M ?"      LET MESSAGE$ = MESSAGE$ & "|" & "   ( M MUST BE A POSITIVE INTEGER )"      DO        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )        IF FLAG = 1 THEN          LET SKIP = 1        ELSE IF FLAG = 0 THEN          LET M = FDG          IF M <> INT(M) OR M < 1 THEN            LET AQ = 0            CALL MACSYSBEEP(1)          ELSE            LET AQ = 1          END IF        END IF      LOOP UNTIL FLAG = 1 OR AQ = 1      IF SKIP = 0 THEN        IF MODE$ = "DISC" THEN          LET MM = 1                !SCALED FOR DISCRETE        ELSE IF MODE$ = "SAMP" THEN          IF TYPE$ = "PER" THEN            LET MM = 1/N            !SCALED FOR COMPLEX FOURIER SERIES          ELSE IF TYPE$ = "PUL" THEN            LET MM = T/N            !SCALED FOR A SINGLE PULSE          END IF        END IF        IF CONVFLAG = 0 THEN          LET GG = MM        ELSE IF CONVFLAG = 1 THEN   !SQUARE THE SCALE FACTOR IF CONV HAS BEEN RUN          LET GG = MM^2          IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN  !MULTIPLY FFT BY  T  IF CONV & PERIODIC            LET GG = T*GG          END IF        END IF        FOR K = 0 TO N-1          LET TEMPRE(K) = GG*FFTRE(K)          LET TEMPIM(K) = GG*FFTIM(K)          LET MODM = (SQR(TEMPRE(K)^2 + TEMPIM(K)^2))^M          LET XF = TEMPRE(K)          LET YF = TEMPIM(K)          CALL ARCTAN( XF, YF, THETA )          LET ARGM = M*THETA          LET FFTRE(K) = MODM*COS(ARGM)/GG          LET FFTIM(K) = MODM*SIN(ARGM)/GG          IF (MOD(K,512) = 0 AND N >= 512 AND N <= 2048) OR (MOD(K,1024) = 0 AND N > 2048) THEN CALL WORM2( AV )        NEXT K        LET AV = 0        CALL ZY        LET TESTF = 1      END IF    ELSE IF Z0$ = "LF2" THEN      !LOCK  F2      IF FFT2FLAG = 1 THEN        LET HJWFLAG = 1      ELSE        CALL BOXLF2        LET SKIP = 1      END IF      LET TESTF = 1    END IF    IF SOMEFLAG = 1 AND Z0$ <> "Q" AND SKIP = 0 THEN      IF TESTX = 1 THEN CALL TESTXDATA( N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, KLEEN$ )      IF TESTF = 1 THEN CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, KLEEN$ )    END IF    IF GETOUT = 1 THEN EXIT DO  LOOP UNTIL Z0$ = "Q"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB ZY  MAT IFFTRE = 0  MAT IFFTIM = 0  LET IFFTFLAG = 0  LET REALFLAGIFFT = 1END SUB !ZY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!END SUB !FPOST.TRU!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB YPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, T, SOMEFLAG, MODE$, TYPE$, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )  LET SOMEFLAG = 0  DO    LET SKIP = 0    LET FLAG = 0    CALL PAINTSTATUS(CONCORFLAG, CENTFREQ, N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, HJWFLAG, TAXIS, FAXIS, FILESTR$ )    CALL BOXYPOST( Z0$ )    PRINT TAB(1,1);    IF Z0$ <> "Q" THEN LET SOMEFLAG = 1    IF Z0$ = "SH" THEN  !KILL ALL VALUES THAT ARE LESS THAN CLIP*MAXVALUE      DO        LET MESSAGE$ = "WHAT IS THE VALUE OF ""CLIP"" ?"        LET MESSAGE$ = MESSAGE$ & "|" & "|" & "(A NUMBER BETWEEN 0 AND 1)"        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )        IF FLAG = 1 THEN          LET SKIP = 1        ELSE IF FLAG = 0 THEN          LET CLIP = FDG          IF CLIP <= 0 OR CLIP >= 1 THEN CALL MACSYSBEEP(1)        END IF      LOOP UNTIL FLAG = 1 OR (CLIP > 0 AND CLIP < 1)      IF FLAG = 0 THEN        LET MAXVALUE = 0        FOR I = 0 TO N - 1          LET TEMPRE(I) = SQR(IFFTRE(I)^2 + IFFTIM(I)^2)  !TEMPRE(I) IS MODULUS OF Y(I)          LET MAXVALUE = MAX(MAXVALUE, TEMPRE(I))   !MAXVALUE IS MAX VALUE        NEXT I        FOR I = 0 TO N - 1          IF TEMPRE(I) < CLIP * MAXVALUE THEN      !ZERO OUT IF < CLIP*MAXVALUE            LET IFFTRE(I) = 0            LET IFFTIM(I) = 0          END IF        NEXT I        LET SOMEFLAG = 1      END IF      LET TESTY = 1    ELSE IF Z0$ = "MY" THEN     !MULTIPLY  Y  BY A CONSTANT      LET MESSAGE$ = "WHAT IS THE VALUE OF THE MULTIPLIER ?"      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )      IF FLAG = 1 THEN        LET SKIP = 1      ELSE IF FLAG = 0 THEN        LET MULT = FDG        MAT IFFTRE = MULT * IFFTRE        MAT IFFTIM = MULT * IFFTIM      END IF      LET TESTY = 1    ELSE IF Z0$ = "SY" THEN        !SAMPLE Y      LET AQ = 0      DO        LET MESSAGE$ = "KEEP EVERY  M-TH  Y-VALUE..."        LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT VALUE FOR  M?"        LET MESSAGE$ = MESSAGE$ & "|" & "   ( A POSITIVE INTEGER WHICH DIVIDES INTO " & STR$(N) & " ) "        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )        IF FLAG = 1 THEN          LET SKIP = 1        ELSE IF FLAG = 0 THEN          LET M = FDG          IF M <> INT(M) OR M < 1 THEN            LET M = 0            LET AQ = 0            CALL MACSYSBEEP(1)          ELSE            LET AQ = 1          END IF          IF M <> 0 THEN            IF N/M <> INT(N/M) THEN              LET AQ = 0              CALL MACSYSBEEP(1)            ELSE              LET AQ = 1            END IF          END IF        END IF      LOOP UNTIL FLAG = 1 OR AQ = 1      IF FLAG = 0 THEN        MAT TEMPRE = 0        FOR K = 0 TO N - 1 STEP M          LET TEMPRE(K) = 1        NEXT K        FOR K = 0 TO N - 1          LET IFFTRE(K) = IFFTRE(K) * TEMPRE(K)          LET IFFTIM(K) = IFFTIM(K) * TEMPRE(K)        NEXT K        LET TESTY = 1      END IF    ELSE IF Z0$ = "CYX" THEN   !COPY  Y  TO  X      MAT TEMPRE = IFFTRE      MAT TEMPIM = IFFTIM      IF KLEEN$ = "ONE" THEN        CALL CLEANUP(N, TEMPRE(), TEMPIM() )      END IF      LET MULT = 1      IF MODE$ = "SAMP" AND CONVFLAG = 1 THEN        LET MULT = T/N      END IF      MAT XRE = MULT*TEMPRE      MAT XIM = MULT*TEMPIM      MAT FFTRE = 0      MAT FFTIM = 0      MAT IFFTRE = 0      MAT IFFTIM = 0      LET IFFTFLAG = 0      LET REALFLAGIFFT = 1      LET TESTX = 1      LET TESTF = 1      LET TESTY = 1    END IF    IF SOMEFLAG = 1 AND Z0$ <> "Q" AND SKIP = 0 THEN      IF TESTX = 1 THEN CALL TESTXDATA( N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, KLEEN$ )      IF TESTF = 1 THEN CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, KLEEN$ )      IF TESTY = 1 THEN CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )    END IF    IF GETOUT = 1 THEN EXIT DO  LOOP UNTIL Z0$ = "Q"END SUB !YPOST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!SUB WORM2( AV )  LET AV = AV + 1  SET WINDOW 0, 81, 0, 31  PLOT TEXT, AT AV, 29 : "="END SUB!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+EXTERNAL             !LIB3BFFT
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB POSTPROCS( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, FORM$, TYPE$, T, MODE$, HJWFLAG, CONVFLAG, KLEEN$, ORG$, ORG2$, FREEMEM, TAXIS, FAXIS, FILESTR$ )
+
+  DO
+    LET LOOPUP = 0
+
+    CALL BOX11( OPTION4$ )
+
+    IF OPTION4$ = "X" THEN
+
+      IF XFLAG = 0 AND X2FLAG = 0 THEN
+        LET PMODE$ = "X"
+
+        CALL BOX46( PMODE$ )
+
+        LET LOOPUP = 1
+
+
+      ELSE
+
+        CALL CLEARTEMPS
+
+        CALL XPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), T, SOMEFLAG, MODE$, TYPE$, ORG$, ORG2$, HJWFLAG, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )
+
+      END IF
+
+    ELSE IF OPTION4$ = "F" THEN
+      IF FFTFLAG = 0 AND FFT2FLAG = 0 THEN
+        LET PMODE$ = "F"
+
+        CALL BOX46( PMODE$ )
+
+        LET LOOPUP = 1
+      ELSE
+
+        CALL CLEARTEMPS
+
+        CALL FPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, SOMEFLAG, MODE$, TYPE$, CONVFLAG, ORG$, ORG2$, HJWFLAG, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )
+
+      END IF
+
+    ELSE IF OPTION4$ = "Y" THEN
+
+      IF IFFTFLAG = 0 THEN
+        LET PMODE$ = "Y"
+
+        CALL BOX46( PMODE$ )
+
+        LET LOOPUP = 1
+
+      ELSE
+
+        CALL CLEARTEMPS
+
+        MAT TEMPIM  = 0
+        MAT TEMP2IM = 0
+
+        CALL YPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, T, SOMEFLAG, MODE$, TYPE$, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )
+
+      END IF
+    END IF
+  LOOP WHILE LOOPUP = 1
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB CLEARTEMPS
+
+  MAT TEMPRE  = 0
+  MAT TEMPIM  = 0
+  MAT TEMP2RE = 0
+  MAT TEMP2IM = 0
+
+END SUB !CLEARTEMPS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END SUB !POSTPROCESSORS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB XPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), T, SOMEFLAG, MODE$, TYPE$, ORG$, ORG2$, HJWFLAG, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )
+
+  LET SOMEFLAG = 0
+
+  DO
+    LET SKIP = 0
+    LET FLAG = 0
+
+    CALL PAINTSTATUS(CONCORFLAG, CENTFREQ, N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, HJWFLAG, TAXIS, FAXIS, FILESTR$ )
+    CALL BOXXPOST( Z0$, MODE$ )
+
+    PRINT TAB(1,1);
+
+    IF Z0$ <> "Q" THEN LET SOMEFLAG = 1
+
+    IF Z0$ = "CX" THEN   !COPY  X  TO  X2
+      MAT X2RE = XRE
+      MAT X2IM = XIM
+      LET ORG2$ = ORG$        !COPY THE ORIGIN POSITION
+
+      IF HJWFLAG = 0 THEN CALL ZF2
+
+    ELSE IF Z0$ = "CX2" THEN   !COPY  X2  TO  X
+      MAT XRE = X2RE
+      MAT XIM = X2IM
+      LET ORG$ = ORG2$        !COPY THE ORIGIN POSITION
+
+      CALL ZF
+      CALL ZY
+
+    ELSE IF Z0$ = "CFX" THEN         !COPY  F  TO  X
+
+      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )
+
+      MAT TEMPRE = FFTRE
+      MAT TEMPIM = FFTIM
+
+      IF KLEEN$ = "ONE" THEN
+
+        CALL CLEANUP(N, TEMPRE(), TEMPIM() )
+
+      END IF
+
+      MAT XRE = MULT*TEMPRE
+      MAT XIM = MULT*TEMPIM
+
+      LET ORG$ = "C"
+
+      CALL ZF
+      CALL ZY
+
+    ELSE IF Z0$ = "CXF" THEN         !COPY  X  TO  F
+
+      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )
+
+      MAT FFTRE = (1/MULT)*XRE
+      MAT FFTIM = (1/MULT)*XIM
+
+      CALL ZY
+
+    ELSE IF Z0$ = "CYX" THEN         !COPY  Y  TO  X
+      MAT TEMPRE = IFFTRE
+      MAT TEMPIM = IFFTIM
+
+      IF KLEEN$ = "ONE" THEN
+
+        CALL CLEANUP(N, TEMPRE(), TEMPIM() )
+
+      END IF
+
+      MAT XRE = TEMPRE
+      MAT XIM = TEMPIM
+
+      CALL ZF
+      CALL ZY
+
+    ELSE IF Z0$ = "AX" THEN          !ADD X  TO  X2
+      MAT X2RE = X2RE + XRE
+      MAT X2IM = X2IM + XIM
+
+      IF HJWFLAG = 0 THEN CALL ZF2
+
+    ELSE IF Z0$ = "AX2" THEN         !ADD X2  TO  X
+      MAT XRE = XRE + X2RE
+      MAT XIM = XIM + X2IM
+
+      CALL ZF
+      CALL ZY
+
+    ELSE IF Z0$ = "MX" THEN          !MULTIPLY  X  BY A CONSTANT
+
+      LET MESSAGE$ = "WHAT IS THE VALUE OF THE  X  MULTIPLIER  ?  "
+
+      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+      IF FLAG = 1 THEN
+        LET SKIP = 1
+      ELSE IF FLAG = 0 THEN
+        LET MULT = FDG
+        MAT XRE = MULT * XRE
+        MAT XIM = MULT * XIM
+
+        CALL ZF
+        CALL ZY
+
+      END IF
+
+    ELSE IF Z0$ = "MX2" THEN    !MULTIPLY  X2  BY A CONSTANT
+
+      LET MESSAGE$ = "WHAT IS THE VALUE OF THE  X2  MULTIPLIER  ?  "
+
+      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+      IF FLAG = 1 THEN
+        LET SKIP = 1
+      ELSE IF FLAG = 0 THEN
+        LET MULT = FDG
+
+        MAT X2RE = MULT * X2RE
+        MAT X2IM = MULT * X2IM
+
+        IF HJWFLAG = 0 THEN CALL ZF2
+
+      END IF
+
+    ELSE IF Z0$ = "EXP" THEN   !MULTIPLY  X  BY A COMPLEX EXPONENTIAL
+
+      LET MESSAGE$ = "THE EXPONENTIAL IS  exp( j wo t )... "
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT IS THE VALUE OF  wo ?"
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "(WE WILL ROUND IT TO THE NEAREST"
+      LET MESSAGE$ = MESSAGE$ & "|" & "    FREQUENCY-DOMAIN SAMPLING POINT)  "
+
+      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+      IF FLAG = 1 THEN
+        LET SKIP = 1
+      ELSE IF FLAG = 0 THEN
+        LET WO = FDG
+        LET WS = 2*PI/T
+        LET WO = WS*ROUND(WO/WS)  !ROUNDING TO THE NEAREST FREQ DOMAIN SAMPLING POINT
+        LET TS = T/N
+        FOR I = 0 TO N - 1
+          LET TEMPRE(I) = XRE(I) * COS(WO*I*TS) - XIM(I) * SIN(WO*I*TS)
+          LET TEMPIM(I) = XRE(I) * SIN(WO*I*TS) + XIM(I) * COS(WO*I*TS)
+        NEXT I
+
+        MAT XRE = TEMPRE
+        MAT XIM = TEMPIM
+
+        CALL ZF
+        CALL ZY
+
+      END IF
+
+    ELSE IF Z0$ = "RM" THEN   !REAL MULTIPLY  XRE  BY  X2RE
+      FOR K = 0 TO N - 1
+        LET XRE(K) = XRE(K) * X2RE(K)
+      NEXT K
+
+      CALL ZF
+      CALL ZY
+
+    ELSE IF Z0$ = "CM" THEN   !COMPLEX MULTIPLY  X  BY  X2
+      FOR K = 0 TO N - 1
+        LET TEMPRE(K) = XRE(K) * X2RE(K) - XIM(K) * X2IM(K)
+        LET TEMPIM(K) = XRE(K) * X2IM(K) + XIM(K) * X2RE(K)
+      NEXT K
+      FOR K = 0 TO N - 1
+        LET XRE(K) = TEMPRE(K)
+        LET XIM(K) = TEMPIM(K)
+      NEXT K
+
+      CALL ZF
+      CALL ZY
+
+    ELSE IF Z0$ = "SW" THEN         !SWOP  X  AND  X2
+      MAT TEMPRE = X2RE
+      MAT TEMPIM = X2IM
+      MAT X2RE = XRE
+      MAT X2IM = XIM
+      MAT XRE = TEMPRE
+      MAT XIM = TEMPIM
+
+      LET DFT$ = ORG$       !SWOP THE ORIGIN POSITIONS
+      LET ORG$ = ORG2$
+      LET ORG2$ = DFT$
+
+      IF HJWFLAG = 0 THEN CALL ZF2
+
+      CALL ZF
+      CALL ZY
+
+    ELSE IF Z0$ = "SXF" THEN         !SWOP  X  AND  F
+
+      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )
+
+      MAT TEMPRE = FFTRE
+      MAT TEMPIM = FFTIM
+      MAT FFTRE  = (1/MULT)*XRE
+      MAT FFTIM  = (1/MULT)*XIM
+      MAT XRE    = MULT*TEMPRE
+      MAT XIM    = MULT*TEMPIM
+
+      LET ORG$ = "C"
+
+      CALL ZY
+
+    ELSE IF Z0$ = "SWS" THEN      !SWOP  X <--> X2  F <--> F2
+
+      IF HJWFLAG = 1 THEN
+
+        CALL BOX59( CRT$ )
+
+        IF CRT$ = "Q" THEN
+          LET SKIP = 1
+        END IF
+      END IF
+
+      IF SKIP = 0 THEN
+        LET HJWFLAG = 0
+
+        MAT TEMPRE = XRE
+        MAT TEMPIM = XIM
+
+        MAT XRE = X2RE
+        MAT XIM = X2IM
+!        PRINT "=";
+        MAT X2RE = TEMPRE
+        MAT X2IM = TEMPIM
+!        PRINT "=";
+        MAT TEMPRE = FFTRE
+        MAT TEMPIM = FFTIM
+!        PRINT "=";
+        MAT FFTRE = FFT2RE
+        MAT FFTIM = FFT2IM
+!        PRINT "=";
+        MAT FFT2RE = TEMPRE
+        MAT FFT2IM = TEMPIM
+!        PRINT "=";
+
+        LET DFT$ = ORG$       !SWOP THE ORIGIN POSITIONS
+        LET ORG$ = ORG2$
+        LET ORG2$ = DFT$
+
+        CALL ZY
+
+!        PRINT "=";
+      END IF
+
+    ELSE IF Z0$ = "SWO" THEN      !SWOP  X <--> F  X2 <--> F2
+      IF HJWFLAG = 1 THEN
+
+        CALL BOX59( CRT$ )
+
+        IF CRT$ = "Q" THEN
+          LET SKIP = 1
+        END IF
+      END IF
+
+      IF SKIP = 0 THEN
+        LET HJWFLAG = 0
+
+        CALL FINDMULT( MODE$, TYPE$, N, T, MULT )
+
+        MAT TEMPRE = XRE
+        MAT TEMPIM = XIM
+!        PRINT "=";
+        MAT XRE = MULT*FFTRE
+        MAT XIM = MULT*FFTIM
+!        PRINT "=";
+        MAT FFTRE = (1/MULT)*TEMPRE
+        MAT FFTIM = (1/MULT)*TEMPIM
+!        PRINT "=";
+        MAT TEMPRE = X2RE
+        MAT TEMPIM = X2IM
+!        PRINT "=";
+        MAT X2RE = MULT*FFT2RE
+        MAT X2IM = MULT*FFT2IM
+!        PRINT "=";
+        MAT FFT2RE = (1/MULT)*TEMPRE
+        MAT FFT2IM = (1/MULT)*TEMPIM
+!        PRINT "=";
+
+        LET ORG$ = "C"
+        LET ORG2$ = "C"
+
+        CALL ZY
+
+!        PRINT "=";
+      END IF
+
+    ELSE IF Z0$ = "SX" THEN          !SAMPLE  X
+      LET AQ = 0
+      DO
+        LET MESSAGE$ = "KEEP EVERY  M-TH  X-VALUE..."
+        LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT VALUE FOR  M ?"
+        LET MESSAGE$ = MESSAGE$ & "|" & "   ( A POSITIVE INTEGER WHICH DIVIDES INTO " & STR$(N) & " ) "
+
+        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+        IF FLAG = 1 THEN
+          LET SKIP = 1
+        ELSE IF FLAG = 0 THEN
+          LET M = FDG
+          IF M <> INT(M) OR M < 1 THEN
+            LET M = 0
+            LET AQ = 0
+            Sound 500, .1
+          ELSE
+            LET AQ = 1
+          END IF
+
+          IF M <> 0 THEN
+            IF N/M <> INT(N/M) THEN
+              LET AQ = 0
+              Sound 500, .1
+            ELSE
+              LET AQ = 1
+            END IF
+          END IF
+        END IF
+      LOOP UNTIL FLAG = 1 OR AQ = 1
+
+      IF FLAG = 0 THEN
+        MAT TEMPRE = 0
+        FOR K = 0 TO N - 1 STEP M
+          LET TEMPRE(K) = 1
+        NEXT K
+
+        FOR K = 0 TO N - 1
+          LET XRE(K) = XRE(K) * TEMPRE(K)
+          LET XIM(K) = XIM(K) * TEMPRE(K)
+        NEXT K
+
+        CALL ZF
+        CALL ZY
+
+      END IF
+
+    ELSE IF Z0$ = "ZI" THEN      !ZERO THE IMAG PART OF X VECTOR
+      MAT XIM = 0
+
+      CALL ZF
+      CALL ZY
+
+    ELSE IF Z0$ = "ZR" THEN      !ZERO THE REAL PART OF X VECTOR
+      MAT XRE = 0
+
+      CALL ZF
+      CALL ZY
+
+    ELSE IF Z0$ = "CLX" THEN       !CLEAN  X
+
+      MAT TEMPRE = XRE
+      MAT TEMPIM = XIM
+
+      CALL CLEANUP( N, TEMPRE(), TEMPIM() )
+
+      MAT XRE = TEMPRE
+      MAT XIM = TEMPIM
+
+    ELSE IF Z0$ = "CLX2" THEN      !CLEAN  X2
+
+      MAT TEMPRE = X2RE
+      MAT TEMPIM = X2IM
+
+      CALL CLEANUP( N, TEMPRE(), TEMPIM() )
+
+      MAT X2RE = TEMPRE
+      MAT X2IM = TEMPIM
+
+    END IF
+
+    IF SOMEFLAG = 1 AND Z0$ <> "Q" AND SKIP = 0 THEN
+
+      CALL TESTXDATA( N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, KLEEN$ )
+      CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, KLEEN$ )
+
+    END IF
+
+  LOOP UNTIL Z0$ = "Q"
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ZF
+
+  MAT FFTRE = 0
+  MAT FFTIM = 0
+
+END SUB !ZF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ZF2
+
+  MAT FFT2RE = 0
+  MAT FFT2IM = 0
+
+END SUB !ZF2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ZY
+
+  MAT IFFTRE = 0
+  MAT IFFTIM = 0
+  LET IFFTFLAG = 0
+  LET REALFLAGIFFT = 1
+
+END SUB !ZY
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END SUB !XPOST
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB FPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, SOMEFLAG, MODE$, TYPE$, CONVFLAG, ORG$, ORG2$, HJWFLAG, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )
+
+  LET SOMEFLAG = 0
+
+  DO
+    LET SKIP = 0
+    LET FLAG = 0
+
+    CALL PAINTSTATUS(CONCORFLAG, CENTFREQ, N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, HJWFLAG, TAXIS, FAXIS, FILESTR$ )
+    CALL BOXFPOST(Z0$, MODE$, TYPE$ )
+
+    PRINT TAB(1,1);
+
+    IF Z0$ <> "Q" THEN LET SOMEFLAG = 1
+
+    IF Z0$ = "CF" THEN    !COPY  F  TO  F2
+
+      IF HJWFLAG = 1 THEN
+
+        CALL BOX59( CRT$ )
+
+        IF CRT$ = "Q" THEN
+          LET SKIP = 1
+        END IF
+      END IF
+
+      IF SKIP = 0 THEN
+        LET HJWFLAG = 0
+        MAT FFT2RE = FFTRE
+        MAT FFT2IM = FFTIM
+        LET HJWFLAG = 0
+      END IF
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "CF2" THEN    !COPY  F2  TO  F
+      MAT FFTRE = FFT2RE
+      MAT FFTIM = FFT2IM
+      IF HJWFLAG = 1 THEN LET ORG$ = "L"
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "CFX" THEN    !COPY  F  TO  X
+
+      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )
+
+      MAT TEMPRE = FFTRE
+      MAT TEMPIM = FFTIM
+
+      IF KLEEN$ = "ONE" THEN
+
+        CALL CLEANUP(N, TEMPRE(), TEMPIM() )
+
+      END IF
+
+      MAT XRE = MULT*TEMPRE
+      MAT XIM = MULT*TEMPIM
+
+      LET ORG$ = "C"
+
+      MAT FFTRE = 0
+      MAT FFTIM = 0
+
+      CALL ZY
+
+      LET TESTX = 1
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "CXF" THEN    !COPY  X  TO  F
+
+      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )
+
+      MAT FFTRE = (1/MULT) * XRE
+      MAT FFTIM = (1/MULT) * XIM
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "CFI" THEN    !COPY  FRE  TO  FIM
+
+      MAT FFTIM = FFTRE
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "AF" THEN     !ADD  F  TO  F2
+
+      IF HJWFLAG = 1 THEN
+
+        CALL BOX59( CRT$ )
+
+        IF CRT$ = "Q" THEN
+          LET SKIP = 1
+        END IF
+      END IF
+
+      IF SKIP = 0 THEN
+        LET HJWFLAG = 0
+        MAT FFT2RE = FFT2RE + FFTRE
+        MAT FFT2IM = FFT2IM + FFTIM
+      END IF
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "AF2" THEN     !ADD  F2  TO  F
+      MAT FFTRE = FFTRE + FFT2RE
+      MAT FFTIM = FFTIM + FFT2IM
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "SW" THEN     !SWOP  F <---> F2
+      IF HJWFLAG = 1 THEN
+
+        CALL BOX59( CRT$ )
+
+        IF CRT$ = "Q" THEN LET SKIP = 1
+      END IF
+
+      IF SKIP = 0 THEN
+        LET HJWFLAG = 0
+
+        MAT TEMPRE = FFTRE
+        MAT TEMPIM = FFTIM
+!        PRINT "=";
+        MAT FFTRE = FFT2RE
+        MAT FFTIM = FFT2IM
+!        PRINT "=";
+        MAT FFT2RE = TEMPRE
+        MAT FFT2IM = TEMPIM
+!        PRINT "=";
+
+        LET DFT$ = ORG$       !SWOP THE ORIGIN POSITIONS
+        LET ORG$ = ORG2$
+        LET ORG2$ = DFT$
+
+        CALL ZY
+
+!        PRINT "=";
+      END IF
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "SWS" THEN     !SWOP  X <--> X2  F <--> F2
+      IF HJWFLAG = 1 THEN
+
+        CALL BOX59( CRT$ )
+
+        IF CRT$ = "Q" THEN
+          LET SKIP = 1
+        END IF
+      END IF
+
+      IF SKIP = 0 THEN
+        LET HJWFLAG = 0
+        MAT TEMPRE = XRE
+        MAT TEMPIM = XIM
+
+!        PRINT "=";
+        MAT XRE = X2RE
+        MAT XIM = X2IM
+!        PRINT "=";
+        MAT X2RE = TEMPRE
+        MAT X2IM = TEMPIM
+!        PRINT "=";
+        MAT TEMPRE = FFTRE
+        MAT TEMPIM = FFTIM
+!        PRINT "=";
+        MAT FFTRE = FFT2RE
+        MAT FFTIM = FFT2IM
+!        PRINT "=";
+        MAT FFT2RE = TEMPRE
+        MAT FFT2IM = TEMPIM
+!        PRINT "=";
+
+        LET DFT$ = ORG$       !SWOP THE ORIGIN POSITIONS
+        LET ORG$ = ORG2$
+        LET ORG2$ = DFT$
+
+        CALL ZY
+
+!        PRINT "=";
+        LET TESTX = 1
+        LET TESTF = 1
+
+      END IF
+
+    ELSE IF Z0$ = "SXF" THEN     !SWOP  X <--> F
+
+      CALL FINDMULT( MODE$, TYPE$, N, T, MULT )
+
+      MAT TEMPRE = FFTRE
+      MAT TEMPIM = FFTIM
+      MAT FFTRE  = (1/MULT)*XRE
+      MAT FFTIM  = (1/MULT)*XIM
+      MAT XRE    = MULT*TEMPRE
+      MAT XIM    = MULT*TEMPIM
+
+      LET ORG$ = "C"
+
+      CALL ZY
+
+      LET TESTX = 1
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "SWO" THEN     !SWOP  X <--> F  X2 <--> F2
+      IF HJWFLAG = 1 THEN
+
+        CALL BOX59( CRT$ )
+
+        IF CRT$ = "Q" THEN
+          LET SKIP = 1
+        END IF
+      END IF
+
+      IF SKIP = 0 THEN
+        LET HJWFLAG = 0
+
+        CALL FINDMULT( MODE$, TYPE$, N, T, MULT )
+
+        MAT TEMPRE = XRE
+        MAT TEMPIM = XIM
+!        PRINT "=";
+
+        MAT XRE = MULT*FFTRE
+        MAT XIM = MULT*FFTIM
+!        PRINT "=";
+
+        MAT FFTRE = (1/MULT)*TEMPRE
+        MAT FFTIM = (1/MULT)*TEMPIM
+!        PRINT "=";
+
+        MAT TEMPRE = X2RE
+        MAT TEMPIM = X2IM
+!        PRINT "=";
+
+        MAT X2RE = MULT*FFT2RE
+        MAT X2IM = MULT*FFT2IM
+!        PRINT "=";
+
+        MAT FFT2RE = (1/MULT)*TEMPRE
+        MAT FFT2IM = (1/MULT)*TEMPIM
+!        PRINT "=";
+
+        LET ORG$ = "C"
+        LET ORG2$ = "C"
+
+        CALL ZY
+
+!        PRINT "=";
+
+        LET TESTX = 1
+        LET TESTF = 1
+
+      END IF
+
+    ELSE IF Z0$ = "SWI" THEN     !SWOP  FFTRE <--> FFTIM
+      MAT TEMPIM = FFTIM
+      MAT FFTIM  = FFTRE
+      MAT FFTRE  = TEMPIM
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "MF" THEN          !MULTIPLY  F  BY A CONSTANT
+      LET MESSAGE$ = "WHAT IS THE VALUE OF THE  F  MULTIPLIER  ?  "
+
+      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+      IF FLAG = 1 THEN
+        LET SKIP = 1
+      ELSE IF FLAG = 0 THEN
+        LET KK = FDG
+        MAT FFTRE = KK*FFTRE
+        MAT FFTIM = KK*FFTIM
+
+        CALL ZY
+
+        LET TESTF = 1
+
+      END IF
+
+    ELSE IF Z0$ = "MF2" THEN    !MULTIPLY  F2  BY A CONSTANT
+      IF HJWFLAG = 1 THEN
+
+        CALL BOX59( CRT$ )
+
+        IF CRT$ = "Q" THEN LET SKIP = 1
+      END IF
+
+      IF SKIP = 0 THEN
+        LET HJWFLAG = 0
+
+        LET MESSAGE$ = "WHAT IS THE VALUE OF THE  F2  MULTIPLIER  ?  "
+
+        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+        IF FLAG = 1 THEN
+          LET SKIP = 1
+        ELSE IF FLAG = 0 THEN
+          LET KK = FDG
+          MAT FFT2RE = KK*FFT2RE
+          MAT FFT2IM = KK*FFT2IM
+          LET HJWFLAG = 0
+        END IF
+
+        LET TESTF = 1
+
+      END IF
+
+    ELSE IF Z0$ = "CM" THEN      !COMPLEX MULTIPLY  F  BY  F2
+      FOR I = 0 TO N - 1
+        LET TEMP2RE(I) = FFTRE(I)*FFT2RE(I) - FFTIM(I)*FFT2IM(I)
+        LET TEMP2IM(I) = FFTIM(I)*FFT2RE(I) + FFTRE(I)*FFT2IM(I)
+      NEXT I
+      LET SCALE = 1
+      IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN
+        LET SCALE = 1/N
+      ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+        LET SCALE = T/N
+      END IF
+      MAT FFTRE = SCALE*TEMP2RE
+      MAT FFTIM = SCALE*TEMP2IM
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "EXP" THEN      !MULTIPLY  F  BY A COMPLEX EXPONENTIAL
+
+      LET MESSAGE$ = "THE EXPONENTIAL IS  exp( j w tau )... "
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT IS THE VALUE OF  tau ?"
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "(WE WILL ROUND IT TO THE NEAREST"
+      LET MESSAGE$ = MESSAGE$ & "|" & "    TIME-DOMAIN SAMPLING POINT)  "
+
+      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+      IF FLAG = 1 THEN
+        LET SKIP = 1
+      ELSE IF FLAG = 0 THEN
+        LET TAU = FDG
+        LET TS = T/N
+        LET TAU = ROUND( TAU/TS ) * TS
+        LET OMEGAs = 2*PI/T
+        FOR I = 0 TO INT(N/2)
+          LET TEMPRE(I) = SQR(FFTRE(I)^2 + FFTIM(I)^2)
+
+          CALL ARCTAN( FFTRE(I), FFTIM(I), THETA )
+
+          LET THETA = THETA + I * OMEGAs * TAU
+
+          LET TEMP2RE(I) = TEMPRE(I) * COS(THETA)
+          LET TEMP2IM(I) = TEMPRE(I) * SIN(THETA)
+        NEXT I
+
+        FOR I = 0 TO INT(N/2)
+          LET FFTRE(I)     = TEMP2RE(I)
+          LET FFTRE(N - I) = TEMP2RE(I)
+          LET FFTIM(I)     = TEMP2IM(I)
+          LET FFTIM(N - I) = -TEMP2IM(I)
+        NEXT I
+        LET FFTIM(0) = 0
+        IF N/2 = INT(N/2) THEN LET FFTIM(N/2) = 0
+
+        CALL ZY
+
+        LET TESTF = 1
+
+      END IF
+
+    ELSE IF Z0$ = "CJF" THEN     !CONJUGATE  F
+
+      LET  V = -1
+      MAT FFTIM = V*FFTIM
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "CJF2" THEN    !CONJUGATE  F2
+
+      LET  V = -1
+      MAT FFT2IM = V*FFT2IM
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "SH" THEN      !SHAVE... KILL ALL VALUES THAT ARE LESS THAN CLIP*MAXVALUE
+      DO
+        LET MESSAGE$ = "WHAT IS THE VALUE OF ""CLIP"" ?"
+        LET MESSAGE$ = MESSAGE$ & "|" & "|" & "(A NUMBER BETWEEN 0 AND 1)"
+
+        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+        IF FLAG = 1 THEN
+          LET SKIP = 1
+        ELSE IF FLAG = 0 THEN
+          LET CLIP = FDG
+          IF CLIP <= 0 OR CLIP>= 1 THEN Sound 500, .1
+        END IF
+      LOOP UNTIL FLAG = 1 OR (CLIP > 0 AND CLIP < 1)
+
+      IF FLAG = 0 THEN
+        LET MAXVALUE = 0
+        FOR I = 0 TO N - 1
+          LET TEMPRE(I) = SQR(FFTRE(I)^2 + FFTIM(I)^2)  !TEMPRE(I) IS MODULUS OF FFT(I)
+          LET MAXVALUE = MAX(MAXVALUE, TEMPRE(I))         !MAXVALUE IS MAX VALUE
+        NEXT I
+        FOR I = 0 TO N - 1
+          IF TEMPRE(I) < CLIP * MAXVALUE THEN      !ZERO OUT IF < CLIP*MAXVALUE
+            LET FFTRE(I) = 0
+            LET FFTIM(I) = 0
+          END IF
+        NEXT I
+
+        CALL ZY
+
+        LET TESTF = 1
+
+      END IF
+
+    ELSE IF Z0$ = "LPF" THEN      !KILL ALL F VALUES BETWEEN nmax AND N - nmax
+
+      LET MESSAGE$ = "ALL VALUES OF  F(n)"
+      LET MESSAGE$ = MESSAGE$ & "|" & "   WILL NOW BE SET TO ZERO FOR   n > nmax"
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "THE CURRENT VALUE OF  N  IS  " & STR$(N)
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT IS THE VALUE OF  nmax  ?"
+      LET MESSAGE$ = MESSAGE$ & "|" & "   (AN INTEGER >= 0 AND <= " & STR$(INT(N/2)) & ")"
+
+      LET ARF = 0
+      LET WUS = 0
+
+      DO
+        IF ARF = 1 THEN Sound 500, .1
+
+        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+        IF FLAG = 1 THEN
+          LET SKIP = 1
+        ELSE IF FLAG = 0 THEN
+          LET IMAX = FDG
+          IF IMAX = INT(IMAX) AND IMAX >= 0 AND IMAX <= INT(N/2) THEN LET WUS = 1
+        END IF
+        LET ARF = 1
+      LOOP UNTIL FLAG = 1 OR WUS = 1
+
+      IF FLAG = 0 THEN
+        FOR I = IMAX + 1 TO (N - IMAX - 1)
+          LET FFTRE(I) = 0
+          LET FFTIM(I) = 0
+        NEXT I
+
+        CALL ZY
+
+        LET TESTF = 1
+
+      END IF
+
+    ELSE IF Z0$ = "HPF" THEN      !KILL ALL F VALUES BETWEEN 0 AND nmin
+
+      LET MESSAGE$ = "ALL VALUES OF  F(n)"
+      LET MESSAGE$ = MESSAGE$ & "|" & "   WILL NOW BE SET TO ZERO FOR   n < nmin"
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "THE CURRENT VALUE OF  N  IS  " & STR$(N)
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT IS THE VALUE OF  nmin  ?"
+      LET MESSAGE$ = MESSAGE$ & "|" & "   (AN INTEGER >= 0 AND <= " & STR$(INT(N/2)) & ")"
+
+      LET SDS = 0
+      LET ZUR = 0
+
+      DO
+        IF SDS = 1 THEN Sound 500, .1
+
+        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+        IF FLAG = 1 THEN
+          LET SKIP = 1
+        ELSE IF FLAG = 0 THEN
+          LET IMIN = FDG
+          IF IMIN = INT(IMIN) AND IMIN >= 0 AND IMIN <= INT(N/2) THEN LET ZUR = 1
+        END IF
+
+        LET SDS = 1
+      LOOP UNTIL FLAG = 1 OR ZUR = 1
+
+      IF FLAG = 0 THEN
+        FOR I = 0 TO IMIN - 1
+          LET FFTRE(I) = 0
+          LET FFTIM(I) = 0
+        NEXT I
+        FOR I = 0 TO INT(N/2)
+          LET FFTRE(N - I) = FFTRE(I)
+          LET FFTIM(N - I) = -FFTIM(I)
+        NEXT I
+
+        CALL ZY
+
+        LET TESTF = 1
+
+     END IF
+
+    ELSE IF Z0$ = "ZI" THEN      !ZERO THE IMAG PART OF F VECTOR
+      MAT FFTIM = 0
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "ZR" THEN      !ZERO THE REAL PART OF F VECTOR
+      MAT FFTRE = 0
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "BD" THEN      !FORM BACKWARD DIFFERENCE
+      LET DELT = 1
+      IF MODE$ = "SAMP" THEN LET DELT = T/N
+      FOR I = 0 TO N - 1
+        LET REAL = FFTRE(I)*(1 - COS(2*PI*I/N)) - FFTIM(I)*SIN(2*PI*I/N)
+        LET IMAG = FFTRE(I)*SIN(2*PI*I/N) + FFTIM(I)*(1 - COS(2*PI*I/N))
+        LET FFTRE(I) = REAL/DELT
+        LET FFTIM(I) = IMAG/DELT
+      NEXT I
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "FD" THEN      !FORM FORWARD DIFFERENCE
+      LET DELT = 1
+      IF MODE$ = "SAMP" THEN LET DELT = T/N
+      FOR I = 0 TO N - 1
+        LET REAL = FFTRE(I)*(-1 + COS(2*PI*I/N)) - FFTIM(I)*SIN(2*PI*I/N)
+        LET IMAG = FFTRE(I)*SIN(2*PI*I/N) + FFTIM(I)*(-1 + COS(2*PI*I/N))
+        LET FFTRE(I) = REAL/DELT
+        LET FFTIM(I) = IMAG/DELT
+      NEXT I
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "CD" THEN      !FORM CENTRAL DIFFERENCE
+      LET DELT = 1
+      IF MODE$ = "SAMP" THEN LET DELT = T/N
+      FOR I = 0 TO N - 1
+        LET REAL = -FFTIM(I)*SIN(2*PI*I/N)
+        LET IMAG =  FFTRE(I)*SIN(2*PI*I/N)
+        LET FFTRE(I) = REAL/DELT
+        LET FFTIM(I) = IMAG/DELT
+      NEXT I
+
+      CALL ZY
+
+      LET TESTF = 1
+
+   ELSE IF Z0$ = "CD2" THEN      !FORM SECOND DERIV BY CENTRAL DIFFERENCE
+      LET DELT = 1
+      IF MODE$ = "SAMP" THEN LET DELT = T/N
+      FOR I = 0 TO N - 1
+        LET REAL = FFTRE(I)*2*(COS(2*PI*I/N) - 1)
+        LET IMAG = FFTIM(I)*2*(COS(2*PI*I/N) - 1)
+        LET FFTRE(I) = REAL/(DELT^2)
+        LET FFTIM(I) = IMAG/(DELT^2)
+      NEXT I
+
+      CALL ZY
+
+      LET TESTF = 1
+
+    ELSE IF Z0$ = "EP" THEN
+      !
+      ! THIS PROGRAM INTEGRATES THE POWER/ENERGY SPECTRUM
+      ! FROM  -M*OMEGAs/2 TO M*OMEGAs/2
+      !
+
+      DO
+        LET NMAX = N/2
+        IF TYPE$ = "PUL" THEN
+          LET MESSAGE$ = "THE ENERGY SPECTRUM RUNS FROM"
+          LET MESSAGE$ = MESSAGE$ & "|" & "  n = " & STR$(-NMAX) & "  TO  n = " & STR$(NMAX)
+          LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WE WILL INTEGRATE IT FROM  -M  TO  M."
+        ELSE IF TYPE$ = "PER" THEN
+          LET MESSAGE$ = "THE POWER SPECTRUM RUNS FROM"
+          LET MESSAGE$ = MESSAGE$ & "|" & "  n = " & STR$(-NMAX) & "  TO  n = " & STR$(NMAX)
+          LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WE WILL SUM IT FROM  -M  TO  M."
+        END IF
+        LET MESSAGE$ = MESSAGE$ & "|" & "  WHAT VALUE FOR  M ?"
+        LET MESSAGE$ = MESSAGE$ & "|" & "    (A NONNEGATIVE INTEGER <= " & STR$(NMAX) & ")"
+
+        LET FAR = 0
+        LET GAR = 0
+
+        DO
+          IF FAR = 1 THEN Sound 500, .1
+
+          CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+          IF FLAG = 1 THEN
+            LET SKIP = 1
+          ELSE IF FLAG = 0 THEN
+            LET M = FDG
+            IF M = INT(M) AND M >= 0 AND M <= N/2 THEN LET GAR = 1
+          END IF
+          LET FAR = 1
+        LOOP UNTIL FLAG = 1 OR GAR = 1
+
+
+        IF FLAG = 0 THEN
+          IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN
+            LET SUM = 0
+            IF CONVFLAG = 0 THEN
+              LET KK = (1/N)^2
+            ELSE IF CONVFLAG = 1 THEN
+              LET KK = T^2/N^4
+            END IF
+            LET WORD$ = "AVERAGE POWER = "
+
+            LET BB = FFTRE(0)^2
+            FOR J = 1 TO M
+              LET AA = FFTRE(J)^2 + FFTIM(J)^2
+              LET SUM = SUM + AA
+            NEXT J
+            LET SUM = (BB + 2*SUM)*KK
+
+          ELSE IF MODE$ = "SAMP" AND TYPE$ = "PUL" THEN
+            LET SUM = 0
+            IF CONVFLAG = 0 THEN
+              LET KK = (T/N)^2
+            ELSE IF CONVFLAG = 1 THEN
+              LET KK = (T/N)^4
+            END IF
+            LET DEN = 1/T     !(2*PI/T)/(2*PI) = 1/T
+            LET WORD$ = "ENERGY = "
+
+            LET BB = FFTRE(0)^2
+            FOR J = 1 TO M  !Left-endpoint sampling. Simpson no good for some fns.
+              LET AA = FFTRE(J)^2 + FFTIM(J)^2
+              LET SUM = SUM + AA
+            NEXT J
+            LET SUM = (BB + 2*SUM)*KK*DEN
+          END IF
+
+          LET MESSAGE$ = WORD$ & STR$(SUM)
+
+          CALL BOXEP( MESSAGE$, QEZ$ )
+
+        END IF
+      LOOP UNTIL FLAG = 1 OR QEZ$ = "Q"
+
+    ELSE IF Z0$ = "SF" THEN     !SAMPLE  F
+
+      LET MESSAGE$ = "KEEP EVERY  M-TH  F-VALUE..."
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT VALUE FOR  M ?"
+      LET MESSAGE$ = MESSAGE$ & "|" & "   ( A POSITIVE INTEGER WHICH DIVIDES INTO " & STR$(N) & " ) "
+
+      LET AQ = 0
+
+      DO
+
+        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+        IF FLAG = 1 THEN
+          LET SKIP = 1
+        ELSE IF FLAG = 0 THEN
+          LET M = FDG
+          IF M <> INT(M) OR M < 1 THEN
+            LET AQ = 0
+            LET M = 0
+            Sound 500, .1
+          ELSE
+            LET AQ = 1
+          END IF
+
+          IF M <> 0 THEN
+            IF N/M <> INT(N/M) THEN
+              LET AQ = 0
+              Sound 500, .1
+            ELSE
+              LET AQ = 1
+            END IF
+          END IF
+        END IF
+
+      LOOP UNTIL FLAG = 1 OR AQ = 1
+
+      IF FLAG = 0 THEN
+        MAT TEMPRE = 0
+        FOR K = 0 TO N/2 STEP M
+          LET TEMPRE(K) = 1
+        NEXT K
+        FOR K = 0 TO N/2
+          LET FFTRE(K) = FFTRE(K) * TEMPRE(K)
+          LET FFTIM(K) = FFTIM(K) * TEMPRE(K)
+        NEXT K
+        FOR K = 0 TO N/2
+          LET FFTRE(N - K) = FFTRE(K)
+          LET FFTIM(N - K) = -FFTIM(K)
+        NEXT K
+
+        CALL ZY
+
+        LET TESTF = 1
+
+      END IF
+
+    ELSE IF Z0$ = "PF" THEN      !POWER F
+      LET MESSAGE$ = "RAISE  F  TO THE M-TH POWER..."
+      LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT VALUE FOR  M ?"
+      LET MESSAGE$ = MESSAGE$ & "|" & "   ( M MUST BE A POSITIVE INTEGER )"
+
+      DO
+
+        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+        IF FLAG = 1 THEN
+          LET SKIP = 1
+        ELSE IF FLAG = 0 THEN
+          LET M = FDG
+          IF M <> INT(M) OR M < 1 THEN
+            LET AQ = 0
+            Sound 500, .1
+          ELSE
+            LET AQ = 1
+          END IF
+        END IF
+      LOOP UNTIL FLAG = 1 OR AQ = 1
+
+      IF SKIP = 0 THEN
+        IF MODE$ = "DISC" THEN
+          LET MM = 1                !SCALED FOR DISCRETE
+        ELSE IF MODE$ = "SAMP" THEN
+          IF TYPE$ = "PER" THEN
+            LET MM = 1/N            !SCALED FOR COMPLEX FOURIER SERIES
+          ELSE IF TYPE$ = "PUL" THEN
+            LET MM = T/N            !SCALED FOR A SINGLE PULSE
+          END IF
+        END IF
+
+        IF CONVFLAG = 0 THEN
+          LET GG = MM
+        ELSE IF CONVFLAG = 1 THEN   !SQUARE THE SCALE FACTOR IF CONV HAS BEEN RUN
+          LET GG = MM^2
+          IF MODE$ = "SAMP" AND TYPE$ = "PER" THEN  !MULTIPLY FFT BY  T  IF CONV & PERIODIC
+            LET GG = T*GG
+          END IF
+        END IF
+
+        FOR K = 0 TO N-1
+          LET TEMPRE(K) = GG*FFTRE(K)
+          LET TEMPIM(K) = GG*FFTIM(K)
+
+          LET MODM = (SQR(TEMPRE(K)^2 + TEMPIM(K)^2))^M
+
+          LET XF = TEMPRE(K)
+          LET YF = TEMPIM(K)
+          CALL ARCTAN( XF, YF, THETA )
+
+          LET ARGM = M*THETA
+
+          LET FFTRE(K) = MODM*COS(ARGM)/GG
+          LET FFTIM(K) = MODM*SIN(ARGM)/GG
+
+!          IF (MOD(K,512) = 0 AND N >= 512 AND N <= 2048) OR (MOD(K,1024) = 0 AND N > 2048) THEN CALL WORM2( AV )
+
+        NEXT K
+
+        LET AV = 0
+
+        CALL ZY
+
+        LET TESTF = 1
+      END IF
+
+    ELSE IF Z0$ = "LF2" THEN      !LOCK  F2
+
+      IF FFT2FLAG = 1 THEN
+        LET HJWFLAG = 1
+      ELSE
+
+        CALL BOXLF2
+
+        LET SKIP = 1
+      END IF
+
+      LET TESTF = 1
+
+    END IF
+
+    IF SOMEFLAG = 1 AND Z0$ <> "Q" AND SKIP = 0 THEN
+
+      IF TESTX = 1 THEN CALL TESTXDATA( N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, KLEEN$ )
+      IF TESTF = 1 THEN CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, KLEEN$ )
+
+    END IF
+
+    IF GETOUT = 1 THEN EXIT DO
+
+  LOOP UNTIL Z0$ = "Q"
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB ZY
+
+  MAT IFFTRE = 0
+  MAT IFFTIM = 0
+  LET IFFTFLAG = 0
+  LET REALFLAGIFFT = 1
+
+END SUB !ZY
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END SUB !FPOST.TRU
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB YPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), IFFTRE(), IFFTIM(), TEMPRE(), TEMPIM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, T, SOMEFLAG, MODE$, TYPE$, KLEEN$, FREEMEM, TAXIS, FAXIS, FILESTR$ )
+
+  LET SOMEFLAG = 0
+
+  DO
+    LET SKIP = 0
+    LET FLAG = 0
+
+    CALL PAINTSTATUS(CONCORFLAG, CENTFREQ, N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFLAGX, FFTFLAG, FFT2FLAG, SYMMFLAG, IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$, FREEMEM, HJWFLAG, TAXIS, FAXIS, FILESTR$ )
+    CALL BOXYPOST( Z0$ )
+
+    PRINT TAB(1,1);
+
+    IF Z0$ <> "Q" THEN LET SOMEFLAG = 1
+
+    IF Z0$ = "SH" THEN  !KILL ALL VALUES THAT ARE LESS THAN CLIP*MAXVALUE
+      DO
+        LET MESSAGE$ = "WHAT IS THE VALUE OF ""CLIP"" ?"
+        LET MESSAGE$ = MESSAGE$ & "|" & "|" & "(A NUMBER BETWEEN 0 AND 1)"
+
+        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+        IF FLAG = 1 THEN
+          LET SKIP = 1
+        ELSE IF FLAG = 0 THEN
+          LET CLIP = FDG
+          IF CLIP <= 0 OR CLIP >= 1 THEN Sound 500, .1
+        END IF
+      LOOP UNTIL FLAG = 1 OR (CLIP > 0 AND CLIP < 1)
+
+      IF FLAG = 0 THEN
+        LET MAXVALUE = 0
+        FOR I = 0 TO N - 1
+          LET TEMPRE(I) = SQR(IFFTRE(I)^2 + IFFTIM(I)^2)  !TEMPRE(I) IS MODULUS OF Y(I)
+          LET MAXVALUE = MAX(MAXVALUE, TEMPRE(I))   !MAXVALUE IS MAX VALUE
+        NEXT I
+        FOR I = 0 TO N - 1
+          IF TEMPRE(I) < CLIP * MAXVALUE THEN      !ZERO OUT IF < CLIP*MAXVALUE
+            LET IFFTRE(I) = 0
+            LET IFFTIM(I) = 0
+          END IF
+        NEXT I
+        LET SOMEFLAG = 1
+      END IF
+
+      LET TESTY = 1
+
+    ELSE IF Z0$ = "MY" THEN     !MULTIPLY  Y  BY A CONSTANT
+
+      LET MESSAGE$ = "WHAT IS THE VALUE OF THE MULTIPLIER ?"
+
+      CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+      IF FLAG = 1 THEN
+        LET SKIP = 1
+      ELSE IF FLAG = 0 THEN
+        LET MULT = FDG
+        MAT IFFTRE = MULT * IFFTRE
+        MAT IFFTIM = MULT * IFFTIM
+      END IF
+
+      LET TESTY = 1
+
+    ELSE IF Z0$ = "SY" THEN        !SAMPLE Y
+      LET AQ = 0
+      DO
+        LET MESSAGE$ = "KEEP EVERY  M-TH  Y-VALUE..."
+        LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT VALUE FOR  M?"
+        LET MESSAGE$ = MESSAGE$ & "|" & "   ( A POSITIVE INTEGER WHICH DIVIDES INTO " & STR$(N) & " ) "
+
+        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+        IF FLAG = 1 THEN
+          LET SKIP = 1
+        ELSE IF FLAG = 0 THEN
+          LET M = FDG
+          IF M <> INT(M) OR M < 1 THEN
+            LET M = 0
+            LET AQ = 0
+            Sound 500, .1
+          ELSE
+            LET AQ = 1
+          END IF
+
+          IF M <> 0 THEN
+            IF N/M <> INT(N/M) THEN
+              LET AQ = 0
+              Sound 500, .1
+            ELSE
+              LET AQ = 1
+            END IF
+          END IF
+        END IF
+      LOOP UNTIL FLAG = 1 OR AQ = 1
+
+      IF FLAG = 0 THEN
+        MAT TEMPRE = 0
+        FOR K = 0 TO N - 1 STEP M
+          LET TEMPRE(K) = 1
+        NEXT K
+
+        FOR K = 0 TO N - 1
+          LET IFFTRE(K) = IFFTRE(K) * TEMPRE(K)
+          LET IFFTIM(K) = IFFTIM(K) * TEMPRE(K)
+        NEXT K
+
+        LET TESTY = 1
+
+      END IF
+
+    ELSE IF Z0$ = "CYX" THEN   !COPY  Y  TO  X
+
+      MAT TEMPRE = IFFTRE
+      MAT TEMPIM = IFFTIM
+
+      IF KLEEN$ = "ONE" THEN
+
+        CALL CLEANUP(N, TEMPRE(), TEMPIM() )
+
+      END IF
+
+      LET MULT = 1
+      IF MODE$ = "SAMP" AND CONVFLAG = 1 THEN
+        LET MULT = T/N
+      END IF
+
+      MAT XRE = MULT*TEMPRE
+      MAT XIM = MULT*TEMPIM
+
+      MAT FFTRE = 0
+      MAT FFTIM = 0
+      MAT IFFTRE = 0
+      MAT IFFTIM = 0
+      LET IFFTFLAG = 0
+      LET REALFLAGIFFT = 1
+
+      LET TESTX = 1
+      LET TESTF = 1
+      LET TESTY = 1
+
+    END IF
+
+    IF SOMEFLAG = 1 AND Z0$ <> "Q" AND SKIP = 0 THEN
+
+      IF TESTX = 1 THEN CALL TESTXDATA( N, XRE(), XIM(), X2RE(), X2IM(), TEMP2RE(), TEMP2IM(), XFLAG, X2FLAG, REALFLAGX, KLEEN$ )
+
+      IF TESTF = 1 THEN CALL TESTFFTDATA( N, FFTRE(), FFTIM(), FFT2RE(), FFT2IM(), TEMP2RE(), TEMP2IM(), FFTFLAG, FFT2FLAG, SYMMFLAG, HJWFLAG, KLEEN$ )
+
+      IF TESTY = 1 THEN CALL TESTIFFTDATA( N, IFFTRE(), IFFTIM(), TEMP2RE(), TEMP2IM(), IFFTFLAG, REALFLAGIFFT, CONVFLAG, KLEEN$ )
+
+    END IF
+
+    IF GETOUT = 1 THEN EXIT DO
+
+  LOOP UNTIL Z0$ = "Q"
+
+END SUB !YPOST
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SUB WORM2( AV )
+
+  DECLARE PUBLIC window1
+
+  CALL TC_Win_SetCursor(window1, "WAIT")
+
+!  LET AV = AV + 1
+!  SET WINDOW 0, 81, 0, 31
+!  PLOT TEXT, AT AV, 29 : "="
+
+  CALL TC_Win_SetCursor(window1, "ARROW")
+
+END SUB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

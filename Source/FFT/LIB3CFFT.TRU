@@ -6,6 +6,7 @@ EXTERNAL             !LIB3CFFT
 
   DECLARE PUBLIC window1
   DECLARE PUBLIC window2
+  DECLARE PUBLIC TAUPLOTFLAG
 
   IF ORG$  <> "L" AND ORG$  <> "C" THEN LET ORG$  = "C"
   IF ORG2$ <> "L" AND ORG2$ <> "C" THEN LET ORG2$ = "C"
@@ -592,9 +593,10 @@ EXTERNAL             !LIB3CFFT
                 LET VAL2 = T/N
                 SET TEXT JUSTIFY "LEFT", "HALF"
 
-                IF CONCORFLAG = 0 AND (OPTION$ = "I" OR OPTION$ = "J" OR OPTION$ = "K") THEN
+                IF CONCORFLAG = 0 AND TAUPLOTFLAG = 1 AND (OPTION$ = "I" OR OPTION$ = "J" OR OPTION$ = "K") THEN
+                   SET TEXT JUSTIFY "LEFT", "BOTTOM"
+		   BOX SHOW GREEKTAU$ AT AA, BB		!-.03
 !                   PLOT TEXT, AT AA, BB: "tau ="
-		   BOX SHOW GREEKTAU$ AT AA, BB-.03
                 ELSE
                    PLOT TEXT, AT AA, BB: "t ="
                 END IF
@@ -624,9 +626,9 @@ EXTERNAL             !LIB3CFFT
                 END IF
               ELSE IF FREQPLOT = 1 AND (FAXIS = 2 AND MODE$ = "SAMP") THEN
                 LET OMEGAs = 2*PI/T
-!                SET TEXT JUSTIFY "LEFT", "HALF"
+                SET TEXT JUSTIFY "LEFT", "BOTTOM"
+		BOX SHOW GREEKOM$ AT AA, BB	!-.03
 !                PLOT TEXT, AT AA, BB: "w ="
-		BOX SHOW GREEKOM$ AT AA, BB-.03
                 SET TEXT JUSTIFY "CENTER", "HALF"
                 LET VAL2 = VAL1 * OMEGAs
                 IF CENT = 1 THEN

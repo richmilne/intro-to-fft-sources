@@ -1679,9 +1679,9 @@ SUB FORMULA
     LET PHR3$ = " <--- AS THE RUNNING VARIABLE"
     LET PHR4$ = "THE ONLY SYMBOLIC VARIABLES CAN BE "
     IF MODE$ = "SAMP" THEN
-      LET PHR5$ = ", T, N, PI/pi, Q/q (QUIT)"
+      LET PHR5$ = ", T, N, PI/pi"
     ELSE IF MODE$ = "DISC" THEN
-      LET PHR5$ = ", N, PI/pi, Q/q (QUIT)"
+      LET PHR5$ = ", N, PI/pi"
     END IF
 
     IF Z2$ = "X" OR Z2$ = "BX" THEN

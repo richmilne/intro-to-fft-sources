@@ -732,7 +732,7 @@ SUB BOX12( N, ORG$, ORG2$, X2FLAG, FFT2FLAG, TYPE$, MODE$, PULSESCALE, KILLSWITC
     LOOP WHILE CYCLE = 1
   LOOP UNTIL SKIPOUT = 1
 
-  LET KILLSWITCHFLAG = 1
+!  LET KILLSWITCHFLAG = 1
 
 END SUB !BOX12
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

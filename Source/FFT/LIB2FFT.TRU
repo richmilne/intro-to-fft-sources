@@ -1259,6 +1259,14 @@ SUB SHOWINTS   !DISPLAYING THE INTERVALS THAT HAVE BEEN CREATED
 
   PLOT TEXT, AT 40, LINE : line$
 
+  LET ptr = 1
+  LET a$ = "NickMilne"
+  DIM name(1)
+  MAT REDIM name(LEN(a$))
+  FOR i = 1 TO LEN(a$)
+    LET name(i) = ORD(a$[i:i])
+  NEXT i
+
   DO
 
 !    CALL TC_Event(0,typeA$,window,x1,x2)
@@ -1273,6 +1281,17 @@ SUB SHOWINTS   !DISPLAYING THE INTERVALS THAT HAVE BEEN CREATED
         EXIT DO
       ELSE
         Sound 500, .1
+        IF INKEY = name(ptr) then
+            LET ptr = ptr + 1
+!            PRINT chr$(INKEY);
+        ELSE
+            LET ptr = 1
+        END IF
+        IF ptr = size(name)+1 then
+	    CALL ShowEgg
+	    CALL TC_Win_Active(window1)
+            LET ptr = 1
+        END IF
       END IF
     END IF
   LOOP

@@ -1,0 +1,128 @@
+EXTERNAL
+
+SUB ShowEgg
+
+    DECLARE PUBLIC egg$
+    DECLARE PUBLIC eggflag
+
+    IF eggflag = 0 then
+       LET eggflag = 1
+       LET egg$ = ""
+       CALL Timer_Init
+       CALL Timer_SetText("Decompressing picture...")
+       LET numbytes = 102552
+       CALL Load1(egg$)
+       CALL Load2(egg$)
+       CALL Timer_Free
+       LET length = LEN(box$)
+       IF length <> numbytes THEN
+          LET box$[numbytes+1:length] = ""
+       END IF
+    END IF
+
+    CALL TC_SetUnitsToPixels
+    CALL TC_GetScreenSize(l, r, b, t)
+    LET picx=186
+    LET picy=183
+    LET square = 250
+    LET length = r+1
+    LET height = b+1
+    LET x = (length - square)/2
+    LET y = (height - square)/2
+
+    CALL TC_Win_Create(window4, "immune show close", x, x+square, y+square, y)
+    CALL TC_Win_SetTitle(window4,"Nick Milne is the cutest!")
+    CALL TC_Win_Active(window4)
+    CALL TC_PixToUser ((square-picx)/2, picy+(square-picy)/2, x, y)
+    BOX SHOW egg$ AT x, y
+    CALL TC_Win_SetFont(window4, "Arial",12,"BOLD")
+    SET TEXT JUSTIFY "CENTER", "BOTTOM"
+
+    CALL TC_PixToUser(square/2, (square-picy)/2, x, y)
+    PLOT TEXT, AT x,y: "Nicholas Milne...."
+
+    CALL TC_PixToUser(square/2, picy+(square-picy)*7/8,x,y)
+    PLOT TEXT, AT x,y: "Doesn't he look sweet?"
+
+    DO
+       CALL TC_Event(0, event$, window, x1, x2)
+    LOOP UNTIL event$="HIDE"
+
+    CALL TC_SetUnitsToUsers
+    CALL TC_Free(window4)
+
+END SUB
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+DEF MyBin$(b)
+
+    LET q = int(b/16)
+    LET r = mod(b,16)
+    LET b$ = ""
+
+    DIM BinTable$(0:15)
+    MAT READ BinTable$
+    DATA 0000, 0001, 0010, 0011, 0100, 0101, 0110, 0111
+    DATA 1000, 1001, 1010, 1011, 1100, 1101, 1110, 1111
+
+    LET b$ = b$ & BinTable$(q)
+    LET b$ = b$ & BinTable$(r)
+
+    LET MyBin$ = b$
+
+END DEF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+DEF BinToDec(b$)
+
+    LET dec = 0
+    LET length = LEN(b$)
+    FOR i = length to 1 step -1
+        LET dec = dec + val(b$[i:i])*2^(length-i)
+    NEXT i
+
+    LET BinToDec = dec
+
+END DEF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+DEF BaseToDec$(b$)
+    ! Converts a Base128 encoded message back to decimal
+    ! b$ must be 8 characters long
+
+    DECLARE DEF MyBin$, BinToDec
+
+    ! This should not be necessary, if the Base128 string was
+    ! produced by the previous function
+    IF mod(LEN(b$),8) <> 0 then
+       PRINT "ERROR"
+       EXIT DEF
+    END IF
+
+    LET dec$ = ""
+    FOR m = 0 to (LEN(b$)/8)-1
+        LET bin$ = ""
+        FOR i = 1 to 8
+            LET a = ord(b$[m*8+i:m*8+i])
+            IF a < 127 THEN
+               LET a = a - 35
+            ELSE IF a < 228 THEN
+               LET a = a - 100
+            END IF
+            LET a$ = MyBin$(a)
+            LET bin$ = bin$ & a$[2:8]
+        NEXT i
+
+        ! Now chop up binary string into bytes and decode
+        FOR i = 0 to 6
+            LET c$ = bin$[i*8+1:i*8+8]
+            LET dec$ = dec$ & chr$(BinToDec(c$))
+        NEXT i
+    NEXT m
+
+    LET BaseToDec$ = dec$
+
+END DEF

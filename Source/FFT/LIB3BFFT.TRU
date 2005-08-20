@@ -18,7 +18,6 @@ SUB POSTPROCS( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), F
 
         LET LOOPUP = 1
 
-
       ELSE
 
         CALL CLEARTEMPS
@@ -373,7 +372,7 @@ SUB XPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM
 !        PRINT "=";
       END IF
 
-    ELSE IF Z0$ = "SX" THEN          !SAMPLE  X
+    ELSE IF Z0$ = "SX" THEN          !IMPULSE SAMPLE  X
       LET AQ = 0
       DO
         LET MESSAGE$ = "KEEP EVERY  M-TH  X-VALUE..."
@@ -412,8 +411,103 @@ SUB XPOST( CONCORFLAG, CENTFREQ, N, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM
         NEXT K
 
         FOR K = 0 TO N - 1
-          LET XRE(K) = XRE(K) * TEMPRE(K)
-          LET XIM(K) = XIM(K) * TEMPRE(K)
+          LET XRE(K) = XRE(K) * TEMPRE(K) * N/T
+          LET XIM(K) = XIM(K) * TEMPRE(K) * N/T
+        NEXT K
+
+        CALL ZF
+        CALL ZY
+
+      END IF
+
+    ELSE IF Z0$ = "RSX" THEN          !RECT SAMPLE  X
+      LET AQ = 0
+      DO
+        LET MESSAGE$ = "RECTS AT EVERY  M-TH  X-VALUE..."
+        LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT VALUE FOR  M ?"
+        LET MESSAGE$ = MESSAGE$ & "|" & "   ( A POSITIVE INTEGER WHICH DIVIDES INTO " & STR$(N) & " ) "
+
+        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+        IF FLAG = 1 THEN
+          LET SKIP = 1
+        ELSE IF FLAG = 0 THEN
+          LET M = FDG
+          IF M <> INT(M) OR M < 1 THEN
+            LET M = 0
+            LET AQ = 0
+            Sound 500, .1
+          ELSE
+            LET AQ = 1
+          END IF
+
+          IF M <> 0 THEN
+            IF N/M <> INT(N/M) THEN
+              LET AQ = 0
+              Sound 500, .1
+            ELSE
+              LET AQ = 1
+            END IF
+          END IF
+        END IF
+      LOOP UNTIL FLAG = 1 OR AQ = 1
+
+      LET AQ = 0
+      DO
+        LET MESSAGE$ = "EACH RECT IS  W  SAMPLES WIDE..."
+        LET MESSAGE$ = MESSAGE$ & "|" & "|" & "WHAT VALUE FOR  W ?"
+        LET MESSAGE$ = MESSAGE$ & "|" & "   ( AN ODD INTEGER LESS THAN " & STR$(M/4) & " ) "
+
+        CALL INPUTVALL( MESSAGE$, FDG, SHOWFLAG, FLAG )
+
+        IF FLAG = 1 THEN
+          LET SKIP = 1
+        ELSE IF FLAG = 0 THEN
+          LET W = FDG
+          IF W <> INT(W) OR W < 1 THEN
+            LET W = 0
+            LET AQ = 0
+            Sound 500, .1
+          ELSE
+            LET AQ = 1
+          END IF
+
+          IF W <> 0 THEN
+            IF MOD(W,2) = 0 THEN
+              LET AQ = 0
+              Sound 500, .1
+            ELSE
+              LET AQ = 1
+            END IF
+
+            IF W > M/4 THEN
+              LET AQ = 0
+              Sound 500, .1
+            ELSE
+              LET AQ = 1
+            END IF
+          END IF
+        END IF
+
+      LOOP UNTIL FLAG = 1 OR AQ = 1
+
+      IF FLAG = 0 THEN
+        MAT TEMPRE = 0
+
+        FOR I = 0 TO (N/M - 1)
+          LET BASE = I * M
+          LET LIMIT = (I + 1) * M
+          FOR J = 0 TO (W - 3)/2
+            LET TEMPRE(BASE  + J) = 1
+            LET TEMPRE(LIMIT - J) = 1
+          NEXT J
+          LET TEMPRE(BASE  + J) = 1/2
+          LET TEMPRE(LIMIT - J) = 1/2
+        NEXT I
+
+        FOR K = 0 TO N - 1
+          LET XRE(K) = XRE(K) * TEMPRE(K) * N/T
+          LET XIM(K) = XIM(K) * TEMPRE(K) * N/T
         NEXT K
 
         CALL ZF

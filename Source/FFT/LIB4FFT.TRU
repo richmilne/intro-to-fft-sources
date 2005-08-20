@@ -857,7 +857,7 @@ SUB SHOWNUMBERS( CONCORFLAG, N, NU, XRE(), XIM(), X2RE(), X2IM(), FFTRE(), FFTIM
 
   END WHEN
 
-!  CALL TC_Menu_Free( window2 )
+  CALL TC_Menu_Free( window2 )
   CALL TC_Free( window2 )
   CALL TC_Win_Switch( window1 )
 

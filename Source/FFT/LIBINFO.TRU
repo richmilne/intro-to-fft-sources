@@ -12,10 +12,10 @@ END SUB !VERSIONDATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUB SHOWINFO
 
-  PLOT TEXT, AT 40,21:"Version WIN-2.00, March 3, 2000  17h00"
+  PLOT TEXT, AT 40,21:"Version WIN-2.03, 2 Sept 2002, 11h00"
   PLOT TEXT, AT 40,19:"Norman Morrison"
   PLOT TEXT, AT 40,18:"University of Cape Town"
-  PLOT TEXT, AT 40,17:"Rondebosch, South Africa 7700"
+  PLOT TEXT, AT 40,17:"Rondebosch, South Africa 7701"
   PLOT TEXT, AT 40,16:"Email: norman@eng.uct.ac.za"
   PLOT TEXT, AT 40,14:"Development Language System provided by"
   PLOT TEXT, AT 40,13:"True BASIC Inc."

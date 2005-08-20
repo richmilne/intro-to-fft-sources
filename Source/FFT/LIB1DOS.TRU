@@ -863,7 +863,7 @@ SUB PAINTSTATUS( CONCORFLAG, CENTFREQ, N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFL
     LET x = 3.5
     LET y = 5.5
     LET length = 23
-    LET offset = 5
+    LET offset = 4
 
     PLOT x, y+offset; x, y+length; x+34, y+length; x+34, y+offset; x, y+offset
 
@@ -872,9 +872,8 @@ SUB PAINTSTATUS( CONCORFLAG, CENTFREQ, N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFL
 
     PLOT x ,y+21 ; x+34, y+21
     PLOT x ,y+17 ; x+34, y+17
-    PLOT x ,y+12; x+34, y+12
-    PLOT x ,y+8 ; x+34, y+8
-!    PLOT x ,y+7 ; x+34, y+7
+    PLOT x ,y+11; x+34, y+11
+    PLOT x ,y+7 ; x+34, y+7
 
     LET x = 19.5
 
@@ -882,18 +881,37 @@ SUB PAINTSTATUS( CONCORFLAG, CENTFREQ, N, MODE$, TYPE$, T, XFLAG, X2FLAG, REALFL
     LET HEAD$ = "FFT : MAIN MENU"
     PLOT TEXT, AT x, y+22:HEAD$
 
+!    PLOT TEXT, AT x,y+20: "Create Values"
+!    PLOT TEXT, AT x,y+19: "Load from Disk"
+!    PLOT TEXT, AT x,y+18: "Edit from Keyboard"
+!    PLOT TEXT, AT x,y+16: "Run Analysis"
+!    PLOT TEXT, AT x,y+15: "Run Convolution"
+!    PLOT TEXT, AT x,y+14: "Run Correlation"
+!    PLOT TEXT, AT x,y+13: "Run Postprocessors"
+!    PLOT TEXT, AT x,y+11: "Draw Plots"
+!    PLOT TEXT, AT x,y+10: "Show Numbers"
+!    PLOT TEXT, AT x,y+9:  "Send to Disk"
+!    PLOT TEXT, AT x,y+7:  "Setup"
+!    PLOT TEXT, AT x,y+6:  "Quit"
+!
+!    SET WINDOW 0, 81, 0, 31
+
     PLOT TEXT, AT x,y+20: "Create Values"
     PLOT TEXT, AT x,y+19: "Load from Disk"
     PLOT TEXT, AT x,y+18: "Edit from Keyboard"
+
     PLOT TEXT, AT x,y+16: "Run Analysis"
-    PLOT TEXT, AT x,y+15: "Run Convolution"
-    PLOT TEXT, AT x,y+14: "Run Correlation"
-    PLOT TEXT, AT x,y+13: "Run Postprocessors"
-    PLOT TEXT, AT x,y+11: "Draw Plots"
-    PLOT TEXT, AT x,y+10: "Show Numbers"
-    PLOT TEXT, AT x,y+9:  "Send to Disk"
-    PLOT TEXT, AT x,y+7:  "Setup"
-    PLOT TEXT, AT x,y+6:  "Quit"
+    PLOT TEXT, AT x,y+15: "Run Synthesis"
+    PLOT TEXT, AT x,y+14: "Run Convolution"
+    PLOT TEXT, AT x,y+13: "Run Correlation"
+    PLOT TEXT, AT x,y+12: "Run Postprocessors"
+
+    PLOT TEXT, AT x,y+10: "Draw Plots"
+    PLOT TEXT, AT x,y+9: "Show Numbers"
+    PLOT TEXT, AT x,y+8:  "Send to Disk"
+
+    PLOT TEXT, AT x,y+6:  "Setup"
+    PLOT TEXT, AT x,y+5:  "Quit"
 
     SET WINDOW 0, 81, 0, 31
 

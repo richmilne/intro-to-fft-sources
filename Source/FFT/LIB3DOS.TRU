@@ -1135,7 +1135,7 @@ SUB BOX19( PLOTRANGE, FRAC, N, KILLSWITCHFLAG, SHOWNFLAG )
 
   DECLARE DEF EVAL
   DECLARE PUBLIC window1
-  DECLARE PUBLIC window2
+!  DECLARE PUBLIC window2
 
   SET CURSOR "ON"
 
@@ -1192,8 +1192,8 @@ SUB BOX19( PLOTRANGE, FRAC, N, KILLSWITCHFLAG, SHOWNFLAG )
   IF KILLSWITCHFLAG = 1 THEN
     LET KILLSWITCHFLAG = 0
 
-    CALL TC_Free(window2)
-    CALL TC_Win_Switch( window1 )
+!    CALL TC_Free(window2)
+!    CALL TC_Win_Switch( window1 )
 
     DO
 
@@ -1618,8 +1618,16 @@ SUB BOXXPOST(Z0$, MODE$ )
     MAT REDIM MENU$(0:M,3)
     MAT REDIM LIST2$(M)
   END IF
-  LET MENU$(M,2) = "Sample X@S"
+  LET MENU$(M,2) = "Impulse Sample X@S"
   LET LIST2$(M) = "SX"
+  LET M = M+1
+
+  IF M > L THEN
+    MAT REDIM MENU$(0:M,3)
+    MAT REDIM LIST2$(M)
+  END IF
+  LET MENU$(M,2) = "Rect Sample X@R"
+  LET LIST2$(M) = "RSX"
   LET M = M+1
 
   IF M > L THEN
